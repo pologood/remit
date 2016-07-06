@@ -5,14 +5,19 @@ import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
+
 import org.apache.ibatis.type.*;
 
 public class EnumValueTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E> {
 
   private Class<E> type;
-  private Method   method;
+
+  private Method method;
+
   private final E[] enums;
-  private final int[] values;
+
+  private final Object[] values;
 
   public EnumValueTypeHandler(Class<E> type) {
     if (type == null) {
@@ -21,27 +26,25 @@ public class EnumValueTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E> 
     this.type = type;
     this.enums = type.getEnumConstants();
     if (this.enums == null) {
-      throw new IllegalArgumentException(
-        type.getSimpleName() + " does not represent an enum value type.");
+      throw new IllegalArgumentException(type.getSimpleName() + " does not represent an enum value type.");
     }
 
-    int i = 0; 
+    int i = 0;
     try {
       this.method = type.getMethod("getValue");
-      this.values = new int[enums.length];
-      
+      this.values = new Object[enums.length];
+
       for (E e : this.enums) {
-        this.values[i++] = (int) this.method.invoke(e);
+        this.values[i++] = this.method.invoke(e);
       }
     } catch (Exception e) {
-      throw new IllegalArgumentException(
-        type.getSimpleName() + " does not represent an enum value type.");
+      throw new IllegalArgumentException(type.getSimpleName() + " does not represent an enum value type.");
     }
   }
 
-  public E getEnum(int value) {
+  public E getEnum(Object value) {
     for (int i = 0; i < values.length; ++i) {
-      if (values[i] == value) return enums[i];
+      if (Objects.equals(value, values[i])) return enums[i];
     }
     return null;
   }
@@ -52,10 +55,9 @@ public class EnumValueTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E> 
     try {
       value = (int) this.method.invoke(parameter);
     } catch (Exception e) {
-      throw new IllegalArgumentException(
-        type.getSimpleName() + " does not represent an enum value type.");
+      throw new IllegalArgumentException(type.getSimpleName() + " does not represent an enum value type.");
     }
-    
+
     ps.setInt(i, value);
   }
 
@@ -68,7 +70,8 @@ public class EnumValueTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E> 
       try {
         return getEnum(i);
       } catch (Exception ex) {
-        throw new IllegalArgumentException("Cannot convert " + i + " to " + type.getSimpleName() + " by ordinal value.", ex);
+        throw new IllegalArgumentException("Cannot convert " + i + " to " + type.getSimpleName() + " by ordinal value.",
+            ex);
       }
     }
   }
@@ -82,7 +85,8 @@ public class EnumValueTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E> 
       try {
         return getEnum(i);
       } catch (Exception ex) {
-        throw new IllegalArgumentException("Cannot convert " + i + " to " + type.getSimpleName() + " by ordinal value.", ex);
+        throw new IllegalArgumentException("Cannot convert " + i + " to " + type.getSimpleName() + " by ordinal value.",
+            ex);
       }
     }
   }
@@ -96,9 +100,10 @@ public class EnumValueTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E> 
       try {
         return getEnum(i);
       } catch (Exception ex) {
-        throw new IllegalArgumentException("Cannot convert " + i + " to " + type.getSimpleName() + " by ordinal value.", ex);
+        throw new IllegalArgumentException("Cannot convert " + i + " to " + type.getSimpleName() + " by ordinal value.",
+            ex);
       }
     }
   }
-  
+
 }

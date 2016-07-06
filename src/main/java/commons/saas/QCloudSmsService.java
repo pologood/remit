@@ -2,7 +2,6 @@ package commons.saas;
 
 import java.util.Arrays;
 import java.nio.charset.Charset;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpEntity;
@@ -31,7 +30,6 @@ class SendSmsReqBody {
   public String  sig;
 }
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 class SendSmsRespBody {
   public int    result;
   public String errmsg;

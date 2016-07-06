@@ -1,35 +1,40 @@
 package com.sogou.pay.remit.model;
 
-public class Errno {
-  public static final int OK                  = 0;
-  public static final int BAD_REQUEST         = 400;
-  public static final int UNAUTHORIZED        = 401;
-  public static final int FORBIDDEN           = 403;
-  public static final int NOT_FOUND           = 404;
-  public static final int NOT_ACCEPT          = 406;
-  public static final int INTERNAL_ERROR      = 500;
-  public static final int NOT_IMPLEMENT       = 501;
-  public static final int SERVICE_UNAVAILABLE = 503;
+public enum HttpErrorCode {
 
-  public static String getMessage(int code) {
-    switch (code) {
-    case OK: return "OK";
-    case BAD_REQUEST: return "bad request";
-    case UNAUTHORIZED: return "unauthorized";
-    case NOT_FOUND: return "entity not found";
-    case NOT_ACCEPT: return "not acceptable";
-    case INTERNAL_ERROR: return "internal server error";
-    case SERVICE_UNAVAILABLE: return "service unavailable";
-    default: return "";
-    }
+  OK(0, "OK"),
+
+  BAD_REQUEST(400, "bad request"),
+
+  UNAUTHORIZED(401, "unauthorized"),
+
+  FORBIDDEN(403, "forbidden"),
+
+  NOT_FOUND(404, "entity not found"),
+
+  NOT_ACCEPTABLE(406, "not acceptable"),
+
+  INTERNAL_ERROR(500, "internal server error"),
+
+  NOT_IMPLEMENTED(501, "not implemented"),
+
+  SERVICE_UNAVAILABLE(503, "service unavailable");
+
+  private int code;
+
+  private String message;
+
+  private HttpErrorCode(int code, String message) {
+    this.code = code;
+    this.message = message;
   }
 
-  public static class BadRequestException extends RuntimeException {
+  public int getCode() {
+    return code;
   }
 
-  public static class InternalErrorException extends RuntimeException {
-    public InternalErrorException(Throwable throwable) {
-      super(throwable);
-    }
+  public String getMessage() {
+    return message;
   }
+
 }

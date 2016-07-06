@@ -11,39 +11,39 @@ import com.sogou.pay.remit.model.*;
 public class GlobalExceptionHandler {
   @ExceptionHandler(RuntimeException.class)
   @ResponseBody
-  public ApiResult internalServerError(Exception e) {
+  public ApiResult<?> internalServerError(Exception e) {
     e.printStackTrace();
-    return new ApiResult(Errno.INTERNAL_ERROR, Throwables.getStackTraceAsString(e));
+    return new ApiResult<>(HttpErrorCode.INTERNAL_ERROR, Throwables.getStackTraceAsString(e));
   }
 
   @ExceptionHandler(DataAccessException.class)
   @ResponseBody
-  public ApiResult dataAccessExcption(Exception e) {
+  public ApiResult<?> dataAccessExcption(Exception e) {
     e.printStackTrace();
-    return new ApiResult(Errno.INTERNAL_ERROR, "interal db error");
+    return new ApiResult<>(HttpErrorCode.INTERNAL_ERROR, "interal db error");
   }
 
   @ExceptionHandler(ServletRequestBindingException.class)
   @ResponseBody
-  public ApiResult servletRequestBindingException(Exception e) {
-    return new ApiResult(Errno.BAD_REQUEST, Throwables.getStackTraceAsString(e));
+  public ApiResult<?> servletRequestBindingException(Exception e) {
+    return new ApiResult<>(HttpErrorCode.BAD_REQUEST, Throwables.getStackTraceAsString(e));
   }
   
-  @ExceptionHandler(Errno.BadRequestException.class)
+  @ExceptionHandler(BadRequestException.class)
   @ResponseBody
-  public ApiResult badRequestException(Exception e) {
-    return new ApiResult(Errno.BAD_REQUEST, Throwables.getStackTraceAsString(e));
+  public ApiResult<?> badRequestException(Exception e) {
+    return new ApiResult<>(HttpErrorCode.BAD_REQUEST, Throwables.getStackTraceAsString(e));
   }
 
-  @ExceptionHandler(Errno.InternalErrorException.class)
+  @ExceptionHandler(InternalErrorException.class)
   @ResponseBody
-  public ApiResult internalErrorException(Exception e) {
-    return new ApiResult(Errno.INTERNAL_ERROR, Throwables.getStackTraceAsString(e));
+  public ApiResult<?> internalErrorException(Exception e) {
+    return new ApiResult<>(HttpErrorCode.INTERNAL_ERROR, Throwables.getStackTraceAsString(e));
   }
 
   @ExceptionHandler(TypeMismatchException.class)
   @ResponseBody
-  public ApiResult typeMismatchException(Exception e) {
-    return new ApiResult(Errno.BAD_REQUEST, e.toString());
+  public ApiResult<?> typeMismatchException(Exception e) {
+    return new ApiResult<>(HttpErrorCode.BAD_REQUEST, e.toString());
   }
 }
