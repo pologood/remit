@@ -1,8 +1,6 @@
 package com.sogou.pay.remit.config.servlet;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.context.annotation.Bean;
@@ -17,18 +15,14 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
-import com.google.gson.GsonBuilder;
 import com.sogou.pay.remit.config.ProjectInfo;
 
-import commons.utils.LocalDateJsonConverter;
-import commons.utils.LocalDateTimeJsonConverter;
+import commons.utils.JsonUtil;
 
 @Configuration
 @EnableWebMvc
 @ComponentScan({ ProjectInfo.API_PKG })
 public class WebConfig extends WebMvcConfigurerAdapter {
-
-  private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
   @Override
   public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
@@ -37,11 +31,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     converters.add(stringConverter);
 
     GsonHttpMessageConverter gsonConverter = new GsonHttpMessageConverter();
-    GsonBuilder gsonBuilder = new GsonBuilder();
-    gsonBuilder.setDateFormat(DATE_TIME_FORMAT);
-    gsonBuilder.registerTypeAdapter(LocalDate.class, new LocalDateJsonConverter())
-        .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeJsonConverter());
-    gsonConverter.setGson(gsonBuilder.create());
+    gsonConverter.setGson(JsonUtil.GSON);
     converters.add(gsonConverter);
   }
 

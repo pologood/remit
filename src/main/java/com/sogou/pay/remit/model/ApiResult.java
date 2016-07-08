@@ -1,5 +1,6 @@
 package com.sogou.pay.remit.model;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -77,7 +78,7 @@ public class ApiResult<Data> {
     return new ApiResult<>(HttpErrorCode.NOT_FOUND);
   }
 
-  public static ApiResult<?> notAccept(String msg) {
+  public static ApiResult<?> notAcceptable(String msg) {
     return new ApiResult<>(HttpErrorCode.NOT_ACCEPTABLE, msg);
   }
 
@@ -130,7 +131,10 @@ public class ApiResult<Data> {
     this.data = data;
   }
 
-  private static final String API_RESULT_ERROR = "ApiResultError", RESPONSE = "response__";
+  public static final String API_RESULT_ERROR = "ApiResultError", RESPONSE = "response__",
+      DATE_TIME_FORMAT = "yyyyMMddHHmmss";
+
+  public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT);
 
   @Override
   public String toString() {

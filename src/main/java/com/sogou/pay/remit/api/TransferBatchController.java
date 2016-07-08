@@ -27,8 +27,6 @@ import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.manager.TransferBatchManager;
 import com.sogou.pay.remit.model.ApiResult;
 
-import commons.utils.JsonUtil;
-
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
 //-------------------------------------------------------
@@ -47,7 +45,7 @@ public class TransferBatchController {
   @RequestMapping(value = "/transferBatch", method = RequestMethod.POST)
   public ApiResult<?> add(@ApiQueryParam @Valid TransferBatch batch, BindingResult bindingResult) {
     if (bindingResult.hasErrors()) {
-      LOGGER.error("[add]bad request:batch={}", JsonUtil.toJson(batch));
+      LOGGER.error("[add]bad request:batch={}", batch);
       return ApiResult.bindingResult(bindingResult);
     }
     return manager.add(batch);
@@ -67,9 +65,9 @@ public class TransferBatchController {
   @RequestMapping(value = "/transferBatch", method = RequestMethod.PUT)
   public ApiResult<?> update(@RequestParam(name = "appId") @Min(value = 1) int appId,
       @RequestParam(name = "batchNo") @Size(min = 1) String batchNo,
-      @RequestParam(name = "transferId", required = false) @Size(min = 1) Optional<String> transferId,
-      @RequestParam(name = "status") @Min(value = 1) int status) {
-    return manager.update(appId, batchNo, status);
+      @RequestParam(name = "status") @Min(value = 1) int status,
+      @RequestParam(name = "opinion", required = false) Optional<String> opinion) {
+    return manager.update(appId, batchNo, status, null, opinion.orElse(null));
   }
 
 }

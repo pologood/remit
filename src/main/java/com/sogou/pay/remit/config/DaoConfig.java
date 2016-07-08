@@ -1,6 +1,5 @@
 package com.sogou.pay.remit.config;
 
-import java.util.*;
 import javax.sql.DataSource;
 import com.alibaba.druid.pool.DruidDataSource;
 import org.mybatis.spring.annotation.MapperScan;
@@ -44,7 +43,7 @@ public class DaoConfig {
     SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
     sqlSessionFactoryBean.setDataSource(dataSource());
 
-    TypeHandler[] handlers = new TypeHandler[] {
+    TypeHandler<?>[] handlers = new TypeHandler[] {
       new LocalDateTimeTypeHandler(),
     };
     sqlSessionFactoryBean.setTypeHandlers(handlers);

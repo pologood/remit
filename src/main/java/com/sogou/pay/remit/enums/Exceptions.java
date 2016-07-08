@@ -1,23 +1,34 @@
 package com.sogou.pay.remit.enums;
+
 public enum Exceptions {
 
-  SUCCESS(0, "SUCCESS", "成功"),
+  SUCCESS("000000", "SUCCESS", "成功"),
 
-  ORDERID_INVALID(100001, "ORDERID_INVALID", "订单信息不正确"),
+  DATA_PERSISTENCE_FAILED("000001", "DATA_PERSISTENCE_FAILED", "数据持久化失败"),
 
-  ORDERSTATUS_INVALID(100002, "ORDERSTATUS_INVALID", "订单状态不正确"),
+  ENTITY_NOT_FOUND("000002", "ENTITY_NOT_FOUND", "查无此数据"),
 
-  QRCODE_EXPIRED(100003, "QRCODE_EXPIRED", "二维码失效"),
+  CHANNEL_INVALID("100001", "CHANNEL_INVALID", "无效的渠道"),
 
-  SIGN_INVALID(100004, "SIGN_INVALID", "签名错误");
+  APPID_INVALID("100002", "APPID_INVALID", "无效的业务线"),
 
-  private int errorCode;
+  BATCHNO_INVALID("100003", "BATCHNO_INVALID", "无效的批次号"),
+
+  SINGTYPE_INVALID("100004", "SINGTYPE_INVALID", "无效的签名方式"),
+
+  SIGN_INVALID("100005", "SIGN_INVALID", "签名错误"),
+
+  STATUS_INVALID("100006", "STATUS_INVALID", "非法改变状态"),
+
+  QRCODE_EXPIRED("100003", "QRCODE_EXPIRED", "二维码失效");
+
+  private String errorCode;
 
   private String errorMsg;
 
   private String chineseMsg;
 
-  Exceptions(int errorCode, String errorMsg, String chineseMsg) {
+  Exceptions(String errorCode, String errorMsg, String chineseMsg) {
     this.errorCode = errorCode;
     this.errorMsg = errorMsg;
     this.chineseMsg = chineseMsg;
@@ -28,7 +39,7 @@ public enum Exceptions {
    *
    * @return String
    */
-  public int getErrorCode() {
+  public String getErrorCode() {
     return this.errorCode;
   }
 
