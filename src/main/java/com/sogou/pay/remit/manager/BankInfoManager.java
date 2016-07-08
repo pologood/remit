@@ -16,7 +16,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.sogou.pay.remit.entity.BankInfo;
-import com.sogou.pay.remit.enums.Channel;
+import com.sogou.pay.remit.entity.TransferBatch.Channel;
 import com.sogou.pay.remit.enums.Exceptions;
 import com.sogou.pay.remit.mapper.BankInfoMapper;
 import com.sogou.pay.remit.model.BadRequestException;
@@ -41,11 +41,11 @@ public class BankInfoManager implements InitializingBean {
     LOGGER.error("[getBankInfo]{}:{}", Exceptions.CHANNEL_INVALID.getErrorMsg(), channel.name());
     throw new BadRequestException(Exceptions.CHANNEL_INVALID);
   }
-  
-  public void init(){
+
+  public void init() {
     PAY_MAP.clear();
-    AGENCY_MAP.clear(); 
-    
+    AGENCY_MAP.clear();
+
     List<BankInfo> bankInfos = mapper.list();
 
     bankInfos.stream().filter(info -> Objects.equals(Channel.PAY.name(), info.getChannel()))

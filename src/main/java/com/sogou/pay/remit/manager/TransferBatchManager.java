@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 
 import com.sogou.pay.remit.entity.BankInfo;
 import com.sogou.pay.remit.entity.TransferBatch;
-import com.sogou.pay.remit.enums.Channel;
+import com.sogou.pay.remit.entity.TransferBatch.Channel;
 import com.sogou.pay.remit.enums.Exceptions;
 import com.sogou.pay.remit.mapper.TransferBatchMapper;
 import com.sogou.pay.remit.model.ApiResult;
