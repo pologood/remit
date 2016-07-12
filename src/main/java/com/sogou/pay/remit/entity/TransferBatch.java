@@ -5,7 +5,6 @@
  */
 package com.sogou.pay.remit.entity;
 
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,20 +19,24 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotBlank;
 import org.jsondoc.core.annotation.ApiObjectField;
 import org.springframework.format.annotation.NumberFormat;
 
-import com.google.common.reflect.TypeToken;
-import com.google.gson.annotations.Expose;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.type.TypeReference;
 
-import commons.utils.JsonUtil;
+import commons.utils.JsonHelper;
 import commons.utils.State;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
 //-------------------------------------------------------
+@JsonInclude(value = Include.NON_NULL)
 public class TransferBatch {
 
   private Long id;
@@ -43,8 +46,8 @@ public class TransferBatch {
   private String version;
 
   @ApiObjectField(description = "渠道")
-  @NotBlank(message = "channel is required")
-  private String channel;
+  @NotNull(message = "channel is required")
+  private Channel channel;
 
   @ApiObjectField(description = "签名")
   @NotBlank(message = "sign is required")
@@ -83,17 +86,17 @@ public class TransferBatch {
   //audit
   private Long auditor;
 
-  private List<LocalDateTime> auditTimeList = new ArrayList<>();
+  private List<LocalDateTime> auditTimeList;
 
-  private List<String> auditOpinionList = new ArrayList<>();
+  private List<String> auditOpinionList;
 
-  @Expose(serialize = false)
+  @JsonIgnore
   private String auditTimes;
 
-  @Expose(serialize = false)
+  @JsonIgnore
   private String auditOpinions;
 
-  @Expose(serialize = false)
+  @JsonIgnore
   private Integer status;
 
   private String statusString;
@@ -113,22 +116,22 @@ public class TransferBatch {
   private String branchCode;
 
   @ApiObjectField(description = "业务模式")
-  private String busiMode;
+  private BusiMode busiMode;
 
   @ApiObjectField(description = "业务类别")
-  private String busiCode;
+  private BusiCode busiCode;
 
   @ApiObjectField(description = "交易类型")
-  private String transType;
+  private TransType transType;
 
   @ApiObjectField(description = "币种")
   private String currency;
 
   @ApiObjectField(description = "结算方式")
-  private String settleChannel;
+  private SettleChannel settleChannel;
 
   //notify
-  @Expose(serialize = false)
+  @JsonIgnore
   private String outTradeNo;
 
   private Integer successCount;
@@ -138,17 +141,18 @@ public class TransferBatch {
   private String outErrMsg;
 
   //time stamp
-  @Expose(deserialize = false)
+  @JsonIgnore
   private LocalDateTime createTime;
 
-  @Expose(deserialize = false)
+  @JsonIgnore
   private LocalDateTime upDateTime;
 
   //details
   @ApiObjectField(description = "转账明细")
-  @NotNull(message = "details is required")
-  @Size(min = 1, message = "details must not be empty")
-  private List<TransferDetail> details;
+  @NotBlank(message = "details is required")
+  private String details;
+
+  private List<TransferDetail> detailList;
 
   public Long getId() {
     return id;
@@ -166,11 +170,11 @@ public class TransferBatch {
     this.version = version;
   }
 
-  public String getChannel() {
+  public Channel getChannel() {
     return channel;
   }
 
-  public void setChannel(String channel) {
+  public void setChannel(Channel channel) {
     this.channel = channel;
   }
 
@@ -252,7 +256,7 @@ public class TransferBatch {
 
   public void setAuditTimeList() {
     if (StringUtils.isNotBlank(auditTimes))
-      this.auditTimeList = JsonUtil.fromJson(auditTimes, TYPE_OF_LOCALDATETIME_LIST);
+      this.auditTimeList = JsonHelper.readValue(auditTimes, TYPE_OF_LOCALDATETIME_LIST);
   }
 
   public List<String> getAuditOpinionList() {
@@ -261,7 +265,7 @@ public class TransferBatch {
 
   public void setAuditOpinionList() {
     if (StringUtils.isNotBlank(auditOpinions))
-      this.auditOpinionList = JsonUtil.fromJson(auditOpinions, TYPE_OF_STRING_LIST);
+      this.auditOpinionList = JsonHelper.readValue(auditOpinions, TYPE_OF_STRING_LIST);
   }
 
   public String getAuditTimes() {
@@ -269,7 +273,11 @@ public class TransferBatch {
   }
 
   public void setAuditTimes() {
-    this.auditTimes = JsonUtil.toJson(auditTimeList);
+    this.auditTimes = JsonHelper.writeValueAsString(auditTimeList);
+  }
+
+  public void setAuditTimes(String s) {
+    this.auditTimes = s;
   }
 
   public String getAuditOpinions() {
@@ -277,7 +285,11 @@ public class TransferBatch {
   }
 
   public void setAuditOpinions() {
-    this.auditOpinions = JsonUtil.toJson(auditOpinionList);
+    this.auditOpinions = JsonHelper.writeValueAsString(auditOpinionList);
+  }
+
+  public void setAuditOpinions(String s) {
+    this.auditOpinions = s;
   }
 
   public Integer getStatus() {
@@ -328,27 +340,27 @@ public class TransferBatch {
     this.branchCode = branchCode;
   }
 
-  public String getBusiMode() {
+  public BusiMode getBusiMode() {
     return busiMode;
   }
 
-  public void setBusiMode(String busiMode) {
+  public void setBusiMode(BusiMode busiMode) {
     this.busiMode = busiMode;
   }
 
-  public String getBusiCode() {
+  public BusiCode getBusiCode() {
     return busiCode;
   }
 
-  public void setBusiCode(String busiCode) {
+  public void setBusiCode(BusiCode busiCode) {
     this.busiCode = busiCode;
   }
 
-  public String getTransType() {
+  public TransType getTransType() {
     return transType;
   }
 
-  public void setTransType(String transType) {
+  public void setTransType(TransType transType) {
     this.transType = transType;
   }
 
@@ -360,11 +372,11 @@ public class TransferBatch {
     this.currency = currency;
   }
 
-  public String getSettleChannel() {
+  public SettleChannel getSettleChannel() {
     return settleChannel;
   }
 
-  public void setSettleChannel(String settleChannel) {
+  public void setSettleChannel(SettleChannel settleChannel) {
     this.settleChannel = settleChannel;
   }
 
@@ -416,17 +428,36 @@ public class TransferBatch {
     this.upDateTime = upDateTime;
   }
 
-  public List<TransferDetail> getDetails() {
+  public String getDetails() {
     return details;
   }
 
-  public void setDetails(List<TransferDetail> details) {
+  public void setDetails(String details) {
     this.details = details;
+  }
+
+  public void setDetailList() {
+    try {
+      if (StringUtils.isNotBlank(this.details)) this.details = this.details.replace('＇', '\'').replace('＂', '"');
+      this.detailList = JsonHelper.readValue(this.details, TYPE_OF_TRANSFER_DETAIL_LIST);
+    } catch (Exception e) {
+      e.printStackTrace();
+      this.detailList = null;
+    }
+  }
+
+  public void setDetailList(List<TransferDetail> detailList) {
+    this.detailList = detailList;
+  }
+
+  public List<TransferDetail> getDetailList() {
+    if (CollectionUtils.isEmpty(this.detailList)) setDetailList();
+    return this.detailList;
   }
 
   @Override
   public String toString() {
-    return JsonUtil.toJson(this);
+    return JsonHelper.writeValueAsString(this);
   }
 
   public TransferBatch setString() {
@@ -441,15 +472,18 @@ public class TransferBatch {
     return this;
   }
 
-  private static final Type TYPE_OF_LOCALDATETIME_LIST = new TypeToken<List<LocalDateTime>>() {}.getType(),
-      TYPE_OF_STRING_LIST = new TypeToken<List<String>>() {}.getType();
+  private static final TypeReference<List<LocalDateTime>> TYPE_OF_LOCALDATETIME_LIST = new TypeReference<List<LocalDateTime>>() {};
+
+  private static final TypeReference<List<String>> TYPE_OF_STRING_LIST = new TypeReference<List<String>>() {};
+
+  private static final TypeReference<List<TransferDetail>> TYPE_OF_TRANSFER_DETAIL_LIST = new TypeReference<List<TransferDetail>>() {};
 
   public static class Status {
 
-    public static final State<Integer> INIT = new State<>(1), JUNIOR_APPROVED = new State<>(2),
-        JUNIOR_REJECTED = new State<>(3), SENIOR_APPROVED = new State<>(4), SENIOR_REJECTED = new State<>(5),
-        FINAL_APPROVED = new State<>(6), FINAL_REJECTED = new State<>(7), PROCESSING = new State<>(8),
-        FAILED = new State<>(9), SUCCESS = new State<>(10), NOTIFIED = new State<>(11);
+    public static final State<Integer> INIT = new State<>(0), JUNIOR_REJECTED = new State<>(1),
+        JUNIOR_APPROVED = new State<>(2), SENIOR_REJECTED = new State<>(3), SENIOR_APPROVED = new State<>(4),
+        FINAL_REJECTED = new State<>(5), FINAL_APPROVED = new State<>(6), PROCESSING = new State<>(7),
+        SUCCESS = new State<>(8), FAILED = new State<>(9);
 
     public static final Map<Integer, State<Integer>> STATE_MAP = new HashMap<>();
 
@@ -465,12 +499,11 @@ public class TransferBatch {
       FINAL_REJECTED.addPrevious(Arrays.asList(SENIOR_APPROVED));
       PROCESSING.addPrevious(Arrays.asList(JUNIOR_APPROVED, SENIOR_APPROVED, FINAL_APPROVED))
           .addNexts(Arrays.asList(SUCCESS, FAILED));
-      SUCCESS.addPrevious(Arrays.asList(PROCESSING)).addNexts(Arrays.asList(NOTIFIED));
-      FAILED.addPrevious(Arrays.asList(PROCESSING)).addNexts(Arrays.asList(NOTIFIED));
-      NOTIFIED.addPrevious(Arrays.asList(SUCCESS, FAILED));
+      SUCCESS.addPrevious(Arrays.asList(PROCESSING));
+      FAILED.addPrevious(Arrays.asList(PROCESSING));
 
       Arrays.asList(INIT, JUNIOR_APPROVED, JUNIOR_REJECTED, SENIOR_APPROVED, SENIOR_REJECTED, FINAL_APPROVED,
-          FINAL_REJECTED, PROCESSING, FAILED, SUCCESS, NOTIFIED).forEach(s -> STATE_MAP.put(s.getValue(), s));
+          FINAL_REJECTED, PROCESSING, FAILED, SUCCESS).forEach(s -> STATE_MAP.put(s.getValue(), s));
     }
 
     public static boolean isShiftValid(Integer from, Integer to) {
@@ -494,7 +527,7 @@ public class TransferBatch {
     }
   }
 
-  public static enum BusiType {
+  public static enum BusiCode {
     /*支付*/
     PAY("N02030"), //支付
     DIRECT_PAY("N02031"), //直接支付
@@ -508,7 +541,7 @@ public class TransferBatch {
 
     private String value;
 
-    private BusiType(String value) {
+    private BusiCode(String value) {
       this.value = value;
     }
 
@@ -518,24 +551,22 @@ public class TransferBatch {
   }
 
   public static enum Channel {
-
     PAY, //支付
     AGENCY; //代发代扣 
+  }
 
-    public static Map<String, Channel> CHANNEL_MAP = new HashMap<>();
+  public static enum SettleChannel {
+    ORDINARY("N"), FAST("F");
 
-    static {
-      Arrays.stream(Channel.values()).forEach(c -> CHANNEL_MAP.put(c.name(), c));
+    private String value;
+
+    private SettleChannel(String value) {
+      this.value = value;
     }
 
-    public static Channel getChannel(TransferBatch batch) {
-      return getChannel(batch.getChannel());
+    public String getValue() {
+      return this.value;
     }
-
-    public static Channel getChannel(String name) {
-      return CHANNEL_MAP.get(name);
-    }
-
   }
 
   public static enum TransType {

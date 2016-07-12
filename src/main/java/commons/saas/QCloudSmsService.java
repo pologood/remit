@@ -9,6 +9,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import redis.clients.jedis.JedisPool;
 import commons.utils.DigestHelper;
 import commons.spring.LooseGsonHttpMessageConverter;
@@ -30,6 +33,7 @@ class SendSmsReqBody {
   public String  sig;
 }
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 class SendSmsRespBody {
   public int    result;
   public String errmsg;

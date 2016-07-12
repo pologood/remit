@@ -8,6 +8,7 @@ package com.sogou.pay.remit.manager;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -15,13 +16,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.sogou.pay.remit.entity.BankInfo;
 import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.Channel;
 import com.sogou.pay.remit.enums.Exceptions;
 import com.sogou.pay.remit.mapper.TransferBatchMapper;
+import com.sogou.pay.remit.mapper.TransferDetailMapper;
 import com.sogou.pay.remit.model.ApiResult;
+import com.sogou.pay.remit.model.InternalErrorException;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
@@ -35,10 +40,13 @@ public class TransferBatchManager {
   private BankInfoManager bankInfoManager;
 
   @Autowired
-  private TransferBatchMapper mapper;
+  private TransferBatchMapper transferBatchMapper;
+
+  @Autowired
+  private TransferDetailMapper transferDetailMapper;
 
   public ApiResult<?> get(int appId, String batchNo) {
-    TransferBatch batch = mapper.selectByBatchNo(appId, batchNo);
+    TransferBatch batch = transferBatchMapper.selectByBatchNo(appId, batchNo);
     if (Objects.isNull(batch)) {
       LOGGER.error("[get]{}:appId={},batchNo={}", Exceptions.ENTITY_NOT_FOUND.getErrorMsg(), appId, batchNo);
       return ApiResult.notFound();
@@ -47,7 +55,7 @@ public class TransferBatchManager {
   }
 
   public ApiResult<?> list(int status) {
-    List<TransferBatch> batchs = mapper.list(status);
+    List<TransferBatch> batchs = transferBatchMapper.list(status);
     return CollectionUtils.isEmpty(batchs) ? ApiResult.notFound() : new ApiResult<>(batchs);
   }
 
@@ -55,36 +63,44 @@ public class TransferBatchManager {
     return add(batch, false);
   }
 
+  @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
   public ApiResult<?> add(TransferBatch batch, boolean needReturn) {
-    Channel channel = Channel.getChannel(batch);
-    if (StringUtils.isAnyBlank(batch.getLoginName(), batch.getOutAccountName(), batch.getBusiCode(),
-        batch.getBusiMode(), batch.getBranchCode(), batch.getCurrency())
-        || (Objects.equals(Channel.PAY, channel) && StringUtils.isBlank(batch.getSettleChannel())))
-      setBankInfo(batch, bankInfoManager.getBankInfo(batch.getOutAccountId(), channel), channel);
+    if (StringUtils.isAnyBlank(batch.getLoginName(), batch.getOutAccountName(), batch.getBranchCode(),
+        batch.getCurrency()) || Objects.isNull(batch.getBusiCode()) || Objects.isNull(batch.getBusiMode())
+        || (Objects.equals(Channel.PAY, batch.getChannel()) && Objects.isNull(batch.getSettleChannel())))
+      setBankInfo(batch, bankInfoManager.getBankInfo(batch.getOutAccountId(), batch.getChannel()));
     if (ApiResult.isOK(get(batch.getAppId(), batch.getBatchNo()))) {
       LOGGER.error("[add]{}:appId={} batchNo={}", Exceptions.BATCHNO_INVALID.getErrorMsg(), batch.getAppId(),
           batch.getBatchNo());
       return ApiResult.badRequest(Exceptions.BATCHNO_INVALID.getErrorMsg());
     }
-    if (mapper.add(batch) < 1) {
-      LOGGER.error("[add]{}:{}", Exceptions.DATA_PERSISTENCE_FAILED.getErrorMsg(), batch);
-      return ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED.getErrorMsg());
+    try {
+      transferBatchMapper.add(batch);
+      batch.getDetailList().stream().forEach(detail -> {
+        detail.setAppId(batch.getAppId());
+        detail.setBatchNo(batch.getBatchNo());
+        transferDetailMapper.add(detail);
+      });
+      return needReturn ? new ApiResult<>(batch) : ApiResult.ok();
+    } catch (Exception e) {
+      LOGGER.error(String.format("[add]%s:%s", Exceptions.DATA_PERSISTENCE_FAILED.getErrorMsg(), batch), e);
+      throw new InternalErrorException(e);
     }
-    return needReturn ? new ApiResult<>(batch) : ApiResult.ok();
   }
 
-  private void setBankInfo(TransferBatch batch, BankInfo bankInfo, Channel channel) {
+  private void setBankInfo(TransferBatch batch, BankInfo bankInfo) {
     if (StringUtils.isBlank(batch.getLoginName())) batch.setLoginName(bankInfo.getLoginName());
     if (StringUtils.isBlank(batch.getOutAccountName())) batch.setOutAccountName(bankInfo.getAccountName());
-    if (StringUtils.isBlank(batch.getBusiMode())) batch.setBusiMode(bankInfo.getBusiMode());
-    if (StringUtils.isBlank(batch.getBusiCode())) batch.setLoginName(bankInfo.getBusiCode());
-    if (StringUtils.isBlank(batch.getBranchCode())) batch.setBusiCode(bankInfo.getBranchCode());
+    if (Objects.isNull(batch.getBusiMode())) batch.setBusiMode(bankInfo.getBusiMode());
+    if (Objects.isNull(batch.getBusiCode())) batch.setBusiCode(bankInfo.getBusiCode());
+    if (Objects.isNull(batch.getTransType())) batch.setTransType(bankInfo.getTransType());
+    if (StringUtils.isBlank(batch.getBranchCode())) batch.setBranchCode(bankInfo.getBranchCode());
     if (StringUtils.isBlank(batch.getCurrency())) batch.setCurrency(bankInfo.getCurrency());
-    if (Objects.equals(Channel.PAY, channel) && StringUtils.isBlank(batch.getSettleChannel()))
+    if (Objects.equals(Channel.PAY, batch.getChannel()) && Objects.isNull(batch.getSettleChannel()))
       batch.setSettleChannel(bankInfo.getSettleChannel());
   }
 
-  public ApiResult<?> update(int appId, String batchNo, Integer status, String errMsg, String opinion) {
+  public ApiResult<?> update(int appId, String batchNo, Integer status, Optional<String> errMsg, String opinion) {
     ApiResult<?> result = get(appId, batchNo);
     if (ApiResult.isNotOK(result)) return result;
     TransferBatch batch = (TransferBatch) result.getData();
@@ -94,7 +110,7 @@ public class TransferBatchManager {
       LOGGER.error("[update]{}:from{}to{}", Exceptions.STATUS_INVALID.getErrorMsg(), oldStatus, status);
       return ApiResult.badRequest(Exceptions.STATUS_INVALID.getErrorMsg());
     }
-    if (mapper.update(setUpdateItems(batch, errMsg, opinion, status)) < 1) {
+    if (transferBatchMapper.update(setUpdateItems(batch, errMsg, opinion, status)) < 1) {
       LOGGER.error("[update]{}:appId={},batchNo={},from{}to{},outErrMsg={},opinion={}",
           Exceptions.DATA_PERSISTENCE_FAILED.getErrorMsg(), appId, batchNo, oldStatus, status, errMsg, opinion);
       return ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED.getErrorMsg());
@@ -102,14 +118,17 @@ public class TransferBatchManager {
     return ApiResult.ok();
   }
 
-  private TransferBatch setUpdateItems(TransferBatch batch, String outErrMsg, String opinion, int status) {
-    batch.setList();
-    if (StringUtils.isNotBlank(outErrMsg)) batch.setOutErrMsg(outErrMsg);
+  private TransferBatch setUpdateItems(TransferBatch batch, Optional<String> outErrMsg, String opinion, int status) {
+    batch.setOutErrMsg(outErrMsg.orElse(null));
     if (StringUtils.isNotBlank(opinion)) {
+      batch.setList();
       batch.getAuditOpinionList().add(opinion);
       batch.getAuditTimeList().add(LocalDateTime.now());
+      batch.setString();
+    } else {
+      batch.setAuditOpinions(null);
+      batch.setAuditTimes(null);
     }
-    batch.setString();
     batch.setStatus(status);
     return batch;
   }

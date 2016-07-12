@@ -13,10 +13,11 @@ import com.sogou.pay.remit.enums.Exceptions;
 public class BadRequestException extends RuntimeException {
 
   public BadRequestException(Exceptions exception) {
-    this(exception.getErrorMsg());
+    super(exception.getErrorMsg());
   }
 
   public BadRequestException(String message) {
     super(message);
   }
+  
 }

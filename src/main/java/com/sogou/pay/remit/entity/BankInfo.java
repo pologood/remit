@@ -5,6 +5,12 @@
  */
 package com.sogou.pay.remit.entity;
 
+import com.sogou.pay.remit.entity.TransferBatch.BusiCode;
+import com.sogou.pay.remit.entity.TransferBatch.BusiMode;
+import com.sogou.pay.remit.entity.TransferBatch.Channel;
+import com.sogou.pay.remit.entity.TransferBatch.SettleChannel;
+import com.sogou.pay.remit.entity.TransferBatch.TransType;
+
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月8日;
 //-------------------------------------------------------
@@ -12,7 +18,7 @@ public class BankInfo {
 
   private Long id;
 
-  private String channel;
+  private Channel channel;
 
   private String accountId;
 
@@ -20,17 +26,17 @@ public class BankInfo {
 
   private String loginName;
 
-  private String busiMode;
+  private BusiMode busiMode;
 
-  private String busiCode;
+  private BusiCode busiCode;
 
-  private String transType;
+  private TransType transType;
 
   private String branchCode;
 
   private String currency;
 
-  private String settleChannel;
+  private SettleChannel settleChannel;
 
   public Long getId() {
     return id;
@@ -40,11 +46,11 @@ public class BankInfo {
     this.id = id;
   }
 
-  public String getChannel() {
+  public Channel getChannel() {
     return channel;
   }
 
-  public void setChannel(String channel) {
+  public void setChannel(Channel channel) {
     this.channel = channel;
   }
 
@@ -72,27 +78,27 @@ public class BankInfo {
     this.loginName = loginName;
   }
 
-  public String getBusiMode() {
+  public BusiMode getBusiMode() {
     return busiMode;
   }
 
-  public void setBusiMode(String busiMode) {
+  public void setBusiMode(BusiMode busiMode) {
     this.busiMode = busiMode;
   }
 
-  public String getBusiCode() {
+  public BusiCode getBusiCode() {
     return busiCode;
   }
 
-  public void setBusiCode(String busiCode) {
+  public void setBusiCode(BusiCode busiCode) {
     this.busiCode = busiCode;
   }
 
-  public String getTransType() {
+  public TransType getTransType() {
     return transType;
   }
 
-  public void setTransType(String transType) {
+  public void setTransType(TransType transType) {
     this.transType = transType;
   }
 
@@ -112,11 +118,11 @@ public class BankInfo {
     this.currency = currency;
   }
 
-  public String getSettleChannel() {
+  public SettleChannel getSettleChannel() {
     return settleChannel;
   }
 
-  public void setSettleChannel(String settleChannel) {
+  public void setSettleChannel(SettleChannel settleChannel) {
     this.settleChannel = settleChannel;
   }
 

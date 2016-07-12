@@ -39,7 +39,7 @@ public class TransferBatchController {
   private static final Logger LOGGER = LoggerFactory.getLogger(TransferBatchController.class);
 
   @Autowired
-  private TransferBatchManager manager;
+  private TransferBatchManager transferBatchManager;
 
   @ApiMethod(description = "add transfer batch")
   @RequestMapping(value = "/transferBatch", method = RequestMethod.POST)
@@ -48,7 +48,7 @@ public class TransferBatchController {
       LOGGER.error("[add]bad request:batch={}", batch);
       return ApiResult.bindingResult(bindingResult);
     }
-    return manager.add(batch);
+    return transferBatchManager.add(batch);
   }
 
   @ApiMethod(description = "get transfer batch")
@@ -56,8 +56,8 @@ public class TransferBatchController {
   public ApiResult<?> get(@RequestParam(name = "appId", required = false) Optional<Integer> appId,
       @RequestParam(name = "batchNo", required = false) Optional<String> batchNo,
       @RequestParam(name = "status", required = false) Optional<Integer> status) {
-    if (appId.isPresent() && batchNo.isPresent()) return manager.get(appId.get(), batchNo.get());
-    if (status.isPresent()) return manager.list(status.get());
+    if (appId.isPresent() && batchNo.isPresent()) return transferBatchManager.get(appId.get(), batchNo.get());
+    if (status.isPresent()) return transferBatchManager.list(status.get());
     return ApiResult.badRequest("batchNo and appId are required or status is required");
   }
 
@@ -67,7 +67,7 @@ public class TransferBatchController {
       @RequestParam(name = "batchNo") @Size(min = 1) String batchNo,
       @RequestParam(name = "status") @Min(value = 1) int status,
       @RequestParam(name = "opinion", required = false) Optional<String> opinion) {
-    return manager.update(appId, batchNo, status, null, opinion.orElse(null));
+    return transferBatchManager.update(appId, batchNo, status, Optional.empty(), opinion.orElse(null));
   }
 
 }

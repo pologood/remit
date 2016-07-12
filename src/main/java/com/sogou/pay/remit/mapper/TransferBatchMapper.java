@@ -16,12 +16,14 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.annotations.UpdateProvider;
 import org.apache.ibatis.jdbc.SQL;
+import org.springframework.stereotype.Repository;
 
 import com.sogou.pay.remit.entity.TransferBatch;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
 //-------------------------------------------------------
+@Repository
 public interface TransferBatchMapper {
 
   class Sql {
@@ -54,12 +56,14 @@ public interface TransferBatchMapper {
           .VALUES("memo", "#{memo}")//
           .VALUES("outAccountId", "#{outAccountId}")//
           .VALUES("outAccountName", "#{outAccountName}")//
+          .VALUES("branchCode", "#{branchCode}")//
           .VALUES("loginName", "#{loginName}")//
           .VALUES("busiMode", "#{busiMode}")//
           .VALUES("busiCode", "#{busiCode}")//
+          .VALUES("transType", "#{transType}")//
           .VALUES("currency", "#{currency}")//
           .VALUES("createTime", "now()");//
-      if (StringUtils.isNotBlank(batch.getSettleChannel())) sql.VALUES("settleChannel", "#{settleChannel}");
+      if (Objects.nonNull(batch.getSettleChannel())) sql.VALUES("settleChannel", "#{settleChannel}");
       if (StringUtils.isNotBlank(batch.getReserve())) sql.VALUES("reserve", "#{reserve}");
       if (Objects.nonNull(batch.getTransferCount())) sql.VALUES("transferCount", "#{transferCount}");
       return sql.toString();

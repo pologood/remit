@@ -32,22 +32,22 @@ public class ApiResult<Data> {
     this.message = message;
   }
 
-  public ApiResult(HttpErrorCode code) {
+  public ApiResult(ErrorCode code) {
     this(code, code.getMessage());
   }
 
-  public ApiResult(HttpErrorCode code, String message) {
+  public ApiResult(ErrorCode code, String message) {
     this(code.getCode(), message);
-    if (code != HttpErrorCode.OK) setErrorHint();
+    if (code != ErrorCode.OK) setErrorHint();
   }
 
-  public ApiResult(HttpErrorCode code, Data data) {
+  public ApiResult(ErrorCode code, Data data) {
     this(code);
     this.data = data;
   }
 
   public ApiResult(Data data) {
-    this(HttpErrorCode.OK, data);
+    this(ErrorCode.OK, data);
   }
 
   void setErrorHint() {
@@ -59,48 +59,48 @@ public class ApiResult<Data> {
   }
 
   public static ApiResult<?> ok() {
-    return new ApiResult<>(HttpErrorCode.OK);
+    return new ApiResult<>(ErrorCode.OK);
   }
 
   public static ApiResult<?> badRequest(String msg) {
-    return new ApiResult<>(HttpErrorCode.BAD_REQUEST, msg);
+    return new ApiResult<>(ErrorCode.BAD_REQUEST, msg);
   }
 
   public static ApiResult<?> unAuthorized() {
-    return new ApiResult<>(HttpErrorCode.UNAUTHORIZED);
+    return new ApiResult<>(ErrorCode.UNAUTHORIZED);
   }
 
   public static ApiResult<?> forbidden() {
-    return new ApiResult<>(HttpErrorCode.FORBIDDEN);
+    return new ApiResult<>(ErrorCode.FORBIDDEN);
   }
 
   public static ApiResult<?> notFound() {
-    return new ApiResult<>(HttpErrorCode.NOT_FOUND);
+    return new ApiResult<>(ErrorCode.NOT_FOUND);
   }
 
   public static ApiResult<?> notAcceptable(String msg) {
-    return new ApiResult<>(HttpErrorCode.NOT_ACCEPTABLE, msg);
+    return new ApiResult<>(ErrorCode.NOT_ACCEPTABLE, msg);
   }
 
   public static ApiResult<?> internalError(String msg) {
-    return new ApiResult<>(HttpErrorCode.INTERNAL_ERROR, msg);
+    return new ApiResult<>(ErrorCode.INTERNAL_ERROR, msg);
   }
 
   public static ApiResult<?> notImplemented() {
-    return new ApiResult<>(HttpErrorCode.NOT_IMPLEMENTED);
+    return new ApiResult<>(ErrorCode.NOT_IMPLEMENTED);
   }
 
   public static ApiResult<?> serviceUnavailable(String msg) {
-    return new ApiResult<>(HttpErrorCode.SERVICE_UNAVAILABLE, msg);
+    return new ApiResult<>(ErrorCode.SERVICE_UNAVAILABLE, msg);
   }
 
   public static ApiResult<Map<String, String>> bindingResult(BindingResult bindingResult) {
-    return new ApiResult<>(HttpErrorCode.BAD_REQUEST, bindingResult.getFieldErrors().stream()
+    return new ApiResult<>(ErrorCode.BAD_REQUEST, bindingResult.getFieldErrors().stream()
         .collect(Collectors.toMap(e -> e.getField(), e -> e.getDefaultMessage())));
   }
 
   public static boolean isOK(ApiResult<?> result) {
-    return result != null && result.getCode() == HttpErrorCode.OK.getCode();
+    return result != null && result.getCode() == ErrorCode.OK.getCode();
   }
 
   public static boolean isNotOK(ApiResult<?> result) {

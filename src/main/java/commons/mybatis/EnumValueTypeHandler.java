@@ -9,6 +9,7 @@ import java.util.Objects;
 
 import org.apache.ibatis.type.*;
 
+//notice! only for string and int
 public class EnumValueTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E> {
 
   private Class<E> type;
@@ -32,7 +33,7 @@ public class EnumValueTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E> 
     int i = 0;
     try {
       this.method = type.getMethod("getValue");
-      this.values = new Object[enums.length];
+      this.values = String.class == method.getReturnType() ? new String[enums.length] : new Integer[enums.length];
 
       for (E e : this.enums) {
         this.values[i++] = this.method.invoke(e);
@@ -44,64 +45,62 @@ public class EnumValueTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E> 
 
   public E getEnum(Object value) {
     for (int i = 0; i < values.length; ++i) {
-      if (Objects.equals(value, values[i])) return enums[i];
+      if (Objects.equals(values[i], value)) return enums[i];
     }
     return null;
   }
 
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, E parameter, JdbcType jdbcType) throws SQLException {
-    int value;
     try {
-      value = (int) this.method.invoke(parameter);
+      if (String.class == this.method.getReturnType()) ps.setString(i, (String) method.invoke(parameter));
+      else ps.setInt(i, (int) this.method.invoke(parameter));
     } catch (Exception e) {
       throw new IllegalArgumentException(type.getSimpleName() + " does not represent an enum value type.");
     }
-
-    ps.setInt(i, value);
   }
 
   @Override
   public E getNullableResult(ResultSet rs, String columnName) throws SQLException {
-    int i = rs.getInt(columnName);
+    Object o = rs.getObject(columnName);
     if (rs.wasNull()) {
       return null;
     } else {
       try {
-        return getEnum(i);
+        return getEnum(o);
       } catch (Exception ex) {
-        throw new IllegalArgumentException("Cannot convert " + i + " to " + type.getSimpleName() + " by ordinal value.",
-            ex);
+        throw new IllegalArgumentException(
+            String.format("Cannot convert %s to %s by ordinal value.", o, type.getSimpleName()), ex);
       }
     }
   }
 
   @Override
   public E getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
-    int i = rs.getInt(columnIndex);
+    Object o = rs.getObject(columnIndex);
     if (rs.wasNull()) {
       return null;
     } else {
       try {
-        return getEnum(i);
+        return getEnum(o);
       } catch (Exception ex) {
-        throw new IllegalArgumentException("Cannot convert " + i + " to " + type.getSimpleName() + " by ordinal value.",
-            ex);
+        throw new IllegalArgumentException(
+            String.format("Cannot convert %s to %s by ordinal value.", o, type.getSimpleName()), ex);
       }
     }
   }
 
   @Override
   public E getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
-    int i = cs.getInt(columnIndex);
+    Object o = cs.getObject(columnIndex);
     if (cs.wasNull()) {
       return null;
     } else {
       try {
-        return getEnum(i);
+        return getEnum(o);
       } catch (Exception ex) {
-        throw new IllegalArgumentException("Cannot convert " + i + " to " + type.getSimpleName() + " by ordinal value.",
-            ex);
+        throw new IllegalArgumentException(
+            String.format("Cannot convert %s to %s by ordinal value.", o, type.getSimpleName()), ex);
       }
     }
   }

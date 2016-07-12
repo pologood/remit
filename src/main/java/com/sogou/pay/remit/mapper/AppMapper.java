@@ -9,27 +9,24 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.jdbc.SQL;
-import org.springframework.stereotype.Repository;
 
-import com.sogou.pay.remit.entity.BankInfo;
+import com.sogou.pay.remit.entity.App;
 
 //--------------------- Change Logs----------------------
-//@author wangwenlong Initial Created at 2016年7月8日;
+//@author wangwenlong Initial Created at 2016年7月12日;
 //-------------------------------------------------------
-@Repository
-public interface BankInfoMapper {
+public interface AppMapper {
 
   class Sql {
 
-    private final static String TABLE = "`bank_info`";
+    private final static String TABLE = "`app`";
 
     public static String list() {
-      return new SQL().SELECT("*").FROM(TABLE).toString();
+      return new SQL().SELECT("*").FROM(TABLE).WHERE("status = 1").toString();
     }
-
   }
 
   @SelectProvider(type = Sql.class, method = "list")
-  List<BankInfo> list();
+  List<App> list();
 
 }

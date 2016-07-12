@@ -1,23 +1,20 @@
 package com.sogou.pay.remit.config.servlet;
 
-import java.io.IOException;
-import java.util.List;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.GsonHttpMessageConverter;
+import java.io.*;
+import java.util.*;
+import java.time.*;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import org.springframework.context.annotation.*;
+import org.springframework.http.converter.*;
+import org.springframework.http.converter.json.*;
+import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-
-import com.sogou.pay.remit.config.ProjectInfo;
-
-import commons.utils.JsonUtil;
+import commons.utils.LocalDateTimeJsonSerializer;
+import commons.utils.LocalDateJsonSerializer;
+import com.sogou.pay.remit.config.*;
 
 @Configuration
 @EnableWebMvc
@@ -30,9 +27,13 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     stringConverter.setWriteAcceptCharset(false);
     converters.add(stringConverter);
 
-    GsonHttpMessageConverter gsonConverter = new GsonHttpMessageConverter();
-    gsonConverter.setGson(JsonUtil.GSON);
-    converters.add(gsonConverter);
+    Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
+    builder.featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    builder.featuresToDisable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+    builder.serializationInclusion(JsonInclude.Include.NON_NULL);
+    builder.serializerByType(LocalDateTime.class, new LocalDateTimeJsonSerializer());
+    builder.serializerByType(LocalDate.class, new LocalDateJsonSerializer());
+    converters.add(new MappingJackson2HttpMessageConverter(builder.build()));
   }
 
   @Bean

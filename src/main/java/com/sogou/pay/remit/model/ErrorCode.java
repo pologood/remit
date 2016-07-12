@@ -1,6 +1,6 @@
 package com.sogou.pay.remit.model;
 
-public enum HttpErrorCode {
+public enum ErrorCode {
 
   OK(0, "OK"),
 
@@ -24,7 +24,7 @@ public enum HttpErrorCode {
 
   private String message;
 
-  private HttpErrorCode(int code, String message) {
+  private ErrorCode(int code, String message) {
     this.code = code;
     this.message = message;
   }

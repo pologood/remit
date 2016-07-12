@@ -12,9 +12,13 @@ import javax.validation.constraints.NotNull;
 
 import org.jsondoc.core.annotation.ApiObjectField;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
 //-------------------------------------------------------
+@JsonInclude(value = Include.NON_NULL)
 public class TransferDetail {
 
   private Long id;
@@ -51,8 +55,6 @@ public class TransferDetail {
   private String outErrMsg;
 
   //time stamp
-  private LocalDateTime createTime;
-
   private LocalDateTime updateTime;
 
   public Long getId() {
@@ -149,14 +151,6 @@ public class TransferDetail {
 
   public void setOutErrMsg(String outErrMsg) {
     this.outErrMsg = outErrMsg;
-  }
-
-  public LocalDateTime getCreateTime() {
-    return createTime;
-  }
-
-  public void setCreateTime(LocalDateTime createTime) {
-    this.createTime = createTime;
   }
 
   public LocalDateTime getUpdateTime() {

@@ -10,6 +10,10 @@ package com.sogou.pay.remit.model;
 //-------------------------------------------------------
 public class InternalErrorException extends RuntimeException {
 
+  public InternalErrorException(String message) {
+    super(message);
+  }
+
   public InternalErrorException(Throwable throwable) {
     super(throwable);
   }

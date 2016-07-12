@@ -1,15 +1,17 @@
 package commons.saas;
 
 import java.util.HashMap;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.web.client.RestTemplate;
 import redis.clients.jedis.JedisPool;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 class HttpRet {
   public int      status;
   public UserInfo data;
 }
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 class UserInfo {
   public String uid;
   public String name;
