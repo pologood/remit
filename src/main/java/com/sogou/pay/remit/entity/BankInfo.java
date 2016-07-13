@@ -5,6 +5,7 @@
  */
 package com.sogou.pay.remit.entity;
 
+import com.sogou.pay.remit.entity.TransferBatch.BranchCode;
 import com.sogou.pay.remit.entity.TransferBatch.BusiCode;
 import com.sogou.pay.remit.entity.TransferBatch.BusiMode;
 import com.sogou.pay.remit.entity.TransferBatch.Channel;
@@ -32,7 +33,7 @@ public class BankInfo {
 
   private TransType transType;
 
-  private String branchCode;
+  private BranchCode branchCode;
 
   private String currency;
 
@@ -102,11 +103,11 @@ public class BankInfo {
     this.transType = transType;
   }
 
-  public String getBranchCode() {
+  public BranchCode getBranchCode() {
     return branchCode;
   }
 
-  public void setBranchCode(String branchCode) {
+  public void setBranchCode(BranchCode branchCode) {
     this.branchCode = branchCode;
   }
 

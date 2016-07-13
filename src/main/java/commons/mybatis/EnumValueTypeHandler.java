@@ -7,7 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
 
-import org.apache.ibatis.type.*;
+import org.apache.ibatis.type.BaseTypeHandler;
+import org.apache.ibatis.type.JdbcType;
 
 //notice! only for string and int
 public class EnumValueTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E> {

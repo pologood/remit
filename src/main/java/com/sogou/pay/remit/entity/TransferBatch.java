@@ -7,11 +7,10 @@ package com.sogou.pay.remit.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Max;
@@ -29,9 +28,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.collect.Sets;
 
 import commons.utils.JsonHelper;
-import commons.utils.State;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
@@ -39,6 +38,7 @@ import commons.utils.State;
 @JsonInclude(value = Include.NON_NULL)
 public class TransferBatch {
 
+  @JsonIgnore
   private Long id;
 
   @ApiObjectField(description = "版本号")
@@ -54,8 +54,8 @@ public class TransferBatch {
   private String sign;
 
   @ApiObjectField(description = "签名方式")
-  @NotBlank(message = "signType is required")
-  private String signType;
+  @NotNull(message = "signType is required")
+  private SignType signType;
 
   @ApiObjectField(description = "业务线Id")
   @NotNull(message = "appId is required")
@@ -96,10 +96,7 @@ public class TransferBatch {
   @JsonIgnore
   private String auditOpinions;
 
-  @JsonIgnore
-  private Integer status;
-
-  private String statusString;
+  private Status status;
 
   //bank
   @ApiObjectField(description = "出款账号")
@@ -113,7 +110,7 @@ public class TransferBatch {
   private String loginName;
 
   @ApiObjectField(description = "分行号")
-  private String branchCode;
+  private BranchCode branchCode;
 
   @ApiObjectField(description = "业务模式")
   private BusiMode busiMode;
@@ -124,6 +121,8 @@ public class TransferBatch {
   @ApiObjectField(description = "交易类型")
   private TransType transType;
 
+  //since version 1 only supports ￥ so ignore it
+  @JsonIgnore
   @ApiObjectField(description = "币种")
   private String currency;
 
@@ -149,10 +148,9 @@ public class TransferBatch {
 
   //details
   @ApiObjectField(description = "转账明细")
-  @NotBlank(message = "details is required")
-  private String details;
-
-  private List<TransferDetail> detailList;
+  @NotNull
+  @Size(min = 1, message = "details can not be empty")
+  private List<TransferDetail> details;
 
   public Long getId() {
     return id;
@@ -186,11 +184,11 @@ public class TransferBatch {
     this.sign = sign;
   }
 
-  public String getSignType() {
+  public SignType getSignType() {
     return signType;
   }
 
-  public void setSignType(String signType) {
+  public void setSignType(SignType signType) {
     this.signType = signType;
   }
 
@@ -292,20 +290,12 @@ public class TransferBatch {
     this.auditOpinions = s;
   }
 
-  public Integer getStatus() {
+  public Status getStatus() {
     return status;
   }
 
-  public void setStatus(Integer status) {
+  public void setStatus(Status status) {
     this.status = status;
-  }
-
-  public String getStatusString() {
-    return statusString;
-  }
-
-  public void setStatusString(String statusString) {
-    this.statusString = statusString;
   }
 
   public String getOutAccountId() {
@@ -332,11 +322,11 @@ public class TransferBatch {
     this.loginName = loginName;
   }
 
-  public String getBranchCode() {
+  public BranchCode getBranchCode() {
     return branchCode;
   }
 
-  public void setBranchCode(String branchCode) {
+  public void setBranchCode(BranchCode branchCode) {
     this.branchCode = branchCode;
   }
 
@@ -428,31 +418,12 @@ public class TransferBatch {
     this.upDateTime = upDateTime;
   }
 
-  public String getDetails() {
-    return details;
-  }
-
-  public void setDetails(String details) {
+  public void setDetails(List<TransferDetail> details) {
     this.details = details;
   }
 
-  public void setDetailList() {
-    try {
-      if (StringUtils.isNotBlank(this.details)) this.details = this.details.replace('＇', '\'').replace('＂', '"');
-      this.detailList = JsonHelper.readValue(this.details, TYPE_OF_TRANSFER_DETAIL_LIST);
-    } catch (Exception e) {
-      e.printStackTrace();
-      this.detailList = null;
-    }
-  }
-
-  public void setDetailList(List<TransferDetail> detailList) {
-    this.detailList = detailList;
-  }
-
-  public List<TransferDetail> getDetailList() {
-    if (CollectionUtils.isEmpty(this.detailList)) setDetailList();
-    return this.detailList;
+  public List<TransferDetail> getDetails() {
+    return this.details;
   }
 
   @Override
@@ -476,39 +447,46 @@ public class TransferBatch {
 
   private static final TypeReference<List<String>> TYPE_OF_STRING_LIST = new TypeReference<List<String>>() {};
 
-  private static final TypeReference<List<TransferDetail>> TYPE_OF_TRANSFER_DETAIL_LIST = new TypeReference<List<TransferDetail>>() {};
+  public static enum SignType {
+    MD5, SHA;
+  }
 
-  public static class Status {
+  public static enum Status {
 
-    public static final State<Integer> INIT = new State<>(0), JUNIOR_REJECTED = new State<>(1),
-        JUNIOR_APPROVED = new State<>(2), SENIOR_REJECTED = new State<>(3), SENIOR_APPROVED = new State<>(4),
-        FINAL_REJECTED = new State<>(5), FINAL_APPROVED = new State<>(6), PROCESSING = new State<>(7),
-        SUCCESS = new State<>(8), FAILED = new State<>(9);
+    INIT(0), //
+    JUNIOR_REJECTED(1), //
+    JUNIOR_APPROVED(2), //
+    SENIOR_REJECTED(3), //
+    SENIOR_APPROVED(4), //
+    FINAL_REJECTED(5), //
+    FINAL_APPROVED(6), //
+    PROCESSING(7), //
+    SUCCESS(8), //
+    FAILED(9);
 
-    public static final Map<Integer, State<Integer>> STATE_MAP = new HashMap<>();
+    private int value;
 
-    static {
-      INIT.addNexts(Arrays.asList(JUNIOR_APPROVED, JUNIOR_REJECTED));
-      JUNIOR_APPROVED.addPrevious(Arrays.asList(INIT))
-          .addNexts(Arrays.asList(SENIOR_APPROVED, SENIOR_REJECTED, PROCESSING));
-      JUNIOR_REJECTED.addPrevious(Arrays.asList(INIT));
-      SENIOR_APPROVED.addPrevious(Arrays.asList(JUNIOR_APPROVED))
-          .addNexts(Arrays.asList(FINAL_APPROVED, FINAL_REJECTED, PROCESSING));
-      SENIOR_REJECTED.addPrevious(Arrays.asList(JUNIOR_APPROVED));
-      FINAL_APPROVED.addPrevious(Arrays.asList(SENIOR_APPROVED)).addNexts(Arrays.asList(PROCESSING));
-      FINAL_REJECTED.addPrevious(Arrays.asList(SENIOR_APPROVED));
-      PROCESSING.addPrevious(Arrays.asList(JUNIOR_APPROVED, SENIOR_APPROVED, FINAL_APPROVED))
-          .addNexts(Arrays.asList(SUCCESS, FAILED));
-      SUCCESS.addPrevious(Arrays.asList(PROCESSING));
-      FAILED.addPrevious(Arrays.asList(PROCESSING));
-
-      Arrays.asList(INIT, JUNIOR_APPROVED, JUNIOR_REJECTED, SENIOR_APPROVED, SENIOR_REJECTED, FINAL_APPROVED,
-          FINAL_REJECTED, PROCESSING, FAILED, SUCCESS).forEach(s -> STATE_MAP.put(s.getValue(), s));
+    private Status(int value) {
+      this.value = value;
     }
 
-    public static boolean isShiftValid(Integer from, Integer to) {
-      State<Integer> fromState = STATE_MAP.get(from);
-      return fromState != null && fromState.getNexts().contains(STATE_MAP.get(to));
+    public int getValue() {
+      return this.value;
+    }
+
+    public static final Map<Status, Set<Status>> NEXT_MAP = new HashMap<>();
+
+    static {
+      NEXT_MAP.put(INIT, Sets.newHashSet(JUNIOR_APPROVED, JUNIOR_REJECTED));
+      NEXT_MAP.put(JUNIOR_APPROVED, Sets.newHashSet(SENIOR_APPROVED, SENIOR_REJECTED, PROCESSING));
+      NEXT_MAP.put(SENIOR_APPROVED, Sets.newHashSet(FINAL_APPROVED, FINAL_REJECTED, PROCESSING));
+      NEXT_MAP.put(FINAL_APPROVED, Sets.newHashSet(PROCESSING));
+      NEXT_MAP.put(PROCESSING, Sets.newHashSet(SUCCESS, FAILED));
+    }
+
+    public static boolean isShiftValid(Status from, Status to) {
+      Set<Status> nexts = NEXT_MAP.get(from);
+      return CollectionUtils.isNotEmpty(nexts) && nexts.contains(to);
     }
   }
 
@@ -567,6 +545,67 @@ public class TransferBatch {
     public String getValue() {
       return this.value;
     }
+  }
+
+  public static enum BranchCode {
+    Root("01"), //
+    RootAccounting("03"), //
+    Beijing("10"), //
+    OffshoreBranch("12"), //
+    RootOffshoreCenter("13"), //
+    Guangzhou("20"), //
+    Shanghai("21"), //
+    Tianjin("22"), //
+    Chongqing("23"), //
+    Shenyang("24"), //
+    Nanjing("25"), //
+    Wuhan("27"), //
+    Chengdu("28"), //
+    Xian("29"), //
+    Taiyuan("35"), //
+    Zhengzhou("37"), //
+    Shijiazhuang("38"), //
+    Tangshan("39"), //
+    Dalian("41"), //
+    Changchun("43"), //
+    Harbin("45"), //
+    Huhehaote("47"), //
+    Yinchuan("51"), //
+    Suzhou("52"), //
+    Qingdao("53"), //
+    Ningbo("54"), //
+    Hefei("55"), //
+    Jinan("56"), //
+    Hangzhou("57"), //
+    Wenzhou("58"), //
+    Fuzhou("59"), //
+    Quanzhou("60"), //
+    Wuxi("62"), //
+    Dongguan("69"), //
+    Nanning("71"), //
+    Xining("72"), //
+    Changsha("73"), //
+    Shenzhen("75"), //
+    Foshan("77"), //
+    Nanchang("79"), //
+    Guiyang("85"), //
+    Kunming("87"), //
+    Haikou("89"), //
+    Wulumuqi("91"), //
+    Xiamen("92"), //
+    Lanzhou("93"), //
+    Hongkong("97");
+
+    private String value;
+
+    private BranchCode(String value) {
+      this.value = value;
+    }
+
+    public String getValue() {
+      return this.value;
+    }
+
   }
 
   public static enum TransType {
@@ -674,9 +713,7 @@ public class TransferBatch {
 
     WITHHOLD_BATCH_DEDUCTIONS("AYBT", "代扣批量扣费");
 
-    private String value;
-
-    private String message;
+    private String value, message;
 
     private TransType(String value, String message) {
       this.value = value;

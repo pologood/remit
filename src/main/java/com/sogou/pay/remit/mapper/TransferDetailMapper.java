@@ -5,6 +5,7 @@
  */
 package com.sogou.pay.remit.mapper;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -34,32 +35,36 @@ public interface TransferDetailMapper {
     public static String update(TransferDetail detail) {
       SQL sql = new SQL().UPDATE(TABLE);
       if (StringUtils.isNotBlank(detail.getOutErrMsg())) sql.SET("outErrMsg = #{outErrMsg}");
-      return sql.SET("status = #{status}").WHERE("appId = #{appId}").WHERE("batchNo = #{batchNo}").toString();
+      return sql.SET("status = #{status}").WHERE("appId = #{appId}").WHERE("batchNo = #{batchNo}")
+          .WHERE("transferId = #{transferId}").toString();
     }
 
-    public static String add(TransferDetail detail) {
-      SQL sql = new SQL().INSERT_INTO(TABLE)//
-          .VALUES("appId", "#{appId}")//
-          .VALUES("batchNo", "#{batchNo}")//
-          .VALUES("transferId", "#{transferId}")//
-          .VALUES("inAcountName", "#{inAcountName}")//
-          .VALUES("inAccountId", "#{inAccountId}")//
-          .VALUES("amount", "#{amount}");
-      if (StringUtils.isNoneBlank(detail.getBankCity(), detail.getBankName()))
-        sql.VALUES("bankName", "#{bankName}").VALUES("bankCity", "#{bankCity}");
-      if (StringUtils.isNotBlank(detail.getMemo())) sql.VALUES("memo", "#{memo}");
-      return sql.toString();
+    @SuppressWarnings("unchecked")
+    public static String add(Map<String, Object> map) {
+      List<TransferDetail> details = (List<TransferDetail>) map.get("details");
+      StringBuilder sb = new StringBuilder("insert into ").append(TABLE)
+          .append(" (appId, batchNo, transferId, inAcountName, inAccountId, amount, bankName, bankCity, memo) values ");
+      for (int i = 0; i < details.size(); i++)
+        sb.append("(").append(String.format("#{details[%d].appId}", i)).append(", ")
+            .append(String.format("#{details[%d].batchNo}", i)).append(", ")
+            .append(String.format("#{details[%d].transferId}", i)).append(", ")
+            .append(String.format("#{details[%d].inAcountName}", i)).append(", ")
+            .append(String.format("#{details[%d].inAccountId}", i)).append(", ")
+            .append(String.format("#{details[%d].amount}", i)).append(", ")
+            .append(String.format("#{details[%d].bankName}", i)).append(", ")
+            .append(String.format("#{details[%d].bankCity}", i)).append(", ") //
+            .append(String.format("#{details[%d].memo}", i)).append("),");
+      return sb.substring(0, sb.length() - 1);
     }
   }
 
   @SelectProvider(type = Sql.class, method = "selectByBatchNo")
-  TransferDetail selectByBatchNo(@Param("appId") Integer appId, @Param("batchNo") String batchNo);
+  List<TransferDetail> selectByBatchNo(@Param("appId") Integer appId, @Param("batchNo") String batchNo);
 
   @UpdateProvider(type = Sql.class, method = "update")
   int update(TransferDetail detail);
 
-  //TODO batch insert
   @InsertProvider(type = Sql.class, method = "add")
-  int add(TransferDetail detail);
+  int add(@Param("details") List<TransferDetail> details);
 
 }

@@ -9,7 +9,7 @@ public class App {
 
   private String name;
 
-  private String key;
+  private String signKey;
 
   private Status status;
 
@@ -43,12 +43,12 @@ public class App {
     this.name = name;
   }
 
-  public String getKey() {
-    return key;
+  public String getSignKey() {
+    return signKey;
   }
 
-  public void setKey(String key) {
-    this.key = key;
+  public void setSignKey(String key) {
+    this.signKey = key;
   }
 
   public Status getStatus() {

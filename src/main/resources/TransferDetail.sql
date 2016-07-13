@@ -14,5 +14,5 @@ CREATE TABLE `transfer_detail` (
   `outErrMsg` varchar(128) DEFAULT NULL COMMENT '错误信息',
   `status` TINYINT(4) DEFAULT 0 COMMENT '状态',
   `upDateTime` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  KEY `appid_batchno_idx` (`appId`, `batchNo`)
+  UNIQUE KEY `appid_batchno_transferId_idx` (`appId`, `batchNo`, `transferId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;

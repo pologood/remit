@@ -19,6 +19,7 @@ import org.apache.ibatis.jdbc.SQL;
 import org.springframework.stereotype.Repository;
 
 import com.sogou.pay.remit.entity.TransferBatch;
+import com.sogou.pay.remit.entity.TransferBatch.Status;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
@@ -74,13 +75,13 @@ public interface TransferBatchMapper {
   TransferBatch selectByBatchNo(@Param("appId") Integer appId, @Param("batchNo") String batchNo);
 
   @SelectProvider(type = Sql.class, method = "list")
-  List<TransferBatch> list(int status);
+  List<TransferBatch> list(@Param("status") int status);
 
   @UpdateProvider(type = Sql.class, method = "update")
   int update(TransferBatch batch);
 
   @InsertProvider(type = Sql.class, method = "add")
   @Options(useGeneratedKeys = true, keyProperty = "id")
-  int add(TransferBatch batch);
+  long add(TransferBatch batch);
 
 }

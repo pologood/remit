@@ -1,14 +1,30 @@
 package com.sogou.pay.remit.api;
 
 import com.google.common.base.Throwables;
-import org.springframework.beans.*;
-import org.springframework.web.bind.annotation.*;
+import com.sogou.pay.remit.config.ProjectInfo;
+import com.sogou.pay.remit.model.ApiResult;
+import com.sogou.pay.remit.model.BadRequestException;
+import com.sogou.pay.remit.model.ErrorCode;
+import com.sogou.pay.remit.model.InternalErrorException;
+
+import commons.utils.EnumConverter;
+import commons.utils.ReflectUtil;
+
 import org.springframework.web.bind.ServletRequestBindingException;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
+
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataAccessException;
-import com.sogou.pay.remit.model.*;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
   @ExceptionHandler(RuntimeException.class)
   @ResponseBody
   public ApiResult<?> internalServerError(Exception e) {
@@ -28,7 +44,7 @@ public class GlobalExceptionHandler {
   public ApiResult<?> servletRequestBindingException(Exception e) {
     return new ApiResult<>(ErrorCode.BAD_REQUEST, Throwables.getStackTraceAsString(e));
   }
-  
+
   @ExceptionHandler(BadRequestException.class)
   @ResponseBody
   public ApiResult<?> badRequestException(Exception e) {
@@ -45,5 +61,19 @@ public class GlobalExceptionHandler {
   @ResponseBody
   public ApiResult<?> typeMismatchException(Exception e) {
     return new ApiResult<>(ErrorCode.BAD_REQUEST, e.toString());
+  }
+
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  @InitBinder
+  public void initBinder(WebDataBinder binder) {
+    List<Class<? extends Enum<?>>> enums = ReflectUtil.findEnums(ProjectInfo.PKG_PREFIX);
+    for (Class<? extends Enum<?>> e : enums) {
+      try {
+        e.getMethod(EnumConverter.METHOD_NAME);
+      } catch (Exception ex) {
+        continue;
+      }
+      binder.registerCustomEditor(e, new EnumConverter(e));
+    }
   }
 }

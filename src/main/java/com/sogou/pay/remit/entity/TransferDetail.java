@@ -12,6 +12,7 @@ import javax.validation.constraints.NotNull;
 
 import org.jsondoc.core.annotation.ApiObjectField;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -21,10 +22,13 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(value = Include.NON_NULL)
 public class TransferDetail {
 
+  @JsonIgnore
   private Long id;
 
+  @JsonIgnore
   private Integer appId;
 
+  @JsonIgnore
   private String batchNo;
 
   @ApiObjectField(description = "转账流水号")
@@ -50,12 +54,28 @@ public class TransferDetail {
   private String memo;
 
   //
-  private Integer status;
+  private Status status;
 
   private String outErrMsg;
 
   //time stamp
+  @JsonIgnore
   private LocalDateTime updateTime;
+
+  public static enum Status {
+
+    INIT(0), OUT_INIT(1), SUCCESS(2), FAILED(3), CANCELED(4);
+
+    private int value;
+
+    private Status(int value) {
+      this.value = value;
+    }
+
+    public int getValue() {
+      return this.value;
+    }
+  }
 
   public Long getId() {
     return id;
@@ -137,11 +157,11 @@ public class TransferDetail {
     this.memo = memo;
   }
 
-  public Integer getStatus() {
+  public Status getStatus() {
     return status;
   }
 
-  public void setStatus(Integer status) {
+  public void setStatus(Status status) {
     this.status = status;
   }
 

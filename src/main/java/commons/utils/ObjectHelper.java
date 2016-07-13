@@ -2,7 +2,7 @@ package commons.utils;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -11,14 +11,14 @@ public class ObjectHelper {
   static String dumpImpl(Object obj) throws Exception {
     if (obj == null) return "NIL";
                        
-    Class clazz = obj.getClass();
+    Class<?> clazz = obj.getClass();
     String pkg = clazz.getPackage().getName();
     
     StringBuilder builder = new StringBuilder();
 
     String separator = "";
     if (Collection.class.isAssignableFrom(clazz)) {
-      Collection collection = (Collection) obj;
+      Collection<?> collection = (Collection<?>) obj;
       builder.append("[");
       for (Object o : collection) {
         builder.append(separator).append(dumpImpl(o));
@@ -27,13 +27,10 @@ public class ObjectHelper {
       builder.append("]");
       return builder.toString();
     } else if (Map.class.isAssignableFrom(clazz)) {
-      Map map = (Map) obj;
-      
-      @SuppressWarnings("unchecked")
-      Set<Map.Entry> set = (Set<Map.Entry>) map.entrySet();
-      
+      Map<?, ?> map = (Map<?, ?>) obj;
+  
       builder.append("{");
-      for (Map.Entry entry : set) {
+      for (Entry<?, ?> entry : map.entrySet()) {
         builder.append(separator).append(dumpImpl(entry.getKey()))
           .append("=").append(dumpImpl(entry.getValue()));
         separator = ", ";
@@ -50,7 +47,7 @@ public class ObjectHelper {
   }
 
   static String dumpPojo(Object obj) throws Exception {
-    Class clazz = obj.getClass();
+    Class<?> clazz = obj.getClass();
     StringBuilder builder = new StringBuilder();
 
     String separator = "";

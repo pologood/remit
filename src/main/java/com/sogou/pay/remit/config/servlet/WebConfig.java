@@ -1,20 +1,29 @@
 package com.sogou.pay.remit.config.servlet;
 
-import java.io.*;
-import java.util.*;
-import java.time.*;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import org.springframework.context.annotation.*;
-import org.springframework.http.converter.*;
-import org.springframework.http.converter.json.*;
-import org.springframework.web.servlet.config.annotation.*;
+import com.sogou.pay.remit.config.ProjectInfo;
+
+import commons.utils.LocalDateJsonSerializer;
+import commons.utils.LocalDateTimeJsonSerializer;
+
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import commons.utils.LocalDateTimeJsonSerializer;
-import commons.utils.LocalDateJsonSerializer;
-import com.sogou.pay.remit.config.*;
 
 @Configuration
 @EnableWebMvc

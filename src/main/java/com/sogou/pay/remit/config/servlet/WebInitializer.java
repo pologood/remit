@@ -5,7 +5,12 @@ import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletRegistration.Dynamic;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
-import com.sogou.pay.remit.config.*;
+
+import com.sogou.pay.remit.config.AutoCodeConfig;
+import com.sogou.pay.remit.config.DaoConfig;
+import com.sogou.pay.remit.config.JsonDocConfig;
+import com.sogou.pay.remit.config.RootConfig;
+
 
 public class WebInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
   @Override

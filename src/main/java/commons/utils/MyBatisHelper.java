@@ -1,17 +1,17 @@
 package commons.utils;
 
-import java.lang.reflect.Method;
 import java.util.List;
 import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 public class MyBatisHelper {
 
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   public static <T> void registerEnumHandler(TypeHandlerRegistry register, Class handlerType, String packageName) {
     List<Class<? extends Enum<?>>> enums = ReflectUtil.findEnums(packageName);
     for (Class<? extends Enum<?>> clazz : enums) {
       try {
-        Method method = clazz.getMethod("getValue");
+        clazz.getMethod("getValue");
       } catch (Exception e) {
         continue;
       }

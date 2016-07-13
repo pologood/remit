@@ -20,7 +20,7 @@ public enum Exceptions {
 
   STATUS_INVALID("100006", "STATUS_INVALID", "非法改变状态"),
 
-  QRCODE_EXPIRED("100003", "QRCODE_EXPIRED", "二维码失效");
+  AMOUNT_INVALID("100007", "AMOUNT_INVALID", "无效的金额");
 
   private String errorCode;
 

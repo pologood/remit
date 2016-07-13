@@ -30,9 +30,13 @@ import commons.utils.SignHelper;
 @Component
 public class AppManager implements InitializingBean {
 
+  private static final boolean SIGN_SWITCH = false;
+
   private static final String SIGN_ITEM = "sign";
 
   private static final String APP_ITEM = "appId";
+
+  public static final String SIGN_TYPE = "signType";
 
   private static final Set<String> EXCLUDES = ImmutableSet.of(SIGN_ITEM);
 
@@ -45,21 +49,19 @@ public class AppManager implements InitializingBean {
 
   public String getKey(Integer appId) {
     App app = appMap.get(appId);
-    return app == null ? null : app.getKey();
+    return app == null ? null : app.getSignKey();
   }
 
-  public String sign(Map<String, String> map) {
-    return sign(map, Integer.parseInt(map.get(APP_ITEM)));
+  public String sign(Map<String, ?> map) {
+    return sign(map, Integer.parseInt(String.valueOf(map.get(APP_ITEM))));
   }
 
-  public String sign(Map<String, String> map, int appId) {
-    String sign = SignHelper.sign(MapHelper.filter(map, EXCLUDES), getKey(appId));
-    map.put(SIGN_ITEM, sign);
-    return sign;
+  public String sign(Map<String, ?> map, int appId) {
+    return SignHelper.sign(MapHelper.filter(map, EXCLUDES), getKey(appId));
   }
 
-  public boolean checkSign(Map<String, String> map) {
-    return Objects.equals(map.get(SIGN_ITEM), sign(map));
+  public boolean checkSign(Map<String, ?> map) {
+    return SIGN_SWITCH ? Objects.equals(map.get(SIGN_ITEM), sign(map)) : true;
   }
 
   @Override

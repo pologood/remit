@@ -8,9 +8,9 @@ package com.sogou.pay.remit.api;
 import java.util.Optional;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 
+import org.hibernate.validator.constraints.NotBlank;
 import org.jsondoc.core.annotation.Api;
 import org.jsondoc.core.annotation.ApiMethod;
 import org.jsondoc.core.annotation.ApiQueryParam;
@@ -18,12 +18,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.common.collect.ImmutableMap;
 import com.sogou.pay.remit.entity.TransferBatch;
+import com.sogou.pay.remit.entity.TransferBatch.SignType;
+import com.sogou.pay.remit.entity.TransferBatch.Status;
+import com.sogou.pay.remit.enums.Exceptions;
+import com.sogou.pay.remit.manager.AppManager;
 import com.sogou.pay.remit.manager.TransferBatchManager;
 import com.sogou.pay.remit.model.ApiResult;
 
@@ -39,11 +46,14 @@ public class TransferBatchController {
   private static final Logger LOGGER = LoggerFactory.getLogger(TransferBatchController.class);
 
   @Autowired
+  private AppManager appManager;
+
+  @Autowired
   private TransferBatchManager transferBatchManager;
 
   @ApiMethod(description = "add transfer batch")
   @RequestMapping(value = "/transferBatch", method = RequestMethod.POST)
-  public ApiResult<?> add(@ApiQueryParam @Valid TransferBatch batch, BindingResult bindingResult) {
+  public ApiResult<?> add(@ApiQueryParam @Valid @RequestBody TransferBatch batch, BindingResult bindingResult) {
     if (bindingResult.hasErrors()) {
       LOGGER.error("[add]bad request:batch={}", batch);
       return ApiResult.bindingResult(bindingResult);
@@ -53,19 +63,23 @@ public class TransferBatchController {
 
   @ApiMethod(description = "get transfer batch")
   @RequestMapping(value = "/transferBatch", method = RequestMethod.GET)
-  public ApiResult<?> get(@RequestParam(name = "appId", required = false) Optional<Integer> appId,
-      @RequestParam(name = "batchNo", required = false) Optional<String> batchNo,
-      @RequestParam(name = "status", required = false) Optional<Integer> status) {
-    if (appId.isPresent() && batchNo.isPresent()) return transferBatchManager.get(appId.get(), batchNo.get());
-    if (status.isPresent()) return transferBatchManager.list(status.get());
-    return ApiResult.badRequest("batchNo and appId are required or status is required");
+  public ApiResult<?> get(@RequestParam(name = "appId") @NotNull Integer appId,
+      @RequestParam(name = "batchNo") @NotBlank String batchNo, @RequestParam(name = "sign") @NotBlank String sign,
+      @RequestParam(name = "signType") @NotNull SignType signType) {
+    return appManager.checkSign(ImmutableMap.of("appId", appId, "batchNo", batchNo, "sign", sign, "signType", signType))
+        ? transferBatchManager.get(appId, batchNo, true) : ApiResult.badRequest(Exceptions.SIGN_INVALID.getErrorMsg());
+  }
+
+  @ApiMethod(description = "get transfer batch with status")
+  @RequestMapping(value = "/transferBatch/{status}", method = RequestMethod.GET)
+  public ApiResult<?> get(@PathVariable @NotNull Status status) {
+    return transferBatchManager.list(status);
   }
 
   @ApiMethod(description = "update transfer batch")
   @RequestMapping(value = "/transferBatch", method = RequestMethod.PUT)
-  public ApiResult<?> update(@RequestParam(name = "appId") @Min(value = 1) int appId,
-      @RequestParam(name = "batchNo") @Size(min = 1) String batchNo,
-      @RequestParam(name = "status") @Min(value = 1) int status,
+  public ApiResult<?> update(@RequestParam(name = "appId") @NotNull int appId,
+      @RequestParam(name = "batchNo") @NotBlank String batchNo, @RequestParam(name = "status") Status status,
       @RequestParam(name = "opinion", required = false) Optional<String> opinion) {
     return transferBatchManager.update(appId, batchNo, status, Optional.empty(), opinion.orElse(null));
   }

@@ -2,17 +2,24 @@ package com.sogou.pay.remit.config;
 
 import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.jmx.export.annotation.AnnotationMBeanExporter;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import redis.clients.jedis.JedisPool;
-import commons.spring.*;
+
 import commons.saas.RestNameService;
+import commons.spring.LoggerFilter;
+import commons.spring.LooseGsonHttpMessageConverter;
+import commons.spring.RestTemplateFilter;
+import commons.spring.XssFilter;
 
 @Configuration
 @EnableScheduling
