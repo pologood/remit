@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.Options;
@@ -19,7 +20,6 @@ import org.apache.ibatis.jdbc.SQL;
 import org.springframework.stereotype.Repository;
 
 import com.sogou.pay.remit.entity.TransferBatch;
-import com.sogou.pay.remit.entity.TransferBatch.Status;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
@@ -42,8 +42,8 @@ public interface TransferBatchMapper {
     public static String update(TransferBatch batch) {
       SQL sql = new SQL().UPDATE(TABLE);
       if (StringUtils.isNotBlank(batch.getOutErrMsg())) sql.SET("outErrMsg = #{outErrMsg}");
-      if (StringUtils.isNotBlank(batch.getAuditTimes())) sql.SET("auditTimes = #{auditTimes}");
-      if (StringUtils.isNotBlank(batch.getAuditOpinions())) sql.SET("auditTimes = #{auditOpinions}");
+      if (CollectionUtils.isNotEmpty(batch.getAuditTimes())) sql.SET("auditTimes = #{auditTimes}");
+      if (CollectionUtils.isNotEmpty(batch.getAuditOpinions())) sql.SET("auditOpinions = #{auditOpinions}");
       return sql.SET("status = #{status}").WHERE("appId = #{appId}").WHERE("batchNo = #{batchNo}").toString();
     }
 
@@ -63,7 +63,7 @@ public interface TransferBatchMapper {
           .VALUES("busiCode", "#{busiCode}")//
           .VALUES("transType", "#{transType}")//
           .VALUES("currency", "#{currency}")//
-          .VALUES("createTime", "now()");//
+          .VALUES("createTime", "now()");
       if (Objects.nonNull(batch.getSettleChannel())) sql.VALUES("settleChannel", "#{settleChannel}");
       if (StringUtils.isNotBlank(batch.getReserve())) sql.VALUES("reserve", "#{reserve}");
       if (Objects.nonNull(batch.getTransferCount())) sql.VALUES("transferCount", "#{transferCount}");

@@ -31,6 +31,7 @@ import com.sogou.pay.remit.mapper.TransferDetailMapper;
 import com.sogou.pay.remit.model.ApiResult;
 import com.sogou.pay.remit.model.InternalErrorException;
 
+import commons.utils.LocalDateTimeJsonSerializer;
 import commons.utils.MapHelper;
 
 //--------------------- Change Logs----------------------
@@ -119,7 +120,8 @@ public class TransferBatchManager {
       batch.setSettleChannel(bankInfo.getSettleChannel());
   }
 
-  public ApiResult<?> update(int appId, String batchNo, Status status, Optional<String> errMsg, String opinion) {
+  public ApiResult<?> update(int appId, String batchNo, int userId, Status status, Optional<String> errMsg,
+      String opinion) {
     ApiResult<?> result = get(appId, batchNo);
     if (ApiResult.isNotOK(result)) return result;
     TransferBatch batch = (TransferBatch) result.getData();
@@ -129,7 +131,7 @@ public class TransferBatchManager {
       LOGGER.error("[update]{}:from{}to{}", Exceptions.STATUS_INVALID.getErrorMsg(), oldStatus, status);
       return ApiResult.badRequest(Exceptions.STATUS_INVALID.getErrorMsg());
     }
-    if (transferBatchMapper.update(setUpdateItems(batch, errMsg, opinion, status)) < 1) {
+    if (transferBatchMapper.update(setUpdateItems(batch, errMsg, opinion, status, userId)) < 1) {
       LOGGER.error("[update]{}:appId={},batchNo={},from{}to{},outErrMsg={},opinion={}",
           Exceptions.DATA_PERSISTENCE_FAILED.getErrorMsg(), appId, batchNo, oldStatus, status, errMsg, opinion);
       return ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED.getErrorMsg());
@@ -137,18 +139,18 @@ public class TransferBatchManager {
     return ApiResult.ok();
   }
 
-  private TransferBatch setUpdateItems(TransferBatch batch, Optional<String> outErrMsg, String opinion, Status status) {
+  private TransferBatch setUpdateItems(TransferBatch batch, Optional<String> outErrMsg, String opinion, Status status,
+      int userId) {
     batch.setOutErrMsg(outErrMsg.orElse(null));
     if (StringUtils.isNotBlank(opinion)) {
-      batch.setList();
-      batch.getAuditOpinionList().add(opinion);
-      batch.getAuditTimeList().add(LocalDateTime.now());
-      batch.setString();
+      batch.getAuditOpinions().add(opinion);
+      batch.getAuditTimes().add(LocalDateTime.now().format(LocalDateTimeJsonSerializer.dtFmt));
     } else {
       batch.setAuditOpinions(null);
       batch.setAuditTimes(null);
     }
     batch.setStatus(status);
+    batch.setAuditor((long) userId);
     return batch;
   }
 

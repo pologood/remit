@@ -81,7 +81,8 @@ public class TransferBatchController {
   public ApiResult<?> update(@RequestParam(name = "appId") @NotNull int appId,
       @RequestParam(name = "batchNo") @NotBlank String batchNo, @RequestParam(name = "status") Status status,
       @RequestParam(name = "opinion", required = false) Optional<String> opinion) {
-    return transferBatchManager.update(appId, batchNo, status, Optional.empty(), opinion.orElse(null));
+    //TODO uid
+    return transferBatchManager.update(appId, batchNo, 1, status, Optional.empty(), opinion.orElse(null));
   }
 
 }

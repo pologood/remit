@@ -114,7 +114,7 @@ public class XssHelper {
         if (root.isArray()) root = makeJsonSafe((ArrayNode) root);
         else root = makeJsonSafe((ObjectNode) root);
         if (root != null) {
-          json = JsonHelper.writeValueAsString(root);
+          json = JsonHelper.toJson(root);
         }
       }
       return json;

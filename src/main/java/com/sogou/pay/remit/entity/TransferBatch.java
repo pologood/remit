@@ -7,6 +7,7 @@ package com.sogou.pay.remit.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +20,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotBlank;
 import org.jsondoc.core.annotation.ApiObjectField;
 import org.springframework.format.annotation.NumberFormat;
@@ -27,7 +27,6 @@ import org.springframework.format.annotation.NumberFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Sets;
 
 import commons.utils.JsonHelper;
@@ -86,15 +85,9 @@ public class TransferBatch {
   //audit
   private Long auditor;
 
-  private List<LocalDateTime> auditTimeList;
+  private List<String> auditTimes = new ArrayList<>();
 
-  private List<String> auditOpinionList;
-
-  @JsonIgnore
-  private String auditTimes;
-
-  @JsonIgnore
-  private String auditOpinions;
+  private List<String> auditOpinions = new ArrayList<>();
 
   private Status status;
 
@@ -248,46 +241,20 @@ public class TransferBatch {
     this.auditor = auditor;
   }
 
-  public List<LocalDateTime> getAuditTimeList() {
-    return auditTimeList;
-  }
-
-  public void setAuditTimeList() {
-    if (StringUtils.isNotBlank(auditTimes))
-      this.auditTimeList = JsonHelper.readValue(auditTimes, TYPE_OF_LOCALDATETIME_LIST);
-  }
-
-  public List<String> getAuditOpinionList() {
-    return auditOpinionList;
-  }
-
-  public void setAuditOpinionList() {
-    if (StringUtils.isNotBlank(auditOpinions))
-      this.auditOpinionList = JsonHelper.readValue(auditOpinions, TYPE_OF_STRING_LIST);
-  }
-
-  public String getAuditTimes() {
+  public List<String> getAuditTimes() {
     return auditTimes;
   }
 
-  public void setAuditTimes() {
-    this.auditTimes = JsonHelper.writeValueAsString(auditTimeList);
+  public void setAuditTimes(List<String> auditTimes) {
+    this.auditTimes = auditTimes;
   }
 
-  public void setAuditTimes(String s) {
-    this.auditTimes = s;
-  }
-
-  public String getAuditOpinions() {
+  public List<String> getAuditOpinions() {
     return auditOpinions;
   }
 
-  public void setAuditOpinions() {
-    this.auditOpinions = JsonHelper.writeValueAsString(auditOpinionList);
-  }
-
-  public void setAuditOpinions(String s) {
-    this.auditOpinions = s;
+  public void setAuditOpinions(List<String> auditOpinions) {
+    this.auditOpinions = auditOpinions;
   }
 
   public Status getStatus() {
@@ -418,37 +385,31 @@ public class TransferBatch {
     this.upDateTime = upDateTime;
   }
 
+  public List<TransferDetail> getDetails() {
+    return details;
+  }
+
   public void setDetails(List<TransferDetail> details) {
     this.details = details;
   }
 
-  public List<TransferDetail> getDetails() {
-    return this.details;
-  }
-
   @Override
   public String toString() {
-    return JsonHelper.writeValueAsString(this);
+    return JsonHelper.toJson(this);
   }
-
-  public TransferBatch setString() {
-    setAuditOpinions();
-    setAuditTimes();
-    return this;
-  }
-
-  public TransferBatch setList() {
-    setAuditOpinionList();
-    setAuditTimeList();
-    return this;
-  }
-
-  private static final TypeReference<List<LocalDateTime>> TYPE_OF_LOCALDATETIME_LIST = new TypeReference<List<LocalDateTime>>() {};
-
-  private static final TypeReference<List<String>> TYPE_OF_STRING_LIST = new TypeReference<List<String>>() {};
 
   public static enum SignType {
-    MD5, SHA;
+    MD5(0), SHA(1);
+
+    private int value;
+
+    private SignType(int value) {
+      this.value = value;
+    }
+
+    public int getValue() {
+      return this.value;
+    }
   }
 
   public static enum Status {

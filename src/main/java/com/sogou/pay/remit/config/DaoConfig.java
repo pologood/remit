@@ -1,9 +1,12 @@
 package com.sogou.pay.remit.config;
 
+import java.util.List;
+
 import javax.sql.DataSource;
 import com.alibaba.druid.pool.DruidDataSource;
 
 import commons.mybatis.EnumValueTypeHandler;
+import commons.mybatis.ListTypeHandler;
 import commons.mybatis.LocalDateTimeTypeHandler;
 import commons.utils.MyBatisHelper;
 
@@ -12,6 +15,7 @@ import org.mybatis.spring.SqlSessionFactoryBean;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.type.TypeHandler;
+import org.apache.ibatis.type.TypeReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -63,7 +67,8 @@ public class DaoConfig {
     configuration.setDefaultStatementTimeout(300);
     MyBatisHelper.registerEnumHandler(configuration.getTypeHandlerRegistry(), EnumValueTypeHandler.class,
         ProjectInfo.PKG_PREFIX);
-
+    TypeReference<List<String>> STRING_LIST_TYPE = new TypeReference<List<String>>() {};
+    configuration.getTypeHandlerRegistry().register(STRING_LIST_TYPE, new ListTypeHandler<String>());
     return sqlSessionFactory;
   }
 

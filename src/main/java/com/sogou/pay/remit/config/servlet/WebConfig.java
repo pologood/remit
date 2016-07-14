@@ -1,7 +1,7 @@
 package com.sogou.pay.remit.config.servlet;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.sogou.pay.remit.config.ProjectInfo;
 
 import commons.utils.LocalDateJsonSerializer;
@@ -39,7 +39,8 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
     builder.featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     builder.featuresToDisable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
-    builder.serializationInclusion(JsonInclude.Include.NON_NULL);
+    builder.serializationInclusion(Include.NON_NULL);
+    builder.serializationInclusion(Include.NON_EMPTY);
     builder.serializerByType(LocalDateTime.class, new LocalDateTimeJsonSerializer());
     builder.serializerByType(LocalDate.class, new LocalDateJsonSerializer());
     converters.add(new MappingJackson2HttpMessageConverter(builder.build()));
