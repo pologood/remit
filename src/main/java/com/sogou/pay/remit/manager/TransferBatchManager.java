@@ -7,7 +7,10 @@ package com.sogou.pay.remit.manager;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -33,6 +36,7 @@ import com.sogou.pay.remit.model.InternalErrorException;
 
 import commons.utils.LocalDateTimeJsonSerializer;
 import commons.utils.MapHelper;
+import commons.utils.cmb.XmlPacket;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
@@ -173,5 +177,153 @@ public class TransferBatchManager {
       sum = sum.add(detail.getAmount());
     return sum;
   }
+  
+  public ApiResult<?> queryDirectPay(TransferBatch batch) {
+    XmlPacket xmlPacket = new XmlPacket(DIRECT_PAY_FUNCTION_NAME, batch.getLoginName());
+    getDirectPayRequest(batch, xmlPacket);
+    String request = xmlPacket.toXmlString();
+    return null;
+  }
+
+  public ApiResult<?> directPay(TransferBatch batch) {
+    XmlPacket xmlPacket = new XmlPacket(DIRECT_PAY_FUNCTION_NAME, batch.getLoginName());
+    getDirectPayRequest(batch, xmlPacket);
+    String request = xmlPacket.toXmlString();
+    return null;
+  }
+
+  private XmlPacket getDirectPayRequest(TransferBatch batch, XmlPacket xmlPacket) {
+    getDirectPayBatchMap(batch, xmlPacket);
+    getDirectPayDetailMap(batch, xmlPacket);
+    return xmlPacket;
+  }
+
+  private XmlPacket getDirectPayDetailMap(TransferBatch batch, XmlPacket xmlPacket) {
+    Map<String, String> map = new HashMap<>();
+
+    map.put("BUSCOD", batch.getBusiCode().getValue());
+    map.put("BUSMOD", batch.getBusiMode().getValue());
+
+    xmlPacket.putProperty(PAY_BATCH_MAP_NAME, map);
+    return xmlPacket;
+  }
+
+  private XmlPacket getDirectPayBatchMap(TransferBatch batch, XmlPacket xmlPacket) {
+    Map<String, String> map = new HashMap<>();
+
+    map.put("YURREF", StringUtils.join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
+    map.put("DBTACC", batch.getOutAccountId());
+    map.put("DBTBBK", batch.getBranchCode().getValue());
+    map.put("TRSAMT", batch.getTransferAmount().toString());
+    map.put("CCYNBR", "10");//for rmb
+    map.put("STLCHN", batch.getSettleChannel().getValue());
+    map.put("NUSAGE", batch.getMemo());
+
+    TransferDetail detail = batch.getDetails().get(0);
+    map.put("CRTACC", detail.getInAccountId());
+    map.put("CRTNAM", detail.getInAcountName());
+    map.put("TRSAMT", detail.getAmount().toString());
+    if (StringUtils.isNoneBlank(detail.getBankCity(), detail.getBankName())) {
+      map.put("BNKFLG", "N");
+      map.put("CRTBNK", detail.getBankName());
+      map.put("CRTADR", detail.getBankCity());
+    }
+
+    xmlPacket.putProperty(PAY_DETAIL_MAP_NAME, map);
+    return xmlPacket;
+  }
+
+  public ApiResult<?> queryAgencyPayDetail(TransferBatch batch) {
+    XmlPacket xmlPacket = new XmlPacket(QUERY_AGENCY_PAY_DETAIL_FUNCTION_NAME, batch.getLoginName());
+    getQueryAgencyPayDetailRequest(batch, xmlPacket);
+    String request = xmlPacket.toXmlString();
+    return null;
+  }
+
+  private XmlPacket getQueryAgencyPayDetailRequest(TransferBatch batch, XmlPacket xmlPacket) {
+    Map<String, String> map = new HashMap<>();
+    map.put("REQNBR", batch.getOutTradeNo());
+    xmlPacket.putProperty(AGENCY_QUERY_DETAIL_MAP_NAME, map);
+    return xmlPacket;
+  }
+
+  public ApiResult<?> queryAgencyPayResult(TransferBatch batch) {
+    XmlPacket xmlPacket = new XmlPacket(QUERY_AGENCY_PAY_RESULT_FUNCTION_NAME, batch.getLoginName());
+    getQueryAgencyPayResultRequest(batch, xmlPacket);
+    String request = xmlPacket.toXmlString();
+    return null;
+  }
+
+  private XmlPacket getQueryAgencyPayResultRequest(TransferBatch batch, XmlPacket xmlPacket) {
+    Map<String, String> map = new HashMap<>();
+
+    map.put("BUSCOD", batch.getBusiCode().getValue());
+    map.put("YURREF", StringUtils.join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
+    map.put("BGNDAT", batch.getUpDateTime().format(FORMATTER));
+    map.put("ENDDAT", batch.getUpDateTime().format(FORMATTER));
+
+    xmlPacket.putProperty(AGENCY_QUERY_BATCH_MAP_NAME, map);
+    return xmlPacket;
+  }
+
+  public ApiResult<?> agencyPay(TransferBatch batch) {
+    XmlPacket xmlPacket = new XmlPacket(AGENCY_PAY_FUNCTION_NAME, batch.getLoginName());
+    getAgencyPayRequest(batch, xmlPacket);
+    String request = xmlPacket.toXmlString();
+    return null;
+  }
+
+  private XmlPacket getAgencyPayRequest(TransferBatch batch, XmlPacket xmlPacket) {
+    getAgencyPayBatchMap(batch, xmlPacket);
+    getAgencyPayDetailMap(batch, xmlPacket);
+    return xmlPacket;
+  }
+
+  private XmlPacket getAgencyPayDetailMap(TransferBatch batch, XmlPacket xmlPacket) {
+    if (Objects.nonNull(batch) && CollectionUtils.isNotEmpty(batch.getDetails()))
+      for (TransferDetail detail : batch.getDetails()) {
+      Map<String, String> map = new HashMap<>();
+
+      map.put("ACCNBR", detail.getInAccountId());
+      map.put("CLTNAM", detail.getInAcountName());
+      map.put("TRSAMT", detail.getAmount().toString());
+      if (StringUtils.isNoneBlank(detail.getBankCity(), detail.getBankName())) {
+        map.put("BNKFLG", "N");
+        map.put("EACBNK", detail.getBankName());
+        map.put("EACCTY", detail.getBankCity());
+      }
+      map.put("TRSDSP", detail.getTransferId());
+
+      xmlPacket.putProperty(AGENCY_PAY_DETAIL_MAP_NAME, map);
+    }
+    return xmlPacket;
+  }
+
+  private XmlPacket getAgencyPayBatchMap(TransferBatch batch, XmlPacket xmlPacket) {
+    Map<String, String> map = new HashMap<>();
+
+    map.put("BUSCOD", batch.getBusiCode().getValue());
+    map.put("BUSMOD", batch.getBusiMode().getValue());
+    map.put("TRSTYP", batch.getTransType().getValue());
+    map.put("DBTACC", batch.getOutAccountId());
+    map.put("BBKNBR", batch.getBranchCode().getValue());
+    map.put("SUM", batch.getTransferAmount().toString());
+    map.put("TOTAL", Integer.toString(batch.getTransferCount()));
+    map.put("YURREF", StringUtils.join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
+    map.put("MEMO", batch.getMemo());
+
+    xmlPacket.putProperty(AGENCY_PAY_BATCH_MAP_NAME, map);
+    return xmlPacket;
+  }
+
+  private static final String AGENCY_PAY_BATCH_MAP_NAME = "SDKATSRQX", AGENCY_PAY_DETAIL_MAP_NAME = "SDKATDRQX",
+      AGENCY_QUERY_BATCH_MAP_NAME = "SDKATSQYX", AGENCY_QUERY_DETAIL_MAP_NAME = "SDKATDQYX",
+      PAY_BATCH_MAP_NAME = "SDKPAYRQX", PAY_DETAIL_MAP_NAME = "DCOPDPAYX";
+
+  private static final String AGENCY_PAY_FUNCTION_NAME = "AgentRequest",
+      QUERY_AGENCY_PAY_RESULT_FUNCTION_NAME = "GetAgentInfo", DIRECT_PAY_FUNCTION_NAME = "DCPAYMNT",
+      QUERY_AGENCY_PAY_DETAIL_FUNCTION_NAME = "GetAgentDetail", DATE_FORMAT = "yyyyMMdd";
+
+  private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT);
 
 }
