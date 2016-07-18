@@ -9,6 +9,7 @@ import com.sogou.pay.remit.entity.TransferBatch.BranchCode;
 import com.sogou.pay.remit.entity.TransferBatch.BusiCode;
 import com.sogou.pay.remit.entity.TransferBatch.BusiMode;
 import com.sogou.pay.remit.entity.TransferBatch.Channel;
+import com.sogou.pay.remit.entity.TransferBatch.Currency;
 import com.sogou.pay.remit.entity.TransferBatch.SettleChannel;
 import com.sogou.pay.remit.entity.TransferBatch.TransType;
 
@@ -35,7 +36,7 @@ public class BankInfo {
 
   private BranchCode branchCode;
 
-  private String currency;
+  private Currency currency;
 
   private SettleChannel settleChannel;
 
@@ -111,11 +112,11 @@ public class BankInfo {
     this.branchCode = branchCode;
   }
 
-  public String getCurrency() {
+  public Currency getCurrency() {
     return currency;
   }
 
-  public void setCurrency(String currency) {
+  public void setCurrency(Currency currency) {
     this.currency = currency;
   }
 

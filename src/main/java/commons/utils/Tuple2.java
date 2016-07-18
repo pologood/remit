@@ -6,5 +6,5 @@ public class Tuple2<First,Second> {
   public Tuple2(First f, Second s) {
     this.f = f;
     this.s = s;
-  }
+  }  
 }

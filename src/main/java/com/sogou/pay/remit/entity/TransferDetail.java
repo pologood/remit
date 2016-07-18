@@ -13,13 +13,10 @@ import javax.validation.constraints.NotNull;
 import org.jsondoc.core.annotation.ApiObjectField;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
 //-------------------------------------------------------
-@JsonInclude(value = Include.NON_NULL)
 public class TransferDetail {
 
   @JsonIgnore
@@ -36,15 +33,15 @@ public class TransferDetail {
   private String transferId;
 
   @ApiObjectField(description = "入款账户名")
-  @NotNull(message = "transferId is required")
-  private String inAcountName;
+  @NotNull(message = "inAccountName is required")
+  private String inAccountName;
 
   @ApiObjectField(description = "入款账号")
-  @NotNull(message = "transferId is required")
+  @NotNull(message = "inAccountId is required")
   private String inAccountId;
 
   @ApiObjectField(description = "金额")
-  @NotNull(message = "transferId is required")
+  @NotNull(message = "amount is required")
   private BigDecimal amount;
 
   private String bankName;
@@ -109,12 +106,12 @@ public class TransferDetail {
     this.transferId = transferId;
   }
 
-  public String getInAcountName() {
-    return inAcountName;
+  public String getInAccountName() {
+    return inAccountName;
   }
 
-  public void setInAcountName(String inAcountName) {
-    this.inAcountName = inAcountName;
+  public void setInAccountName(String inAccountName) {
+    this.inAccountName = inAccountName;
   }
 
   public String getInAccountId() {

@@ -20,7 +20,11 @@ public enum Exceptions {
 
   STATUS_INVALID("100006", "STATUS_INVALID", "非法改变状态"),
 
-  AMOUNT_INVALID("100007", "AMOUNT_INVALID", "无效的金额");
+  AMOUNT_INVALID("100007", "AMOUNT_INVALID", "无效的金额"),
+
+  BANKINFO_NOT_FOUND("100008", "BANKINFO_NOT_FOUND", "无对应账号信息"),
+
+  DETAIL_INVALID("100009", "DETAIL_INVALID", "明细信息不完整");
 
   private String errorCode;
 
@@ -48,7 +52,7 @@ public enum Exceptions {
    *
    * @return String
    */
-  public String getErrorMsg() {
+  public String getErrMsg() {
     return this.errorMsg;
   }
 

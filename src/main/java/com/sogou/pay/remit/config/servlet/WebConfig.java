@@ -2,6 +2,7 @@ package com.sogou.pay.remit.config.servlet;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.sogou.pay.remit.api.SignInterceptor;
 import com.sogou.pay.remit.config.ProjectInfo;
 
 import commons.utils.LocalDateJsonSerializer;
@@ -23,12 +24,18 @@ import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.handler.MappedInterceptor;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 @Configuration
 @EnableWebMvc
 @ComponentScan({ ProjectInfo.API_PKG })
 public class WebConfig extends WebMvcConfigurerAdapter {
+
+  @Bean
+  public MappedInterceptor signInterceptor() {
+    return new MappedInterceptor(new String[] { "/api/transferBatch" }, new SignInterceptor());
+  }
 
   @Override
   public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {

@@ -28,8 +28,7 @@ public class SaxHandler extends DefaultHandler {
 
   XmlPacket pktData;
 
-  @SuppressWarnings("rawtypes")
-  Map mpRecord;
+  Map<Object, Object> mpRecord;
 
   public SaxHandler(XmlPacket data) {
     curSectionName = "";
@@ -48,7 +47,6 @@ public class SaxHandler extends DefaultHandler {
     }
   }
 
-  @SuppressWarnings("unchecked")
   public void endElement(String uri, String localName, String qName) throws SAXException {
     if (layer == 2) {
       pktData.putProperty(curSectionName, mpRecord);

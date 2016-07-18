@@ -47,20 +47,20 @@ public class AppManager implements InitializingBean {
   @Autowired
   private AppMapper appMapper;
 
-  public String getKey(Integer appId) {
+  public static String getKey(Integer appId) {
     App app = appMap.get(appId);
     return app == null ? null : app.getSignKey();
   }
 
-  public String sign(Map<String, ?> map) {
+  public static String sign(Map<String, ?> map) {
     return sign(map, Integer.parseInt(String.valueOf(map.get(APP_ITEM))));
   }
 
-  public String sign(Map<String, ?> map, int appId) {
+  public static String sign(Map<String, ?> map, int appId) {
     return SignHelper.sign(MapHelper.filter(map, EXCLUDES), getKey(appId));
   }
 
-  public boolean checkSign(Map<String, ?> map) {
+  public static boolean checkSign(Map<String, ?> map) {
     return SIGN_SWITCH ? Objects.equals(map.get(SIGN_ITEM), sign(map)) : true;
   }
 

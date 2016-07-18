@@ -5,8 +5,10 @@
  */
 package com.sogou.pay.remit.api;
 
+import java.io.IOException;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -25,12 +27,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.common.collect.ImmutableMap;
 import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.SignType;
 import com.sogou.pay.remit.entity.TransferBatch.Status;
-import com.sogou.pay.remit.enums.Exceptions;
-import com.sogou.pay.remit.manager.AppManager;
 import com.sogou.pay.remit.manager.TransferBatchManager;
 import com.sogou.pay.remit.model.ApiResult;
 
@@ -46,14 +45,12 @@ public class TransferBatchController {
   private static final Logger LOGGER = LoggerFactory.getLogger(TransferBatchController.class);
 
   @Autowired
-  private AppManager appManager;
-
-  @Autowired
   private TransferBatchManager transferBatchManager;
 
   @ApiMethod(description = "add transfer batch")
   @RequestMapping(value = "/transferBatch", method = RequestMethod.POST)
-  public ApiResult<?> add(@ApiQueryParam @Valid @RequestBody TransferBatch batch, BindingResult bindingResult) {
+  public ApiResult<?> add(HttpServletRequest request, @ApiQueryParam @RequestBody @Valid TransferBatch batch,
+      BindingResult bindingResult) throws IOException {
     if (bindingResult.hasErrors()) {
       LOGGER.error("[add]bad request:batch={}", batch);
       return ApiResult.bindingResult(bindingResult);
@@ -66,14 +63,13 @@ public class TransferBatchController {
   public ApiResult<?> get(@RequestParam(name = "appId") @NotNull Integer appId,
       @RequestParam(name = "batchNo") @NotBlank String batchNo, @RequestParam(name = "sign") @NotBlank String sign,
       @RequestParam(name = "signType") @NotNull SignType signType) {
-    return appManager.checkSign(ImmutableMap.of("appId", appId, "batchNo", batchNo, "sign", sign, "signType", signType))
-        ? transferBatchManager.get(appId, batchNo, true) : ApiResult.badRequest(Exceptions.SIGN_INVALID.getErrorMsg());
+    return transferBatchManager.get(appId, batchNo, true);
   }
 
   @ApiMethod(description = "get transfer batch with status")
   @RequestMapping(value = "/transferBatch/{status}", method = RequestMethod.GET)
   public ApiResult<?> get(@PathVariable @NotNull Status status) {
-    return transferBatchManager.list(status);
+    return transferBatchManager.list();
   }
 
   @ApiMethod(description = "update transfer batch")

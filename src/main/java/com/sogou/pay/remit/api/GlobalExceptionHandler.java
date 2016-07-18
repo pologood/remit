@@ -63,7 +63,7 @@ public class GlobalExceptionHandler {
     return new ApiResult<>(ErrorCode.BAD_REQUEST, e.toString());
   }
 
-  @SuppressWarnings({ "unchecked", "rawtypes" })
+
   @InitBinder
   public void initBinder(WebDataBinder binder) {
     List<Class<? extends Enum<?>>> enums = ReflectUtil.findEnums(ProjectInfo.PKG_PREFIX);

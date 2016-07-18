@@ -7,7 +7,7 @@ CREATE TABLE `transfer_detail` (
   `transferId` varchar(128) NOT NULL COMMENT '转账流水号',
   `amount` DECIMAL(12,2) NOT NULL DEFAULT '0.00' COMMENT '金额',
   `inAccountId` varchar(32) NOT NULL COMMENT '收款账号',
-  `inAcountName` varchar(64) NOT NULL COMMENT '收款账户名',
+  `inAccountName` varchar(64) NOT NULL COMMENT '收款账户名',
   `bankName` varchar(64) DEFAULT NULL COMMENT '他行支行',
   `bankCity` varchar(64) DEFAULT NULL COMMENT '他行城市',
   `memo` varchar(128) DEFAULT NULL COMMENT '备注',

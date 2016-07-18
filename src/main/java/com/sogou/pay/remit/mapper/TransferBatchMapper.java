@@ -5,6 +5,7 @@
  */
 package com.sogou.pay.remit.mapper;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -20,6 +21,9 @@ import org.apache.ibatis.jdbc.SQL;
 import org.springframework.stereotype.Repository;
 
 import com.sogou.pay.remit.entity.TransferBatch;
+import com.sogou.pay.remit.entity.TransferBatch.Status;
+
+import commons.utils.Tuple2;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
@@ -69,6 +73,17 @@ public interface TransferBatchMapper {
       if (Objects.nonNull(batch.getTransferCount())) sql.VALUES("transferCount", "#{transferCount}");
       return sql.toString();
     }
+
+    public static String listWithStatusAndAmount(Map<String, Object> map) {
+      List<?> list = (List<?>) map.get("conditions");
+      SQL sql = new SQL().SELECT("*").FROM(TABLE);
+      for (int i = 0; i < list.size(); i++) {
+        if (i > 0) sql.OR();
+        sql.WHERE(String.format("status = #{conditions[%d].f}", i))
+            .WHERE(String.format("transferAmount < #{conditions[%d].s}", i));
+      }
+      return sql.toString();
+    }
   }
 
   @SelectProvider(type = Sql.class, method = "selectByBatchNo")
@@ -83,5 +98,8 @@ public interface TransferBatchMapper {
   @InsertProvider(type = Sql.class, method = "add")
   @Options(useGeneratedKeys = true, keyProperty = "id")
   long add(TransferBatch batch);
+
+  @SelectProvider(type = Sql.class, method = "listWithStatusAndAmount")
+  List<TransferBatch> listWithStatusAndAmount(@Param("conditions") List<Tuple2<Status, BigDecimal>> conditions);
 
 }

@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,15 +59,16 @@ public class MapHelper {
   }
 
   public static Map<String, ?> filter(Map<String, ?> map) {
-    if (MapUtils.isEmpty(map)) return map;
-    return map.entrySet().stream().filter(e -> Objects.nonNull(e.getValue()))
-        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+    return MapUtils.isEmpty(map) ? map
+        : map.entrySet().stream().filter(e -> Objects.nonNull(e.getValue()))
+            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
   }
 
   public static Map<String, ?> filter(Map<String, ?> map, Set<String> excludes) {
-    if (MapUtils.isEmpty(map = filter(map)) || CollectionUtils.isEmpty(excludes)) return map;
-    return map.entrySet().stream().filter(e -> !excludes.contains(e.getKey()))
-        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+    return MapUtils.isEmpty(map = filter(map)) || CollectionUtils.isEmpty(excludes)
+        || SetUtils.intersection(map.keySet(), excludes).isEmpty() ? map
+            : map.entrySet().stream().filter(e -> !excludes.contains(e.getKey()))
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
   }
 
   public static Map<String, Object> convertToMap(Object o) {

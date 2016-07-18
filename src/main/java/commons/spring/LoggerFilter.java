@@ -190,8 +190,9 @@ public class LoggerFilter implements Filter {
 
     private ServletInputStreamImpl servletStream;
 
-    public ResettableStreamHttpServletRequest(HttpServletRequest request) {
+    public ResettableStreamHttpServletRequest(HttpServletRequest request) throws IOException {
       super(request);
+      rawData = StreamUtils.copyToByteArray(super.getInputStream());
       this.servletStream = new ServletInputStreamImpl();
     }
 
@@ -200,8 +201,7 @@ public class LoggerFilter implements Filter {
     }
 
     @Override
-    public ServletInputStream getInputStream() throws IOException {
-      rawData = StreamUtils.copyToByteArray(super.getInputStream());
+    public ServletInputStream getInputStream() throws IOException {      
       servletStream.setData(rawData);
       return servletStream;
     }

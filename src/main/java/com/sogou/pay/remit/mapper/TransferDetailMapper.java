@@ -39,16 +39,15 @@ public interface TransferDetailMapper {
           .WHERE("transferId = #{transferId}").toString();
     }
 
-    @SuppressWarnings("unchecked")
     public static String add(Map<String, Object> map) {
-      List<TransferDetail> details = (List<TransferDetail>) map.get("details");
+      List<?> details = (List<?>) map.get("details");
       StringBuilder sb = new StringBuilder("insert into ").append(TABLE)
-          .append(" (appId, batchNo, transferId, inAcountName, inAccountId, amount, bankName, bankCity, memo) values ");
+          .append(" (appId, batchNo, transferId, inAccountName, inAccountId, amount, bankName, bankCity, memo) values ");
       for (int i = 0; i < details.size(); i++)
         sb.append("(").append(String.format("#{details[%d].appId}", i)).append(", ")
             .append(String.format("#{details[%d].batchNo}", i)).append(", ")
             .append(String.format("#{details[%d].transferId}", i)).append(", ")
-            .append(String.format("#{details[%d].inAcountName}", i)).append(", ")
+            .append(String.format("#{details[%d].inAccountName}", i)).append(", ")
             .append(String.format("#{details[%d].inAccountId}", i)).append(", ")
             .append(String.format("#{details[%d].amount}", i)).append(", ")
             .append(String.format("#{details[%d].bankName}", i)).append(", ")

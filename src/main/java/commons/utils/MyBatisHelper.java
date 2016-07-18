@@ -1,13 +1,15 @@
 package commons.utils;
 
 import java.util.List;
-import org.apache.ibatis.type.TypeHandler;
+
 import org.apache.ibatis.type.TypeHandlerRegistry;
+
+import commons.mybatis.EnumValueTypeHandler;
 
 public class MyBatisHelper {
 
-  @SuppressWarnings({ "rawtypes", "unchecked" })
-  public static <T> void registerEnumHandler(TypeHandlerRegistry register, Class handlerType, String packageName) {
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  public static <T> void registerEnumHandler(TypeHandlerRegistry register, String packageName) {
     List<Class<? extends Enum<?>>> enums = ReflectUtil.findEnums(packageName);
     for (Class<? extends Enum<?>> clazz : enums) {
       try {
@@ -16,9 +18,7 @@ public class MyBatisHelper {
         continue;
       }
       try {
-        TypeHandler typeHandler = (TypeHandler) handlerType.getConstructor(Class.class).newInstance(clazz);
-        // we must appoint JavaType
-        register.register(clazz, typeHandler);
+        register.register(clazz, new EnumValueTypeHandler(clazz));
       } catch (Exception e) {
         throw new RuntimeException(e);
       }

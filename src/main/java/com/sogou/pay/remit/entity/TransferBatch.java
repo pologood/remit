@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.validation.Valid;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -25,8 +26,6 @@ import org.jsondoc.core.annotation.ApiObjectField;
 import org.springframework.format.annotation.NumberFormat;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.collect.Sets;
 
 import commons.utils.JsonHelper;
@@ -34,7 +33,6 @@ import commons.utils.JsonHelper;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
 //-------------------------------------------------------
-@JsonInclude(value = Include.NON_NULL)
 public class TransferBatch {
 
   @JsonIgnore
@@ -117,7 +115,7 @@ public class TransferBatch {
   //since version 1 only supports ￥ so ignore it
   @JsonIgnore
   @ApiObjectField(description = "币种")
-  private String currency;
+  private Currency currency;
 
   @ApiObjectField(description = "结算方式")
   private SettleChannel settleChannel;
@@ -140,6 +138,7 @@ public class TransferBatch {
   private LocalDateTime upDateTime;
 
   //details
+  @Valid
   @ApiObjectField(description = "转账明细")
   @NotNull
   @Size(min = 1, message = "details can not be empty")
@@ -321,11 +320,11 @@ public class TransferBatch {
     this.transType = transType;
   }
 
-  public String getCurrency() {
+  public Currency getCurrency() {
     return currency;
   }
 
-  public void setCurrency(String currency) {
+  public void setCurrency(Currency currency) {
     this.currency = currency;
   }
 
@@ -490,8 +489,18 @@ public class TransferBatch {
   }
 
   public static enum Channel {
-    PAY, //支付
-    AGENCY; //代发代扣 
+    PAY(0), //支付
+    AGENCY(1); //代发代扣
+
+    private int value;
+
+    private Channel(int value) {
+      this.value = value;
+    }
+
+    public int getValue() {
+      return value;
+    }
   }
 
   public static enum SettleChannel {
@@ -552,7 +561,7 @@ public class TransferBatch {
     Guiyang("85"), //
     Kunming("87"), //
     Haikou("89"), //
-    Wulumuqi("91"), //
+    Urumqi("91"), //
     Xiamen("92"), //
     Lanzhou("93"), //
     Hongkong("97");
@@ -570,6 +579,14 @@ public class TransferBatch {
   }
 
   public static enum TransType {
+    //pay
+    ORDINARY("100001", "普通汇兑"),
+
+    DONATION("101001", "慈善捐款"),
+
+    OTHER("101002", "其他"),
+
+    //agency
     PAYROLL("BYSA", "代发工资"),
 
     PAY_TRUSTS_RETURNS("BYFD", "代发信托返还资金"),
@@ -688,6 +705,64 @@ public class TransferBatch {
     public String getMessage() {
       return message;
     }
+  }
+
+  public static enum Currency {
+    RMB("10");
+
+    private String value;
+
+    private Currency(String value) {
+      this.value = value;
+    }
+
+    public String getValue() {
+      return value;
+    }
+  }
+
+  public static class TransferBatchUpdateStatusDto {
+
+    private Integer appId;
+
+    private String batchNo;
+
+    private Status toStatus;
+
+    private Boolean isUpdateSuccess;
+
+    public Integer getAppId() {
+      return appId;
+    }
+
+    public void setAppId(Integer appId) {
+      this.appId = appId;
+    }
+
+    public String getBatchNo() {
+      return batchNo;
+    }
+
+    public void setBatchNo(String batchNo) {
+      this.batchNo = batchNo;
+    }
+
+    public Status getToStatus() {
+      return toStatus;
+    }
+
+    public void setToStatus(Status toStatus) {
+      this.toStatus = toStatus;
+    }
+
+    public Boolean getIsUpdateSuccess() {
+      return isUpdateSuccess;
+    }
+
+    public void setIsUpdateSuccess(Boolean isUpdateSuccess) {
+      this.isUpdateSuccess = isUpdateSuccess;
+    }
+
   }
 
 }

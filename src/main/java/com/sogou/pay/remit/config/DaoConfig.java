@@ -5,7 +5,6 @@ import java.util.List;
 import javax.sql.DataSource;
 import com.alibaba.druid.pool.DruidDataSource;
 
-import commons.mybatis.EnumValueTypeHandler;
 import commons.mybatis.ListTypeHandler;
 import commons.mybatis.LocalDateTimeTypeHandler;
 import commons.utils.MyBatisHelper;
@@ -65,8 +64,7 @@ public class DaoConfig {
     configuration.setLazyLoadingEnabled(false);
     configuration.setAggressiveLazyLoading(true);
     configuration.setDefaultStatementTimeout(300);
-    MyBatisHelper.registerEnumHandler(configuration.getTypeHandlerRegistry(), EnumValueTypeHandler.class,
-        ProjectInfo.PKG_PREFIX);
+    MyBatisHelper.registerEnumHandler(configuration.getTypeHandlerRegistry(), ProjectInfo.PKG_PREFIX);
     TypeReference<List<String>> STRING_LIST_TYPE = new TypeReference<List<String>>() {};
     configuration.getTypeHandlerRegistry().register(STRING_LIST_TYPE, new ListTypeHandler<String>());
     return sqlSessionFactory;
