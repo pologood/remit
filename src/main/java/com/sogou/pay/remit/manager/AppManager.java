@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -30,7 +31,7 @@ import commons.utils.SignHelper;
 @Component
 public class AppManager implements InitializingBean {
 
-  private static final boolean SIGN_SWITCH = false;
+  private static final boolean SIGN_SWITCH = true;
 
   private static final String SIGN_ITEM = "sign";
 
@@ -48,12 +49,12 @@ public class AppManager implements InitializingBean {
   private AppMapper appMapper;
 
   public static String getKey(Integer appId) {
-    App app = appMap.get(appId);
-    return app == null ? null : app.getSignKey();
+    App app = Objects.isNull(appId) ? null : appMap.get(appId);
+    return Objects.isNull(app) ? null : app.getSignKey();
   }
 
   public static String sign(Map<String, ?> map) {
-    return sign(map, Integer.parseInt(String.valueOf(map.get(APP_ITEM))));
+    return sign(map, MapUtils.getInteger(map, APP_ITEM));
   }
 
   public static String sign(Map<String, ?> map, int appId) {
@@ -69,7 +70,7 @@ public class AppManager implements InitializingBean {
     init();
   }
 
-  private void init() {
+  public void init() {
     LOGGER.info("app refresh start");
     List<App> apps = appMapper.list();
     appMap.clear();
