@@ -14,6 +14,8 @@ import org.jsondoc.core.annotation.ApiObjectField;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import commons.utils.JsonHelper;
+
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
 //-------------------------------------------------------
@@ -176,6 +178,11 @@ public class TransferDetail {
 
   public void setUpdateTime(LocalDateTime updateTime) {
     this.updateTime = updateTime;
+  }
+
+  @Override
+  public String toString() {
+    return JsonHelper.toJson(this);
   }
 
 }
