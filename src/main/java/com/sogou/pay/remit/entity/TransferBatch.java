@@ -8,9 +8,11 @@ package com.sogou.pay.remit.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.validation.Valid;
@@ -402,12 +404,22 @@ public class TransferBatch {
 
     private int value;
 
+    private static final Map<Integer, SignType> MAP = new HashMap<>();
+
+    static {
+      Arrays.stream(SignType.values()).forEach(signType -> MAP.put(signType.getValue(), signType));
+    }
+
     private SignType(int value) {
       this.value = value;
     }
 
     public int getValue() {
       return this.value;
+    }
+
+    public static SignType getSignType(Integer value) {
+      return Objects.isNull(value) ? null : MAP.get(value);
     }
   }
 
