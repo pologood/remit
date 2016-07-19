@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.sogou.pay.remit.api.SignInterceptor;
 import com.sogou.pay.remit.config.ProjectInfo;
 
+import commons.utils.EnumJsonSerializer;
 import commons.utils.LocalDateJsonSerializer;
 import commons.utils.LocalDateTimeJsonSerializer;
 
@@ -50,6 +51,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     builder.serializationInclusion(Include.NON_EMPTY);
     builder.serializerByType(LocalDateTime.class, new LocalDateTimeJsonSerializer());
     builder.serializerByType(LocalDate.class, new LocalDateJsonSerializer());
+    builder.serializerByType(Enum.class, new EnumJsonSerializer());
     converters.add(new MappingJackson2HttpMessageConverter(builder.build()));
   }
 
