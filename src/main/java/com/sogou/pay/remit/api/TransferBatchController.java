@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sogou.pay.remit.entity.TransferBatch;
-import com.sogou.pay.remit.entity.TransferBatch.SignType;
 import com.sogou.pay.remit.entity.TransferBatch.Status;
 import com.sogou.pay.remit.manager.TransferBatchManager;
 import com.sogou.pay.remit.model.ApiResult;
@@ -55,21 +54,20 @@ public class TransferBatchController {
       LOGGER.error("[add]bad request:batch={}", batch);
       return ApiResult.bindingResult(bindingResult);
     }
-    return transferBatchManager.add(batch);
+    return transferBatchManager.add(batch.makeXssSafe());
   }
 
   @ApiMethod(description = "get transfer batch")
   @RequestMapping(value = "/transferBatch", method = RequestMethod.GET)
   public ApiResult<?> get(@RequestParam(name = "appId") @NotNull Integer appId,
-      @RequestParam(name = "batchNo") @NotBlank String batchNo, @RequestParam(name = "sign") @NotBlank String sign,
-      @RequestParam(name = "signType") @NotNull SignType signType) {
+      @RequestParam(name = "batchNo") @NotBlank String batchNo) {
     return transferBatchManager.get(appId, batchNo, true);
   }
 
   @ApiMethod(description = "get transfer batch with status")
   @RequestMapping(value = "/transferBatch/{status}", method = RequestMethod.GET)
   public ApiResult<?> get(@PathVariable @NotNull Status status) {
-    return transferBatchManager.list();
+    return transferBatchManager.list(status);
   }
 
   @ApiMethod(description = "update transfer batch")
@@ -78,7 +76,7 @@ public class TransferBatchController {
       @RequestParam(name = "batchNo") @NotBlank String batchNo, @RequestParam(name = "status") Status status,
       @RequestParam(name = "opinion", required = false) Optional<String> opinion) {
     //TODO uid
-    return transferBatchManager.update(appId, batchNo, 1, status, Optional.empty(), opinion.orElse(null));
+    return transferBatchManager.audit(appId, batchNo, 1, status, opinion.orElse(null));
   }
 
 }

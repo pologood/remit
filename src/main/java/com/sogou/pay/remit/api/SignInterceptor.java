@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -38,8 +39,9 @@ public class SignInterceptor extends HandlerInterceptorAdapter {
     if (RequestMethod.GET.name().equalsIgnoreCase(request.getMethod())) {
       Enumeration<String> params = request.getParameterNames();
       for (String s; params.hasMoreElements(); map.put(s = params.nextElement(), request.getParameter(s)));
-    }
-
+    } else if (RequestMethod.POST.name().equalsIgnoreCase(request.getMethod()))
+      map = JsonHelper.toMap(IOUtils.toString(request.getReader()));
+    
     if (MapUtils.isNotEmpty(map) && !AppManager.checkSign(map)) {
       writeResponse(response);
       return false;

@@ -520,7 +520,7 @@ public class CodeAutoGen {
     for (FieldDesc field : entityDesc.fields) {
       if (!field.isEnum) continue;
       cw.write(2, "@ApiObject(name = '%s.%s', description = '%s %s')", source.entityClazz, field.type,
-          source.entityClazz, field.type).write(2, "public static enum %s {", field.type).write(4, "PH(1);").newLine()
+          source.entityClazz, field.type).write(2, "public enum %s {", field.type).write(4, "PH(1);").newLine()
           .write(4, "private int value;").write(4, "%s(int value) {this.value = value;}", field.type)
           .write(4, "public int getValue() {return this.value;}").write(2, "}").newLine();
     }

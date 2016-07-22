@@ -2,6 +2,7 @@ package com.sogou.pay.remit.model;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -12,8 +13,11 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.jsondoc.core.annotation.ApiObject;
 import org.jsondoc.core.annotation.ApiObjectField;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
+import com.sogou.pay.remit.enums.Exceptions;
 
 @ApiObject(name = "ApiResult", description = "ApiResult")
 public class ApiResult<Data> {
@@ -51,7 +55,9 @@ public class ApiResult<Data> {
   }
 
   void setErrorHint() {
-    HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+    RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+    if (Objects.isNull(requestAttributes)) return;
+    HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
     HttpServletResponse response = (HttpServletResponse) request.getAttribute(RESPONSE);
     String error = String.format("%s:%s", code, message.substring(0, Math.min(100, message.length())));
     if (response != null) response.setHeader(API_RESULT_ERROR, error);
@@ -64,6 +70,10 @@ public class ApiResult<Data> {
 
   public static ApiResult<?> badRequest(String msg) {
     return new ApiResult<>(ErrorCode.BAD_REQUEST, msg);
+  }
+
+  public static ApiResult<?> badRequest(Exceptions e) {
+    return badRequest(e.getErrMsg());
   }
 
   public static ApiResult<?> unAuthorized() {
@@ -138,7 +148,7 @@ public class ApiResult<Data> {
 
   @Override
   public String toString() {
-    return ReflectionToStringBuilder.toString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+    return ReflectionToStringBuilder.toString(this, ToStringStyle.JSON_STYLE);
   }
 
 }

@@ -12,9 +12,9 @@ import java.util.Objects;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 
-import commons.utils.EnumConverter;
-
 public class EnumValueTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E> {
+
+  public static final String METHOD_NAME = "getValue";
 
   private final Method method;
 
@@ -23,7 +23,7 @@ public class EnumValueTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E> 
   public EnumValueTypeHandler(Class<E> type) {
     if (Objects.isNull(type) || !type.isEnum()) throw new IllegalArgumentException(type + " is not a enum type");
     try {
-      this.method = type.getMethod(EnumConverter.METHOD_NAME);
+      this.method = type.getMethod(METHOD_NAME);
       for (E e : type.getEnumConstants())
         enumMap.put(String.valueOf(this.method.invoke(e)), e);
     } catch (Exception e) {

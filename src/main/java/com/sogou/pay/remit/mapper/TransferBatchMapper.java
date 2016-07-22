@@ -20,6 +20,7 @@ import org.apache.ibatis.annotations.UpdateProvider;
 import org.apache.ibatis.jdbc.SQL;
 import org.springframework.stereotype.Repository;
 
+import com.google.common.collect.ImmutableList;
 import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.Status;
 
@@ -35,8 +36,13 @@ public interface TransferBatchMapper {
 
     private final static String TABLE = "`transfer_batch`";
 
+    private final static List<String> ITEMS_SELECTED_BY_BATCHNO = ImmutableList.of("appId", "batchNo", "status",
+        "outErrMsg", "transferCount", "transferAmount", "successCount", "successAmount");
+
     public static String selectByBatchNo(Map<String, Object> param) {
-      return new SQL().SELECT("*").FROM(TABLE).WHERE("appId = #{appId}").WHERE("batchNo = #{batchNo}").toString();
+      SQL sql = new SQL();
+      ITEMS_SELECTED_BY_BATCHNO.forEach(columns -> sql.SELECT(columns));
+      return sql.FROM(TABLE).WHERE("appId = #{appId}").WHERE("batchNo = #{batchNo}").toString();
     }
 
     public static String list(Map<String, Object> map) {
@@ -48,6 +54,9 @@ public interface TransferBatchMapper {
       if (StringUtils.isNotBlank(batch.getOutErrMsg())) sql.SET("outErrMsg = #{outErrMsg}");
       if (CollectionUtils.isNotEmpty(batch.getAuditTimes())) sql.SET("auditTimes = #{auditTimes}");
       if (CollectionUtils.isNotEmpty(batch.getAuditOpinions())) sql.SET("auditOpinions = #{auditOpinions}");
+      if (StringUtils.isNotBlank(batch.getOutTradeNo())) sql.SET("outTradeNo = #{outTradeNo}");
+      if (Objects.nonNull(batch.getSuccessAmount())) sql.SET("successAmount = #{successAmount}");
+      if (Objects.nonNull(batch.getSuccessCount())) sql.SET("successCount = #{successCount}");
       return sql.SET("status = #{status}").WHERE("appId = #{appId}").WHERE("batchNo = #{batchNo}").toString();
     }
 

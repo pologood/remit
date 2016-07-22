@@ -1,6 +1,7 @@
 package commons.utils.cmb;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
@@ -12,6 +13,8 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.ByteArrayInputStream;
 
 import org.xml.sax.SAXException;
+
+import commons.utils.Httpclient;
 
 public class XmlPacket {
 
@@ -113,10 +116,25 @@ public class XmlPacket {
    * @param index 索引，从0开始
    * @return Map<String,String>
    */
-  @SuppressWarnings("rawtypes")
-  public Map getProperty(String sSectionName, int index) {
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public Map<String, String> getProperty(String sSectionName, int index) {
     if (data.containsKey(sSectionName)) {
-      return (Map) ((Vector) data.get(sSectionName)).get(index);
+      return (Map<String, String>) ((Vector) data.get(sSectionName)).get(index);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * 取得指定接口的数据记录
+   * 
+   * @param sSectionName
+   * @return Vector<Map<String,String>>
+   */
+  @SuppressWarnings("unchecked")
+  public Vector<Map<String, String>> getProperty(String sSectionName) {
+    if (data.containsKey(sSectionName)) {
+      return ((Vector<Map<String, String>>) data.get(sSectionName));
     } else {
       return null;
     }
@@ -171,16 +189,20 @@ public class XmlPacket {
     return sfData.toString();
   }
 
+  public static XmlPacket valueOf(String message) {
+    return valueOf(message, Httpclient.CHARSET);
+  }
+
   /**
    * 解析xml字符串，并转换为报文对象
    * 
    * @param message
    */
-  public static XmlPacket valueOf(String message) {
+  public static XmlPacket valueOf(String message, Charset charset) {
     SAXParserFactory saxfac = SAXParserFactory.newInstance();
     try {
       SAXParser saxparser = saxfac.newSAXParser();
-      ByteArrayInputStream is = new ByteArrayInputStream(message.getBytes());
+      ByteArrayInputStream is = new ByteArrayInputStream(message.getBytes(charset));
       XmlPacket xmlPkt = new XmlPacket();
       saxparser.parse(is, new SaxHandler(xmlPkt));
       is.close();

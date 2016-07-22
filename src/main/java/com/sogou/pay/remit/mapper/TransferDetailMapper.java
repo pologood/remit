@@ -28,6 +28,11 @@ public interface TransferDetailMapper {
 
     private final static String TABLE = "`transfer_detail`";
 
+    public static String selectByTransferId(Map<String, Object> param) {
+      return new SQL().SELECT("*").FROM(TABLE).WHERE("appId = #{appId}").WHERE("batchNo = #{batchNo}")
+          .WHERE("transferId = #{transferId}").toString();
+    }
+
     public static String selectByBatchNo(Map<String, Object> param) {
       return new SQL().SELECT("*").FROM(TABLE).WHERE("appId = #{appId}").WHERE("batchNo = #{batchNo}").toString();
     }
@@ -41,8 +46,8 @@ public interface TransferDetailMapper {
 
     public static String add(Map<String, Object> map) {
       List<?> details = (List<?>) map.get("details");
-      StringBuilder sb = new StringBuilder("insert into ").append(TABLE)
-          .append(" (appId, batchNo, transferId, inAccountName, inAccountId, amount, bankName, bankCity, memo) values ");
+      StringBuilder sb = new StringBuilder("insert into ").append(TABLE).append(
+          " (appId, batchNo, transferId, inAccountName, inAccountId, amount, bankName, bankCity, memo) values ");
       for (int i = 0; i < details.size(); i++)
         sb.append("(").append(String.format("#{details[%d].appId}", i)).append(", ")
             .append(String.format("#{details[%d].batchNo}", i)).append(", ")
@@ -56,6 +61,10 @@ public interface TransferDetailMapper {
       return sb.substring(0, sb.length() - 1);
     }
   }
+
+  @SelectProvider(type = Sql.class, method = "selectByTransferId")
+  TransferDetail selectByTransferId(@Param("appId") Integer appId, @Param("batchNo") String batchNo,
+      @Param("transferId") String transferId);
 
   @SelectProvider(type = Sql.class, method = "selectByBatchNo")
   List<TransferDetail> selectByBatchNo(@Param("appId") Integer appId, @Param("batchNo") String batchNo);

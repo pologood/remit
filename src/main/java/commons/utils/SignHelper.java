@@ -5,9 +5,12 @@
  */
 package commons.utils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,14 +22,19 @@ import com.sogou.pay.remit.manager.AppManager;
 //-------------------------------------------------------
 public class SignHelper {
 
-  private static final String CHARSET = "UTF-8";
+  private static final String CHARSET = StandardCharsets.UTF_8.name();
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SignHelper.class);
 
   public static String sign(String context, String key, String charset, boolean isAppend, SignType signType) {
     StringBuilder sb = new StringBuilder(context);
     try {
-      return DigestUtils.md5Hex((isAppend ? sb.append(key) : sb.insert(0, key)).toString().getBytes(charset));
+      String s = (isAppend ? sb.append(key) : sb.insert(0, key)).toString();
+      LOGGER.debug("signType is {} sign context is {}", signType, s);
+      byte[] data = s.getBytes(charset);
+      String sign = Objects.equals(signType, SignType.MD5) ? DigestUtils.md5Hex(data) : DigestUtils.sha1Hex(data);
+      LOGGER.debug("sign is {}", sign);
+      return sign;
     } catch (Exception e) {
       LOGGER.error("[sign]error", e);
       return null;
@@ -38,11 +46,8 @@ public class SignHelper {
   }
 
   public static String sign(Map<String, ?> map, String key) {
-    SignType signType = SignType.SHA;
-    try {
-      signType = SignType.valueOf(String.valueOf(map.get(AppManager.SIGN_TYPE)));
-    } catch (Exception e) {}
-    return sign(MapHelper.getSignContext(map), key, signType);
+    SignType signType = SignType.getSignType(MapUtils.getInteger(map, AppManager.SIGN_TYPE));
+    return sign(MapHelper.getSignContext(map), key, Objects.isNull(signType) ? SignType.SHA : signType);
   }
 
 }

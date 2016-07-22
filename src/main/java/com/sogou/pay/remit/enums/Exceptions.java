@@ -8,6 +8,8 @@ public enum Exceptions {
 
   ENTITY_NOT_FOUND("000002", "ENTITY_NOT_FOUND", "查无此数据"),
 
+  COMMUNICATION_FAILURE("000003", "COMMUNICATION_FAILURE", "外部通信失败"),
+
   CHANNEL_INVALID("100001", "CHANNEL_INVALID", "无效的渠道"),
 
   APPID_INVALID("100002", "APPID_INVALID", "无效的业务线"),
@@ -24,7 +26,7 @@ public enum Exceptions {
 
   BANKINFO_NOT_FOUND("100008", "BANKINFO_NOT_FOUND", "无对应账号信息"),
 
-  DETAIL_INVALID("100009", "DETAIL_INVALID", "明细信息不完整");
+  DETAIL_INVALID("100009", "DETAIL_INVALID", "无效的明细信息");
 
   private String errorCode;
 
