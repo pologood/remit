@@ -1,7 +1,5 @@
 package com.sogou.pay.remit.config;
 
-import java.util.List;
-
 import javax.sql.DataSource;
 import com.alibaba.druid.pool.DruidDataSource;
 
@@ -14,7 +12,7 @@ import org.mybatis.spring.SqlSessionFactoryBean;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.type.TypeHandler;
-import org.apache.ibatis.type.TypeReference;
+import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -64,9 +62,9 @@ public class DaoConfig {
     configuration.setLazyLoadingEnabled(false);
     configuration.setAggressiveLazyLoading(true);
     configuration.setDefaultStatementTimeout(300);
-    MyBatisHelper.registerEnumHandler(configuration.getTypeHandlerRegistry(), ProjectInfo.PKG_PREFIX);
-    TypeReference<List<String>> STRING_LIST_TYPE = new TypeReference<List<String>>() {};
-    configuration.getTypeHandlerRegistry().register(STRING_LIST_TYPE, new ListTypeHandler<String>());
+    TypeHandlerRegistry registry = configuration.getTypeHandlerRegistry();
+    registry.register(MyBatisHelper.STRING_LIST_TYPE, new ListTypeHandler<String>());
+    MyBatisHelper.registerEnumHandler(registry, ProjectInfo.PKG_PREFIX);
     return sqlSessionFactory;
   }
 
