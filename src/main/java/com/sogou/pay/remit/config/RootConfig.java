@@ -23,7 +23,8 @@ import commons.spring.XssFilter;
 
 @Configuration
 @EnableScheduling
-@ComponentScan({ ProjectInfo.PKG_PREFIX + ".api", ProjectInfo.PKG_PREFIX + ".manager" })
+@ComponentScan({ ProjectInfo.PKG_PREFIX + ".api", ProjectInfo.PKG_PREFIX + ".manager",
+    ProjectInfo.PKG_PREFIX + ".job" })
 @PropertySource(value = "classpath:application-default.properties", ignoreResourceNotFound = true)
 @PropertySource("classpath:application-${spring.profiles.active}.properties")
 public class RootConfig {
