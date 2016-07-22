@@ -1,17 +1,12 @@
 package com.sogou.pay.remit.config.servlet;
 
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.sogou.pay.remit.api.SignInterceptor;
 import com.sogou.pay.remit.config.ProjectInfo;
 
-import commons.utils.EnumJsonSerializer;
-import commons.utils.LocalDateJsonSerializer;
-import commons.utils.LocalDateTimeJsonSerializer;
+import commons.utils.JsonHelper;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+
 import java.util.List;
 
 import org.springframework.context.annotation.Bean;
@@ -19,7 +14,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
@@ -43,16 +37,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     StringHttpMessageConverter stringConverter = new StringHttpMessageConverter();
     stringConverter.setWriteAcceptCharset(false);
     converters.add(stringConverter);
-
-    Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
-    builder.featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    builder.featuresToDisable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
-    builder.serializationInclusion(Include.NON_NULL);
-    builder.serializationInclusion(Include.NON_EMPTY);
-    builder.serializerByType(LocalDateTime.class, new LocalDateTimeJsonSerializer());
-    builder.serializerByType(LocalDate.class, new LocalDateJsonSerializer());
-    builder.serializerByType(Enum.class, new EnumJsonSerializer());
-    converters.add(new MappingJackson2HttpMessageConverter(builder.build()));
+    converters.add(new MappingJackson2HttpMessageConverter(JsonHelper.MAPPER));
   }
 
   @Bean
