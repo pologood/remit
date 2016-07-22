@@ -20,6 +20,7 @@ import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -28,20 +29,30 @@ import org.jsondoc.core.annotation.ApiObjectField;
 import org.springframework.format.annotation.NumberFormat;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.google.common.collect.Sets;
 
 import commons.utils.JsonHelper;
+import commons.utils.XssHelper;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
 //-------------------------------------------------------
 public class TransferBatch {
 
+  public TransferBatch makeXssSafe() {
+    memo = XssHelper.escape(memo);
+    outAccountName = XssHelper.escape(outAccountName);
+    return this;
+  }
+
   @JsonIgnore
   private Long id;
 
   @ApiObjectField(description = "版本号")
   @NotBlank(message = "version is required")
+  @Pattern(regexp = "^[a-zA-Z0-9\\.]+$")
   private String version;
 
   @ApiObjectField(description = "渠道")
@@ -50,10 +61,10 @@ public class TransferBatch {
 
   @ApiObjectField(description = "签名")
   @NotBlank(message = "sign is required")
+  @Pattern(regexp = "^[0-9a-f]{40}$")
   private String sign;
 
   @ApiObjectField(description = "签名方式")
-  @NotNull(message = "signType is required")
   private SignType signType;
 
   @ApiObjectField(description = "业务线Id")
@@ -65,6 +76,7 @@ public class TransferBatch {
   @ApiObjectField(description = "批次号")
   @NotBlank(message = "batchNo is required")
   @Size(max = 26, message = "limit of size of batchNo is 26")
+  @Pattern(regexp = "^[a-zA-Z0-9]+$")
   private String batchNo;
 
   @ApiObjectField(description = "付款笔数")
@@ -80,6 +92,7 @@ public class TransferBatch {
   private String memo;
 
   @ApiObjectField(description = "保留字段")
+  @Pattern(regexp = "^[a-zA-Z0-9]+$")
   private String reserve;
 
   //audit
@@ -94,12 +107,14 @@ public class TransferBatch {
   //bank
   @ApiObjectField(description = "出款账号")
   @NotBlank(message = "outAccountId is required")
+  @Pattern(regexp = "^[a-zA-Z0-9]+$")
   private String outAccountId;
 
   @ApiObjectField(description = "出款账户名")
   private String outAccountName;
 
   @ApiObjectField(description = "登录用户名")
+  @Pattern(regexp = "^[a-zA-Z0-9]+$")
   private String loginName;
 
   @ApiObjectField(description = "分行号")
@@ -123,6 +138,7 @@ public class TransferBatch {
   private SettleChannel settleChannel;
 
   //notify
+
   @JsonIgnore
   private String outTradeNo;
 
@@ -130,6 +146,7 @@ public class TransferBatch {
 
   private BigDecimal successAmount;
 
+  @JsonProperty(access = Access.READ_ONLY)
   private String outErrMsg;
 
   //time stamp
@@ -399,7 +416,7 @@ public class TransferBatch {
     return JsonHelper.toJson(this);
   }
 
-  public static enum SignType {
+  public enum SignType {
     MD5(0), SHA(1);
 
     private int value;
@@ -423,7 +440,7 @@ public class TransferBatch {
     }
   }
 
-  public static enum Status {
+  public enum Status {
 
     INIT(0), //
     JUNIOR_REJECTED(1), //
@@ -434,7 +451,8 @@ public class TransferBatch {
     FINAL_APPROVED(6), //
     PROCESSING(7), //
     SUCCESS(8), //
-    FAILED(9);
+    FAILED(9), //
+    BACK(10), PART(11);
 
     private int value;
 
@@ -453,7 +471,7 @@ public class TransferBatch {
       NEXT_MAP.put(JUNIOR_APPROVED, Sets.newHashSet(SENIOR_APPROVED, SENIOR_REJECTED, PROCESSING));
       NEXT_MAP.put(SENIOR_APPROVED, Sets.newHashSet(FINAL_APPROVED, FINAL_REJECTED, PROCESSING));
       NEXT_MAP.put(FINAL_APPROVED, Sets.newHashSet(PROCESSING));
-      NEXT_MAP.put(PROCESSING, Sets.newHashSet(SUCCESS, FAILED));
+      NEXT_MAP.put(PROCESSING, Sets.newHashSet(SUCCESS, FAILED, BACK));
     }
 
     public static boolean isShiftValid(Status from, Status to) {
@@ -462,7 +480,7 @@ public class TransferBatch {
     }
   }
 
-  public static enum BusiMode {
+  public enum BusiMode {
     DIRECT_PAYROLL("00001"), //直接代发工资
     CLIENT_PAYROLL("00002"); //客户端代发工资
 
@@ -477,7 +495,7 @@ public class TransferBatch {
     }
   }
 
-  public static enum BusiCode {
+  public enum BusiCode {
     /*支付*/
     PAY("N02030"), //支付
     DIRECT_PAY("N02031"), //直接支付
@@ -500,7 +518,7 @@ public class TransferBatch {
     }
   }
 
-  public static enum Channel {
+  public enum Channel {
     PAY(0), //支付
     AGENCY(1); //代发代扣
 
@@ -515,7 +533,7 @@ public class TransferBatch {
     }
   }
 
-  public static enum SettleChannel {
+  public enum SettleChannel {
     ORDINARY("N"), FAST("F");
 
     private String value;
@@ -529,7 +547,7 @@ public class TransferBatch {
     }
   }
 
-  public static enum BranchCode {
+  public enum BranchCode {
     Root("01"), //
     RootAccounting("03"), //
     Beijing("10"), //
@@ -590,7 +608,7 @@ public class TransferBatch {
 
   }
 
-  public static enum TransType {
+  public enum TransType {
     //pay
     ORDINARY("100001", "普通汇兑"),
 
@@ -719,7 +737,7 @@ public class TransferBatch {
     }
   }
 
-  public static enum Currency {
+  public enum Currency {
     RMB("10");
 
     private String value;

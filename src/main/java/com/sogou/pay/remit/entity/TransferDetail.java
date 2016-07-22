@@ -61,7 +61,7 @@ public class TransferDetail {
   @JsonIgnore
   private LocalDateTime updateTime;
 
-  public static enum Status {
+  public enum Status {
 
     INIT(0), OUT_INIT(1), SUCCESS(2), FAILED(3), CANCELED(4);
 
