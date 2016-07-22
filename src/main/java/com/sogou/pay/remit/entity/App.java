@@ -13,7 +13,7 @@ public class App {
 
   private Status status;
 
-  public static enum Status {
+  public enum Status {
     INVALID(0), VALID(1);
 
     private int value;
