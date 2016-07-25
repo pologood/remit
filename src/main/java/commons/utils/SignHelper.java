@@ -5,22 +5,30 @@
  */
 package commons.utils;
 
+import java.io.File;
+import java.io.FileReader;
 import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.Map;
 import java.util.Objects;
+
+import javax.crypto.Cipher;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 
 import com.sogou.pay.remit.entity.TransferBatch.SignType;
 import com.sogou.pay.remit.manager.AppManager;
 
+import org.bouncycastle.openssl.PEMReader;
+
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月12日;
 //-------------------------------------------------------
-public class SignHelper {
+public class SignHelper implements InitializingBean {
 
   private static final String CHARSET = StandardCharsets.UTF_8.name();
 
@@ -48,6 +56,27 @@ public class SignHelper {
   public static String sign(Map<String, ?> map, String key) {
     SignType signType = SignType.getSignType(MapUtils.getInteger(map, AppManager.SIGN_TYPE));
     return sign(MapHelper.getSignContext(map), key, Objects.isNull(signType) ? SignType.SHA : signType);
+  }
+
+  public static String decryptPandora(String ptoken) throws Exception {
+    Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+    cipher.init(Cipher.DECRYPT_MODE, key);
+    return new String(cipher.doFinal(ptoken.getBytes(StandardCharsets.UTF_8)), CHARSET);
+
+  }
+
+  public Key loadPublicKey(File file) throws Exception {
+    PEMReader reader = new PEMReader(new FileReader(file));
+    Key pubKey = (Key) reader.readObject();
+    reader.close();
+    return pubKey;
+  }
+
+  private static Key key;
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    key = loadPublicKey(new File("src/main/resources/public_test.pem"));
   }
 
 }

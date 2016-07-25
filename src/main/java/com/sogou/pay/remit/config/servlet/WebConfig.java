@@ -1,5 +1,6 @@
 package com.sogou.pay.remit.config.servlet;
 
+import com.sogou.pay.remit.api.LogInterceptor;
 import com.sogou.pay.remit.api.SignInterceptor;
 import com.sogou.pay.remit.config.ProjectInfo;
 
@@ -30,6 +31,11 @@ public class WebConfig extends WebMvcConfigurerAdapter {
   @Bean
   public MappedInterceptor signInterceptor() {
     return new MappedInterceptor(new String[] { "/api/transferBatch" }, new SignInterceptor());
+  }
+
+  @Bean
+  public MappedInterceptor logInterceptor() {
+    return new MappedInterceptor(new String[] { "/api/transferDetail", "/api/transferBatch/*" }, new LogInterceptor());
   }
 
   @Override

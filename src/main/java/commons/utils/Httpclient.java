@@ -12,13 +12,14 @@ import java.util.Objects;
 import org.apache.http.HttpEntity;
 
 import org.apache.http.HttpStatus;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,13 @@ public class Httpclient {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Httpclient.class);
 
-  private static final CloseableHttpClient client = HttpClientBuilder.create().build();
+  private static final int DEFAULT_CONNECTION_TIMEOUT = 8000;
+
+  private static final CloseableHttpClient client = HttpClients.custom()
+      .setDefaultRequestConfig(
+          RequestConfig.custom().setExpectContinueEnabled(true).setConnectTimeout(DEFAULT_CONNECTION_TIMEOUT)
+              .setConnectionRequestTimeout(DEFAULT_CONNECTION_TIMEOUT).build())
+      .build();
 
   public static ApiResult<String> post(String url, String data) {
     return post(url, data, CHARSET);

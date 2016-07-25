@@ -31,7 +31,9 @@ import org.springframework.format.annotation.NumberFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import com.sogou.pay.remit.entity.User.Role;
 
 import commons.utils.JsonHelper;
 import commons.utils.XssHelper;
@@ -471,12 +473,26 @@ public class TransferBatch {
       NEXT_MAP.put(JUNIOR_APPROVED, Sets.newHashSet(SENIOR_APPROVED, SENIOR_REJECTED, PROCESSING));
       NEXT_MAP.put(SENIOR_APPROVED, Sets.newHashSet(FINAL_APPROVED, FINAL_REJECTED, PROCESSING));
       NEXT_MAP.put(FINAL_APPROVED, Sets.newHashSet(PROCESSING));
-      NEXT_MAP.put(PROCESSING, Sets.newHashSet(SUCCESS, FAILED, BACK));
+      NEXT_MAP.put(PROCESSING, Sets.newHashSet(SUCCESS, FAILED, BACK, PART));
     }
 
     public static boolean isShiftValid(Status from, Status to) {
       Set<Status> nexts = NEXT_MAP.get(from);
       return CollectionUtils.isNotEmpty(nexts) && nexts.contains(to);
+    }
+
+    private static final Map<Role, Status> REJECTED_MAP = ImmutableMap.of(Role.JUNIOR, JUNIOR_REJECTED, Role.SENIOR,
+        SENIOR_REJECTED, Role.FINAL, FINAL_REJECTED);
+
+    private static final Map<Role, Status> APPROVED_MAP = ImmutableMap.of(Role.JUNIOR, JUNIOR_APPROVED, Role.SENIOR,
+        SENIOR_APPROVED, Role.FINAL, FINAL_APPROVED);
+
+    public static Status getRejectedStatus(Role role) {
+      return REJECTED_MAP.get(role);
+    }
+
+    public static Status getApprovedStatus(Role role) {
+      return APPROVED_MAP.get(role);
     }
   }
 
@@ -749,50 +765,6 @@ public class TransferBatch {
     public String getValue() {
       return value;
     }
-  }
-
-  public static class TransferBatchUpdateStatusDto {
-
-    private Integer appId;
-
-    private String batchNo;
-
-    private Status toStatus;
-
-    private Boolean isUpdateSuccess;
-
-    public Integer getAppId() {
-      return appId;
-    }
-
-    public void setAppId(Integer appId) {
-      this.appId = appId;
-    }
-
-    public String getBatchNo() {
-      return batchNo;
-    }
-
-    public void setBatchNo(String batchNo) {
-      this.batchNo = batchNo;
-    }
-
-    public Status getToStatus() {
-      return toStatus;
-    }
-
-    public void setToStatus(Status toStatus) {
-      this.toStatus = toStatus;
-    }
-
-    public Boolean getIsUpdateSuccess() {
-      return isUpdateSuccess;
-    }
-
-    public void setIsUpdateSuccess(Boolean isUpdateSuccess) {
-      this.isUpdateSuccess = isUpdateSuccess;
-    }
-
   }
 
 }

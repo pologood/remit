@@ -22,7 +22,6 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import com.sogou.pay.remit.enums.Exceptions;
 import com.sogou.pay.remit.manager.AppManager;
 import com.sogou.pay.remit.model.ApiResult;
-import com.sogou.pay.remit.model.ErrorCode;
 
 import commons.utils.JsonHelper;
 
@@ -41,18 +40,17 @@ public class SignInterceptor extends HandlerInterceptorAdapter {
       for (String s; params.hasMoreElements(); map.put(s = params.nextElement(), request.getParameter(s)));
     } else if (RequestMethod.POST.name().equalsIgnoreCase(request.getMethod()))
       map = JsonHelper.toMap(IOUtils.toString(request.getReader()));
-    
+
     if (MapUtils.isNotEmpty(map) && !AppManager.checkSign(map)) {
-      writeResponse(response);
+      writeResponse(response, ApiResult.badRequest(Exceptions.SIGN_INVALID));
       return false;
     } else return true;
   }
 
-  private void writeResponse(HttpServletResponse response) throws Exception {
+  public static void writeResponse(HttpServletResponse response, ApiResult<?> result) throws Exception {
     PrintWriter writer = null;
     try {
-      (writer = response.getWriter())
-          .print(JsonHelper.toJson(new ApiResult<>(ErrorCode.BAD_REQUEST, Exceptions.SIGN_INVALID.getErrMsg())));
+      (writer = response.getWriter()).print(JsonHelper.toJson(result));
       writer.flush();
     } finally {
       writer.close();

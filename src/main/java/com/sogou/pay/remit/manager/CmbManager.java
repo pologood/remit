@@ -68,10 +68,10 @@ public class CmbManager implements InitializingBean {
   private XmlPacket getQueryDirectPayRequest(TransferBatch batch, XmlPacket xmlPacket) {
     Map<String, String> map = new HashMap<>();
 
-    map.put("BUSCOD", batch.getBusiCode().getValue());
-    map.put("YURREF", StringUtils.join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
-    map.put("BGNDAT", getBeginDate(batch));
-    map.put("ENDDAT", getEndDate(batch));
+    map.put(BUSICODE, batch.getBusiCode().getValue());
+    map.put(BATCHNO, StringUtils.join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
+    map.put(BEGIN_DATE, getBeginDate(batch));
+    map.put(END_DATE, getEndDate(batch));
 
     xmlPacket.putProperty(PAY_QUERY_MAP_NAME, map);
     return xmlPacket;
@@ -113,8 +113,8 @@ public class CmbManager implements InitializingBean {
   private XmlPacket getDirectPayBatchMap(TransferBatch batch, XmlPacket xmlPacket) {
     Map<String, String> map = new HashMap<>();
 
-    map.put("BUSCOD", batch.getBusiCode().getValue());
-    map.put("BUSMOD", batch.getBusiMode().getValue());
+    map.put(BUSICODE, batch.getBusiCode().getValue());
+    map.put(BUSIMODE, batch.getBusiMode().getValue());
 
     xmlPacket.putProperty(PAY_BATCH_MAP_NAME, map);
     return xmlPacket;
@@ -123,23 +123,22 @@ public class CmbManager implements InitializingBean {
   private XmlPacket getDirectPayDetailMap(TransferBatch batch, XmlPacket xmlPacket) {
     Map<String, String> map = new HashMap<>();
 
-    map.put("YURREF", StringUtils.join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
-    map.put("DBTACC", batch.getOutAccountId());
+    map.put(BATCHNO, StringUtils.join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
+    map.put(OUT_ACCOUNT_ID, batch.getOutAccountId());
     map.put("DBTBBK", batch.getBranchCode().getValue());
-    map.put("TRSAMT", batch.getTransferAmount().toString());
-    map.put("CCYNBR", Currency.RMB.getValue());
+    map.put(DETAIL_AMOUNT, batch.getTransferAmount().toString());
+    map.put(CURRENCY, Currency.RMB.getValue());
     map.put("STLCHN", batch.getSettleChannel().getValue());
     map.put("NUSAGE", batch.getMemo());
 
     TransferDetail detail = batch.getDetails().get(0);
     map.put("CRTACC", detail.getInAccountId());
     map.put("CRTNAM", detail.getInAccountName());
-    map.put("TRSAMT", detail.getAmount().toString());
     if (StringUtils.isNoneBlank(detail.getBankCity(), detail.getBankName())) {
-      map.put("BNKFLG", "N");
+      map.put(BANK_FLAG, "N");
       map.put("CRTBNK", detail.getBankName());
       map.put("CRTADR", detail.getBankCity());
-    } else map.put("BNKFLG", "Y");
+    } else map.put(BANK_FLAG, "Y");
 
     xmlPacket.putProperty(PAY_DETAIL_MAP_NAME, map);
     return xmlPacket;
@@ -160,8 +159,8 @@ public class CmbManager implements InitializingBean {
     for (Map<String, String> map : packet.getProperty(QUERY_AGENCY_DETAIL_RESULT_MAP)) {
       AgencyDetailResultDto dto = new AgencyDetailResultDto();
 
-      dto.setAmount(new BigDecimal(map.get("TRSAMT")));
-      dto.setAccountId(map.get("ACCNBR"));
+      dto.setAmount(new BigDecimal(map.get(DETAIL_AMOUNT)));
+      dto.setAccountId(map.get(IN_ACCOUNT_ID));
       dto.setErrMsg(map.get(AGENCY_ERROR_MESSAGE));
       dto.setTransferId(map.get(TRANSFER_ID));
       dto.setStatus(Status.get(map.get(DETAIL_STATE)));
@@ -173,7 +172,7 @@ public class CmbManager implements InitializingBean {
 
   private XmlPacket getQueryAgencyPayDetailRequest(TransferBatch batch, XmlPacket xmlPacket) {
     Map<String, String> map = new HashMap<>();
-    map.put("REQNBR", batch.getOutTradeNo());
+    map.put(OUT_TRADE_NO, batch.getOutTradeNo());
     xmlPacket.putProperty(AGENCY_QUERY_DETAIL_MAP_NAME, map);
     return xmlPacket;
   }
@@ -191,13 +190,13 @@ public class CmbManager implements InitializingBean {
       return ApiResult.notAcceptable(ResponseCode.DATA_FORMAT_INVALID.name());
     Map<String, String> map = packet.getProperty(QUERY_AGENCY_BATCH_RESULT_MAP, 0);
     AgencyBatchResultDto dto = new AgencyBatchResultDto();
-    if (Objects.equals(BusiRequestState.FINISHED.getValue(), map.get("REQSTA"))) {
+    if (Objects.equals(BusiRequestState.FINISHED.getValue(), map.get(BATCH_REQUEST_STATE))) {
       if (Objects.equals(BusiResultState.FAILED.getValue(), map.get(RESULT_STATE)))
         dto.setState(BusiResultState.FAILED);
       else if (Objects.equals(BusiResultState.SUCCESS.getValue(), map.get(RESULT_STATE))) {
-        dto.setState(Objects.equals(String.valueOf(batch.getTransferAmount()), map.get("SUCAMT"))
-            && Objects.equals(batch.getTransferCount(), MapUtils.getInteger(map, "SUCNUM")) ? BusiResultState.SUCCESS
-                : BusiResultState.PART);
+        dto.setState(Objects.equals(String.valueOf(batch.getTransferAmount()), map.get(SUCCESS_AMOUNT))
+            && Objects.equals(batch.getTransferCount(), MapUtils.getInteger(map, SUCCESS_COUNT))
+                ? BusiResultState.SUCCESS : BusiResultState.PART);
       } else return ApiResult.notAcceptable("agency batch query unknown status:" + map.get(RESULT_STATE));
       dto.setErrMsg(map.get(AGENCY_ERROR_MESSAGE));
       dto.setOutTradeNo(map.get(OUT_TRADE_NO));
@@ -211,10 +210,10 @@ public class CmbManager implements InitializingBean {
   private XmlPacket getQueryAgencyPayResultRequest(TransferBatch batch, XmlPacket xmlPacket) {
     Map<String, String> map = new HashMap<>();
 
-    map.put("BUSCOD", batch.getBusiCode().getValue());
-    map.put("YURREF", StringUtils.join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
-    map.put("BGNDAT", getBeginDate(batch));
-    map.put("ENDDAT", getEndDate(batch));
+    map.put(BUSICODE, batch.getBusiCode().getValue());
+    map.put(BATCHNO, StringUtils.join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
+    map.put(BEGIN_DATE, getBeginDate(batch));
+    map.put(END_DATE, getEndDate(batch));
 
     xmlPacket.putProperty(AGENCY_QUERY_BATCH_MAP_NAME, map);
     return xmlPacket;
@@ -244,13 +243,13 @@ public class CmbManager implements InitializingBean {
       for (TransferDetail detail : batch.getDetails()) {
       Map<String, String> map = new HashMap<>();
 
-      map.put("ACCNBR", detail.getInAccountId());
-      map.put("CLTNAM", detail.getInAccountName());
-      map.put("TRSAMT", detail.getAmount().toString());
+      map.put(IN_ACCOUNT_ID, detail.getInAccountId());
+      map.put(IN_ACCOUNT_NAME, detail.getInAccountName());
+      map.put(DETAIL_AMOUNT, detail.getAmount().toString());
       if (StringUtils.isNoneBlank(detail.getBankCity(), detail.getBankName())) {
-        map.put("BNKFLG", "N");
-        map.put("EACBNK", detail.getBankName());
-        map.put("EACCTY", detail.getBankCity());
+        map.put(BANK_FLAG, "N");
+        map.put(BANK_NAME, detail.getBankName());
+        map.put(BANK_CITY, detail.getBankCity());
       }
       map.put(TRANSFER_ID, detail.getTransferId());
 
@@ -262,15 +261,15 @@ public class CmbManager implements InitializingBean {
   private XmlPacket getAgencyPayBatchMap(TransferBatch batch, XmlPacket xmlPacket) {
     Map<String, String> map = new HashMap<>();
 
-    map.put("BUSCOD", batch.getBusiCode().getValue());
-    map.put("BUSMOD", batch.getBusiMode().getValue());
-    map.put("TRSTYP", batch.getTransType().getValue());
-    map.put("DBTACC", batch.getOutAccountId());
-    map.put("BBKNBR", batch.getBranchCode().getValue());
-    map.put("SUM", batch.getTransferAmount().toString());
-    map.put("TOTAL", Integer.toString(batch.getTransferCount()));
-    map.put("YURREF", StringUtils.join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
-    map.put("MEMO", batch.getMemo());
+    map.put(BUSICODE, batch.getBusiCode().getValue());
+    map.put(BUSIMODE, batch.getBusiMode().getValue());
+    map.put(TRANSTYPE, batch.getTransType().getValue());
+    map.put(OUT_ACCOUNT_ID, batch.getOutAccountId());
+    map.put(BRANCH_CODE, batch.getBranchCode().getValue());
+    map.put(TRANSFER_AMOUNT, batch.getTransferAmount().toString());
+    map.put(TRANSFER_COUNT, Integer.toString(batch.getTransferCount()));
+    map.put(BATCHNO, StringUtils.join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
+    map.put(MEMO, batch.getMemo());
 
     xmlPacket.putProperty(AGENCY_PAY_BATCH_MAP_NAME, map);
     return xmlPacket;
@@ -285,9 +284,14 @@ public class CmbManager implements InitializingBean {
   private static final String AGENCY_PAY_FUNCTION_NAME = "AgentRequest",
       QUERY_AGENCY_PAY_RESULT_FUNCTION_NAME = "GetAgentInfo", DIRECT_PAY_FUNCTION_NAME = "DCPAYMNT",
       QUERY_AGENCY_PAY_DETAIL_FUNCTION_NAME = "GetAgentDetail", QUERY_DIRECT_PAY_FUNCTION_NAME = "GetPaymentInfo",
-      REQUEST_STATE = "REQSTS", RESULT_STATE = "RTNFLG", OUT_TRADE_NO = "REQNBR", PAY_ERROR_MESSAGE = "RTNNAR",
-      AGENCY_ERROR_MESSAGE = "ERRDSP", SUCCESS_AMOUNT = "SUCAMT", SUCCESS_COUNT = "SUCNUM", TRANSFER_ID = "TRSDSP",
-      DETAIL_STATE = "STSCOD";
+      BATCH_REQUEST_STATE = "REQSTA", REQUEST_STATE = "REQSTS", RESULT_STATE = "RTNFLG", PAY_ERROR_MESSAGE = "RTNNAR",
+      AGENCY_ERROR_MESSAGE = "ERRDSP", TRANSFER_ID = "TRSDSP", DETAIL_STATE = "STSCOD";
+
+  private static final String BUSICODE = "BUSCOD", BUSIMODE = "BUSMOD", TRANSTYPE = "TRSTYP", OUT_ACCOUNT_ID = "DBTACC",
+      BRANCH_CODE = "BBKNBR", TRANSFER_COUNT = "TOTAL", TRANSFER_AMOUNT = "SUM", BATCHNO = "YURREF", MEMO = "MEMO",
+      IN_ACCOUNT_ID = "ACCNBR", IN_ACCOUNT_NAME = "CLTNAM", DETAIL_AMOUNT = "TRSAMT", BANK_FLAG = "BNKFLG",
+      BANK_NAME = "EACBNK", BANK_CITY = "EACCTY", BEGIN_DATE = "BGNDAT", END_DATE = "ENDDAT", SUCCESS_AMOUNT = "SUCAMT",
+      SUCCESS_COUNT = "SUCNUM", OUT_TRADE_NO = "REQNBR", CURRENCY = "CCYNBR";
 
   //private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 

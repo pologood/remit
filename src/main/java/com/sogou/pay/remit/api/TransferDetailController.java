@@ -7,6 +7,7 @@ package com.sogou.pay.remit.api;
 
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -20,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sogou.pay.remit.entity.TransferDetail;
-import com.sogou.pay.remit.job.TransferJob;
 import com.sogou.pay.remit.manager.TransferDetailManager;
 import com.sogou.pay.remit.model.ApiResult;
 
@@ -36,15 +36,10 @@ public class TransferDetailController {
   @Autowired
   private TransferDetailManager transferDetailManager;
 
-  @Autowired
-  private TransferJob transferJob;
-
   @ApiMethod(description = "get transfer detail")
   @RequestMapping(value = "/transferDetail", method = RequestMethod.GET)
-  public ApiResult<?> get(@RequestParam(name = "appId") @NotNull Integer appId,
+  public ApiResult<?> get(HttpServletRequest request, @RequestParam(name = "appId") @NotNull Integer appId,
       @RequestParam(name = "batchNo") @NotBlank String batchNo) {
-    //TODO uid
-    transferJob.query();
     List<TransferDetail> details = transferDetailManager.selectByBatchNo(appId, batchNo);
     return CollectionUtils.isEmpty(details) ? ApiResult.notFound() : new ApiResult<>(details);
   }

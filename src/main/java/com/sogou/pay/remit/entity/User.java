@@ -10,7 +10,9 @@ package com.sogou.pay.remit.entity;
 //-------------------------------------------------------
 public class User {
 
-  private Integer userId;
+  private Integer id;
+
+  private Integer uno;
 
   private String userName;
 
@@ -20,12 +22,20 @@ public class User {
 
   private Role role;
 
-  public Integer getUserId() {
-    return userId;
+  public Integer getId() {
+    return id;
   }
 
-  public void setUserId(Integer userId) {
-    this.userId = userId;
+  public void setId(Integer id) {
+    this.id = id;
+  }
+
+  public Integer getUno() {
+    return uno;
+  }
+
+  public void setUno(Integer uno) {
+    this.uno = uno;
   }
 
   public String getUserName() {

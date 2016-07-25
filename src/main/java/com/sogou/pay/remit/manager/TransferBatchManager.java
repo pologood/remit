@@ -7,6 +7,7 @@ package com.sogou.pay.remit.manager;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -23,8 +24,8 @@ import com.sogou.pay.remit.entity.BankInfo;
 import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.Channel;
 import com.sogou.pay.remit.entity.TransferBatch.Status;
-import com.sogou.pay.remit.entity.TransferBatch.TransferBatchUpdateStatusDto;
 import com.sogou.pay.remit.entity.TransferDetail;
+import com.sogou.pay.remit.entity.User;
 import com.sogou.pay.remit.enums.Exceptions;
 import com.sogou.pay.remit.mapper.TransferBatchMapper;
 import com.sogou.pay.remit.model.ApiResult;
@@ -129,8 +130,8 @@ public class TransferBatchManager {
   }
 
   @Transactional
-  public ApiResult<?> audit(int appId, String batchNo, Integer userId, Status status, String opinion) {
-    return update(appId, batchNo, userId, status, null, opinion, null, null, null);
+  public ApiResult<?> audit(int appId, String batchNo, User user, Status status, String opinion) {
+    return update(appId, batchNo, user, status, null, opinion, null, null, null);
   }
 
   @Transactional
@@ -139,7 +140,7 @@ public class TransferBatchManager {
     return update(appId, batchNo, null, status, errMsg, null, outTradeNo, successCount, successAmount);
   }
 
-  private ApiResult<?> update(int appId, String batchNo, Integer userId, Status status, String errMsg, String opinion,
+  private ApiResult<?> update(int appId, String batchNo, User user, Status status, String errMsg, String opinion,
       String outTradeNo, Integer successCount, BigDecimal successAmount) {
     ApiResult<?> result = get(appId, batchNo);
     if (ApiResult.isNotOK(result)) return result;
@@ -151,7 +152,7 @@ public class TransferBatchManager {
       return ApiResult.badRequest(Exceptions.STATUS_INVALID);
     }
     if (transferBatchMapper
-        .update(setUpdateItems(batch, errMsg, opinion, status, userId, outTradeNo, successCount, successAmount)) < 1) {
+        .update(setUpdateItems(batch, errMsg, opinion, status, user, outTradeNo, successCount, successAmount)) < 1) {
       LOGGER.error("[update]{}:appId={},batchNo={},from{}to{},outErrMsg={},opinion={}",
           Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg(), appId, batchNo, oldStatus, status, errMsg, opinion);
       return ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg());
@@ -159,8 +160,9 @@ public class TransferBatchManager {
     return ApiResult.ok();
   }
 
-  private TransferBatch setUpdateItems(TransferBatch batch, String outErrMsg, String opinion, Status status,
-      Integer userId, String outTradeNo, Integer successCount, BigDecimal successAmount) {
+  private TransferBatch setUpdateItems(TransferBatch batch, String outErrMsg, String opinion, Status status, User user,
+      String outTradeNo, Integer successCount, BigDecimal successAmount) {
+    setAuditor(batch, user);
     batch.setOutErrMsg(outErrMsg);
     batch.setOutTradeNo(outTradeNo);
     if (StringUtils.isNotBlank(opinion)) {
@@ -171,10 +173,16 @@ public class TransferBatchManager {
       batch.setAuditTimes(null);
     }
     batch.setStatus(status);
-    if (Objects.nonNull(userId)) batch.setAuditor((long) userId);
     batch.setSuccessCount(successCount);
     batch.setSuccessAmount(successAmount);
     return batch;
+  }
+
+  private void setAuditor(TransferBatch batch, User user) {
+    Integer id = user.getId();
+    for (int i = batch.getAuditTimes().size(); i-- > 0;)
+      id *= 1000;
+    batch.setAuditor(batch.getAuditor() + id);
   }
 
   private ApiResult<?> busiCheck(TransferBatch batch) {
@@ -191,18 +199,18 @@ public class TransferBatchManager {
   }
 
   @Transactional
-  public ApiResult<?> batchUpdateTransferBatchStatus(Integer userId, List<TransferBatchUpdateStatusDto> dtos) {
-    for (TransferBatchUpdateStatusDto dto : dtos) {
+  public ApiResult<?> batchUpdateTransferBatchStatus(User user, List<Tuple2<Integer, String>> dtos, Status status) {
+    List<Tuple2<Integer, String>> fails = new ArrayList<>();
+    for (Tuple2<Integer, String> dto : dtos) {
       try {
-        dto.setIsUpdateSuccess(
-            ApiResult.isOK(this.audit(dto.getAppId(), dto.getBatchNo(), userId, dto.getToStatus(), null)));
+        if (ApiResult.isOK(this.audit(dto.f, dto.s, user, status, null))) fails.add(dto);
       } catch (Exception e) {
         LOGGER.error(String.format("%s appId=%s batchNo=%s status to %s",
-            Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg(), dto.getAppId(), dto.getBatchNo(), dto.getToStatus()), e);
-        dto.setIsUpdateSuccess(false);
+            Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg(), dto.f, dto.s, status), e);
+        fails.add(dto);
       }
     }
-    return new ApiResult<>(dtos);
+    return CollectionUtils.isEmpty(fails) ? ApiResult.ok() : new ApiResult<>(ErrorCode.INTERNAL_ERROR, fails);
   }
 
   private static final int JUNIOR_AUDIT_LIMIT = 30_0000, SENIOR_AUDIT_LIMIT = 50_0000;
