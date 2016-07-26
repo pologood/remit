@@ -20,36 +20,23 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import com.sogou.pay.remit.entity.User;
+import com.sogou.pay.remit.manager.PandoraManager;
 import com.sogou.pay.remit.manager.UserManager;
 import com.sogou.pay.remit.model.ApiResult;
 
 import commons.utils.JsonHelper;
-import commons.utils.SignHelper;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月20日;
 //-------------------------------------------------------
-@Component
-public class LogInterceptor extends HandlerInterceptorAdapter implements InitializingBean {
+public class LogInterceptor extends HandlerInterceptorAdapter {
 
   private static final String DEFAULT_CHARSET = StandardCharsets.UTF_8.name();
 
-  private static String PANDORA_URL;
-
   private static final long TIME_INTERVAL = TimeUnit.MINUTES.toMillis(30);
-
-  @Autowired
-  Environment env;
-
-  @Autowired
-  private UserManager userManager;
 
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -65,7 +52,7 @@ public class LogInterceptor extends HandlerInterceptorAdapter implements Initial
       response.sendRedirect(getUrl(request));
       return false;
     }
-    if (Objects.isNull(user = userManager.getUserByUno(uno))) {
+    if (Objects.isNull(user = UserManager.getUserByUno(uno))) {
       SignInterceptor.writeResponse(response, ApiResult.forbidden());
       return false;
     }
@@ -75,8 +62,7 @@ public class LogInterceptor extends HandlerInterceptorAdapter implements Initial
 
   private Map<String, Object> getPtokenDetail(String ptoken) throws Exception {
     ptoken = URLDecoder.decode(ptoken, DEFAULT_CHARSET);
-    ptoken = new String(Base64.getDecoder().decode(ptoken));
-    ptoken = SignHelper.decryptPandora(ptoken);
+    ptoken = PandoraManager.decryptPandora(Base64.getDecoder().decode(ptoken.replace(' ', '+')));
     return JsonHelper.toMap(ptoken);
   }
 
@@ -85,12 +71,8 @@ public class LogInterceptor extends HandlerInterceptorAdapter implements Initial
     Enumeration<String> names = request.getParameterNames();
     for (String s; names.hasMoreElements();)
       sb.append(s = names.nextElement()).append('=').append(request.getParameter(s)).append('&');
-    return StringUtils.join(PANDORA_URL, URLEncoder.encode(sb.substring(0, sb.length() - 1), DEFAULT_CHARSET));
-  }
-
-  @Override
-  public void afterPropertiesSet() throws Exception {
-    PANDORA_URL = env.getRequiredProperty("pandora.url");
+    return StringUtils.join(PandoraManager.PANDORA_URL,
+        URLEncoder.encode(sb.substring(0, sb.length() - 1), DEFAULT_CHARSET));
   }
 
 }

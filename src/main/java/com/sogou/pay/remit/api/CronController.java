@@ -50,13 +50,13 @@ public class CronController {
 
   @ApiMethod(description = "update pay cron")
   @RequestMapping(value = "/cron/pay", method = RequestMethod.PUT)
-  public ApiResult<?> pay(@RequestParam @NotBlank String cron) {
+  public ApiResult<?> pay(@RequestParam(name = "cron") @NotBlank String cron) {
     return reschedule(payTrigger, PAY_TRIGGER_KEY, cron);
   }
 
   @ApiMethod(description = "update query cron")
   @RequestMapping(value = "/cron/query", method = RequestMethod.PUT)
-  public ApiResult<?> query(@RequestParam @NotBlank String cron) {
+  public ApiResult<?> query(@RequestParam(name = "cron") @NotBlank String cron) {
     return reschedule(queryTrigger, QUERY_TRIGGER_KEY, cron);
   }
 

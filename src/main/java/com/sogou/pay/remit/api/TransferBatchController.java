@@ -88,7 +88,7 @@ public class TransferBatchController {
     return transferBatchManager.audit(appId, batchNo, user, status, opinion.orElse(null));
   }
 
-  @ApiMethod(description = "update transfer batch")
+  @ApiMethod(description = "approve transfer batch")
   @RequestMapping(value = "/transferBatch", method = RequestMethod.PUT)
   public ApiResult<?> update(HttpServletRequest request, @RequestParam(name = "list") @NotEmpty List<String> batchNos) {
     User user = (User) request.getAttribute("remituser");

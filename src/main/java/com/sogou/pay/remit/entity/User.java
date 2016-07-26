@@ -14,9 +14,9 @@ public class User {
 
   private Integer uno;
 
-  private String userName;
+  private String name;
 
-  private String userEmail;
+  private String email;
 
   private String mobile;
 
@@ -38,20 +38,20 @@ public class User {
     this.uno = uno;
   }
 
-  public String getUserName() {
-    return userName;
+  public String getName() {
+    return name;
   }
 
-  public void setUserName(String userName) {
-    this.userName = userName;
+  public void setName(String name) {
+    this.name = name;
   }
 
-  public String getUserEmail() {
-    return userEmail;
+  public String getEmail() {
+    return email;
   }
 
-  public void setUserEmail(String userEmail) {
-    this.userEmail = userEmail;
+  public void setEmail(String email) {
+    this.email = email;
   }
 
   public String getMobile() {

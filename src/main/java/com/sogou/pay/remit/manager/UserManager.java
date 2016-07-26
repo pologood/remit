@@ -5,6 +5,12 @@
  */
 package com.sogou.pay.remit.manager;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,17 +21,32 @@ import com.sogou.pay.remit.mapper.UserMapper;
 //@author wangwenlong Initial Created at 2016年7月25日;
 //-------------------------------------------------------
 @Component
-public class UserManager {
+public class UserManager implements InitializingBean {
 
   @Autowired
   private UserMapper userMapper;
 
-  public User getUserByUno(Integer uno) {
-    return userMapper.getUserByUno(uno);
+  private static List<User> users = new ArrayList<>();
+
+  private static final Map<Integer, User> UNO_MAP = new HashMap<>();
+
+  private static final Map<Integer, User> ID_MAP = new HashMap<>();
+
+  public static User getUserByUno(Integer uno) {
+    return UNO_MAP.get(uno);
   }
 
-  public User getUserById(Integer id) {
-    return userMapper.getUserById(id);
+  public static User getUserById(Integer id) {
+    return ID_MAP.get(id);
+  }
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    users = userMapper.list();
+    users.forEach(user -> {
+      UNO_MAP.put(user.getUno(), user);
+      ID_MAP.put(user.getId(), user);
+    });
   }
 
 }
