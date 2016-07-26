@@ -2,7 +2,6 @@ package commons.saas;
 
 import java.util.Arrays;
 import java.nio.charset.Charset;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpEntity;
@@ -10,6 +9,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import redis.clients.jedis.JedisPool;
 import commons.utils.DigestHelper;
 import commons.spring.LooseGsonHttpMessageConverter;

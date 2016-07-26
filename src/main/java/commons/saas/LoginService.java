@@ -53,7 +53,7 @@ public abstract class LoginService {
     User user = doLogin(tmpToken);
     if (user != null) {
       try (Jedis c = jedisPool.getResource()) {
-        c.set(user.getOpenId(), JsonHelper.writeValueAsString(user));
+        c.set(user.getOpenId(), JsonHelper.toJson(user));
       }
     }
     return user;
@@ -64,7 +64,7 @@ public abstract class LoginService {
     try (Jedis c = jedisPool.getResource()) {
       String s = c.get(openId);
       if (s != null) {
-        user = JsonHelper.readValue(s, User.class);
+        user = JsonHelper.fromJson(s, User.class);
       }
     }
     return user;

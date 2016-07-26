@@ -1,7 +1,7 @@
 package commons.saas;
 
 public class LoginServiceProvider {
-  public static enum Name {
+  public enum Name {
     XiaoP, WeiXin
   }
 

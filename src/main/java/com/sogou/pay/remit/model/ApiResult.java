@@ -1,15 +1,27 @@
 package com.sogou.pay.remit.model;
 
-import java.util.*;
-import javax.servlet.http.*;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import org.jsondoc.core.annotation.*;
-import org.springframework.validation.*;
-import org.springframework.web.context.request.*;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+import org.jsondoc.core.annotation.ApiObject;
+import org.jsondoc.core.annotation.ApiObjectField;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import com.sogou.pay.remit.enums.Exceptions;
 
 @ApiObject(name = "ApiResult", description = "ApiResult")
 public class ApiResult<Data> {
+
   @ApiObjectField(description = "error code")
   private int code;
 
@@ -17,98 +29,98 @@ public class ApiResult<Data> {
   private String message;
 
   @ApiObjectField(description = "payload")
-  @JsonInclude(Include.NON_NULL)
   Data data;
-
-  public ApiResult() {
-    this(Errno.OK);
-  }
-
-  public ApiResult(int code) {
-    this(code, Errno.getMessage(code));
-  }
-
-  void setErrorHint() {
-    HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder
-                                  .getRequestAttributes()).getRequest();
-    String error = String.valueOf(code) + ":" +
-      (message.length() > 84 ? message.substring(0, 84) : message);
-    HttpServletResponse response = (HttpServletResponse) request.getAttribute("response__");
-    if (response != null) response.setHeader("ApiResultError", error);
-    request.setAttribute("ApiResultError", error);
-  }
 
   public ApiResult(int code, String message) {
     this.code = code;
     this.message = message;
-    if (this.code != Errno.OK) setErrorHint();
+  }
+
+  public ApiResult(ErrorCode code) {
+    this(code, code.getMessage());
+  }
+
+  public ApiResult(ErrorCode code, String message) {
+    this(code.getCode(), message);
+    if (code != ErrorCode.OK) setErrorHint();
+  }
+
+  public ApiResult(ErrorCode code, Data data) {
+    this(code);
+    this.data = data;
   }
 
   public ApiResult(Data data) {
-    this(Errno.OK, Errno.getMessage(Errno.OK), data);
-  }
-  
-  public ApiResult(int code, Data data) {
-    this(code, Errno.getMessage(code), data);
+    this(ErrorCode.OK, data);
   }
 
-  public static ApiResult ok() {
-    return new ApiResult();
+  void setErrorHint() {
+    RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+    if (Objects.isNull(requestAttributes)) return;
+    HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
+    HttpServletResponse response = (HttpServletResponse) request.getAttribute(RESPONSE);
+    String error = String.format("%s:%s", code, message.substring(0, Math.min(100, message.length())));
+    if (response != null) response.setHeader(API_RESULT_ERROR, error);
+    request.setAttribute(API_RESULT_ERROR, error);
   }
 
-  public static ApiResult badRequest(String msg) {
-    return new ApiResult(Errno.BAD_REQUEST, msg);
+  public static ApiResult<?> ok() {
+    return new ApiResult<>(ErrorCode.OK);
   }
 
-  public static ApiResult unAuthorized() {
-    return new ApiResult(Errno.UNAUTHORIZED);
+  public static ApiResult<?> badRequest(String msg) {
+    return new ApiResult<>(ErrorCode.BAD_REQUEST, msg);
   }
 
-  public static ApiResult forbidden() {
-    return new ApiResult(Errno.FORBIDDEN);
-  }
-  
-  public static ApiResult notFound() {
-    return new ApiResult(Errno.NOT_FOUND);
+  public static ApiResult<?> badRequest(Exceptions e) {
+    return badRequest(e.getErrMsg());
   }
 
-  public static ApiResult notAccept(String msg) {
-    return new ApiResult(Errno.NOT_ACCEPT, msg);
+  public static ApiResult<?> unAuthorized() {
+    return new ApiResult<>(ErrorCode.UNAUTHORIZED);
   }
 
-  public static ApiResult internalError(String msg) {
-    return new ApiResult(Errno.INTERNAL_ERROR, msg);
+  public static ApiResult<?> forbidden() {
+    return new ApiResult<>(ErrorCode.FORBIDDEN);
   }
 
-  public static ApiResult notImplement() {
-    return new ApiResult(Errno.NOT_IMPLEMENT);
+  public static ApiResult<?> notFound() {
+    return new ApiResult<>(ErrorCode.NOT_FOUND);
   }
 
-  public static ApiResult serviceUnavailable(String msg) {
-    return new ApiResult(Errno.SERVICE_UNAVAILABLE, msg);
+  public static ApiResult<?> notAcceptable(String msg) {
+    return new ApiResult<>(ErrorCode.NOT_ACCEPTABLE, msg);
   }
 
-  public static Errno.BadRequestException badRequestException() {
-    return new Errno.BadRequestException();
-  }  
-
-  public static ApiResult bindingResult(BindingResult bindingResult) {
-    Map<String, String> map = new HashMap<>();
-    for(FieldError error : bindingResult.getFieldErrors()){
-      map.put(error.getField(), error.getDefaultMessage());
-    }
-    return new ApiResult<Map>(Errno.BAD_REQUEST, map);
+  public static ApiResult<?> internalError(String msg) {
+    return new ApiResult<>(ErrorCode.INTERNAL_ERROR, msg);
   }
-  
-  public ApiResult(int code, String message, Data data) {
-    this.code = code;
-    this.message = message;
-    this.data = data;
-  }  
+
+  public static ApiResult<?> notImplemented() {
+    return new ApiResult<>(ErrorCode.NOT_IMPLEMENTED);
+  }
+
+  public static ApiResult<?> serviceUnavailable(String msg) {
+    return new ApiResult<>(ErrorCode.SERVICE_UNAVAILABLE, msg);
+  }
+
+  public static ApiResult<Map<String, String>> bindingResult(BindingResult bindingResult) {
+    return new ApiResult<>(ErrorCode.BAD_REQUEST, bindingResult.getFieldErrors().stream()
+        .collect(Collectors.toMap(e -> e.getField(), e -> e.getDefaultMessage())));
+  }
+
+  public static boolean isOK(ApiResult<?> result) {
+    return result != null && result.getCode() == ErrorCode.OK.getCode();
+  }
+
+  public static boolean isNotOK(ApiResult<?> result) {
+    return !isOK(result);
+  }
 
   public int getCode() {
     return code;
   }
+
   public void setCode(int code) {
     this.code = code;
   }
@@ -116,6 +128,7 @@ public class ApiResult<Data> {
   public String getMessage() {
     return message;
   }
+
   public void setMessage(String message) {
     this.message = message;
   }
@@ -123,7 +136,19 @@ public class ApiResult<Data> {
   public Data getData() {
     return data;
   }
+
   public void setData(Data data) {
     this.data = data;
   }
+
+  public static final String API_RESULT_ERROR = "ApiResultError", RESPONSE = "response__",
+      DATE_TIME_FORMAT = "yyyyMMddHHmmss";
+
+  public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT);
+
+  @Override
+  public String toString() {
+    return ReflectionToStringBuilder.toString(this, ToStringStyle.JSON_STYLE);
+  }
+
 }

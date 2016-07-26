@@ -1,10 +1,17 @@
 package commons.utils;
 
-import java.util.*;
-import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.node.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 public class XssHelper {
+
   public static String escape(String unsafe) {
     if (unsafe == null) return null;
 
@@ -13,12 +20,30 @@ public class XssHelper {
     for (int i = 0; i < safe.length; ++i) {
       char c = unsafe.charAt(i);
       switch (c) {
-      case '<':  c = '＜'; f = true; break;
-      case '>':  c = '＞'; f = true; break;
-      case '"':  c = '＂'; f = true; break;
-      case '\'': c = '＇'; f = true; break;
-      case '(' : c = '（'; f = true; break;
-      case ')':  c = '）'; f = true; break;
+        case '<':
+          c = '＜';
+          f = true;
+          break;
+        case '>':
+          c = '＞';
+          f = true;
+          break;
+        case '"':
+          c = '＂';
+          f = true;
+          break;
+        case '\'':
+          c = '＇';
+          f = true;
+          break;
+        case '(':
+          c = '（';
+          f = true;
+          break;
+        case ')':
+          c = '）';
+          f = true;
+          break;
       }
       safe[i] = c;
     }
@@ -39,9 +64,9 @@ public class XssHelper {
         }
       } else if (node.isArray() || node.isObject()) {
         JsonNode newNode;
-        if (node.isArray()) newNode =  makeJsonSafe((ArrayNode) node);
+        if (node.isArray()) newNode = makeJsonSafe((ArrayNode) node);
         else newNode = makeJsonSafe((ObjectNode) node);
-        
+
         if (newNode != null) {
           f = true;
           array.set(i, newNode);
@@ -54,7 +79,8 @@ public class XssHelper {
   static JsonNode makeJsonSafe(ObjectNode object) {
     List<String> fields = new ArrayList<>();
     Iterator<String> iterator = object.fieldNames();
-    while (iterator.hasNext()) fields.add(iterator.next());
+    while (iterator.hasNext())
+      fields.add(iterator.next());
 
     boolean f = false;
     for (String field : fields) {
@@ -70,7 +96,7 @@ public class XssHelper {
         JsonNode newNode;
         if (node.isArray()) newNode = makeJsonSafe((ArrayNode) node);
         else newNode = makeJsonSafe((ObjectNode) node);
-        
+
         if (newNode != null) {
           f = true;
           object.set(field, newNode);
@@ -88,7 +114,7 @@ public class XssHelper {
         if (root.isArray()) root = makeJsonSafe((ArrayNode) root);
         else root = makeJsonSafe((ObjectNode) root);
         if (root != null) {
-          json = JsonHelper.writeValueAsString(root);
+          json = JsonHelper.toJson(root);
         }
       }
       return json;

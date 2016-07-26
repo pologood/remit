@@ -5,16 +5,20 @@ import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletRegistration.Dynamic;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
-import com.sogou.pay.remit.config.*;
+
+import com.sogou.pay.remit.config.AutoCodeConfig;
+import com.sogou.pay.remit.config.CronConfig;
+import com.sogou.pay.remit.config.DaoConfig;
+import com.sogou.pay.remit.config.JsonDocConfig;
+import com.sogou.pay.remit.config.RootConfig;
 
 public class WebInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
+
   @Override
   protected Class<?>[] getRootConfigClasses() {
-    return new Class<?>[] {
-      RootConfig.class, DaoConfig.class,   
-    };
+    return new Class<?>[] { RootConfig.class, DaoConfig.class, CronConfig.class };
   }
-  
+
   @Override
   protected Class<?>[] getServletConfigClasses() {
     return new Class<?>[] { WebConfig.class, JsonDocConfig.class, AutoCodeConfig.class };
@@ -22,10 +26,7 @@ public class WebInitializer extends AbstractAnnotationConfigDispatcherServletIni
 
   @Override
   protected Filter[] getServletFilters() {
-    return new Filter[] {
-      new DelegatingFilterProxy("loggerFilter"),
-      new DelegatingFilterProxy("xssFilter"),
-    };
+    return new Filter[] { new DelegatingFilterProxy("loggerFilter"), new DelegatingFilterProxy("xssFilter"), };
   }
 
   @Override
@@ -35,7 +36,6 @@ public class WebInitializer extends AbstractAnnotationConfigDispatcherServletIni
 
   @Override
   protected void customizeRegistration(Dynamic registration) {
-    registration.setMultipartConfig(
-      new MultipartConfigElement("/tmp", 2500_000, 2500_000, 2500_000));
+    registration.setMultipartConfig(new MultipartConfigElement("/tmp", 2500_000, 2500_000, 2500_000));
   }
 }

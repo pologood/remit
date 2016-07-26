@@ -1,26 +1,32 @@
 package com.sogou.pay.remit.config;
 
-import java.util.*;
 import javax.sql.DataSource;
 import com.alibaba.druid.pool.DruidDataSource;
+
+import commons.mybatis.ListTypeHandler;
+import commons.mybatis.LocalDateTimeTypeHandler;
+import commons.utils.MyBatisHelper;
+
 import org.mybatis.spring.annotation.MapperScan;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.type.TypeHandler;
+import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import commons.mybatis.*;
-import commons.utils.*;
 
 @Configuration
 @EnableTransactionManagement
 @MapperScan(basePackages = ProjectInfo.MAPPER_PKG, sqlSessionFactoryRef = "sqlSessionFactory")
 public class DaoConfig {
-  @Autowired Environment env;
+
+  @Autowired
+  Environment env;
 
   @Bean(initMethod = "init", destroyMethod = "close")
   public DataSource dataSource() {
@@ -44,11 +50,9 @@ public class DaoConfig {
     SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
     sqlSessionFactoryBean.setDataSource(dataSource());
 
-    TypeHandler[] handlers = new TypeHandler[] {
-      new LocalDateTimeTypeHandler(),
-    };
+    TypeHandler<?>[] handlers = new TypeHandler[] { new LocalDateTimeTypeHandler(), };
     sqlSessionFactoryBean.setTypeHandlers(handlers);
-    
+
     SqlSessionFactory sqlSessionFactory = (SqlSessionFactory) sqlSessionFactoryBean.getObject();
 
     org.apache.ibatis.session.Configuration configuration = sqlSessionFactory.getConfiguration();
@@ -58,9 +62,9 @@ public class DaoConfig {
     configuration.setLazyLoadingEnabled(false);
     configuration.setAggressiveLazyLoading(true);
     configuration.setDefaultStatementTimeout(300);
-    MyBatisHelper.registerEnumHandler(
-      configuration.getTypeHandlerRegistry(), EnumValueTypeHandler.class, ProjectInfo.PKG_PREFIX);
-
+    TypeHandlerRegistry registry = configuration.getTypeHandlerRegistry();
+    registry.register(MyBatisHelper.STRING_LIST_TYPE, new ListTypeHandler<String>());
+    MyBatisHelper.registerEnumHandler(registry, ProjectInfo.PKG_PREFIX);
     return sqlSessionFactory;
   }
 
