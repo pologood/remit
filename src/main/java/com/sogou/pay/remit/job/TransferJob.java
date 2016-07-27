@@ -47,7 +47,7 @@ public class TransferJob {
     for (TransferBatch batch : list) {
       if (Objects.equals(Channel.PAY, batch.getChannel())) direct.add(batch);
       else if (Objects.equals(Channel.AGENCY, batch.getChannel())) agency.add(batch);
-      else throw new RuntimeException("unknown channel:" + batch.getChannel());
+      else LOGGER.error("unknown channel:" + batch.getChannel());
     }
     if (CollectionUtils.isNotEmpty(direct)) directPay(direct);
     if (CollectionUtils.isNotEmpty(agency)) agencyPay(agency);
@@ -91,7 +91,7 @@ public class TransferJob {
     for (TransferBatch batch : list) {
       if (Objects.equals(Channel.PAY, batch.getChannel())) direct.add(batch);
       else if (Objects.equals(Channel.AGENCY, batch.getChannel())) agency.add(batch);
-      else throw new RuntimeException("unknown channel:" + batch.getChannel());
+      else LOGGER.error("unknown channel:" + batch.getChannel());
     }
     if (CollectionUtils.isNotEmpty(direct)) directQuery(direct);
     if (CollectionUtils.isNotEmpty(agency)) agencyQuery(agency);
