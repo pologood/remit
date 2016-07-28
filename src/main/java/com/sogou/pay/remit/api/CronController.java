@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sogou.pay.remit.api.JobController.JobName;
+import com.sogou.pay.remit.entity.User;
 import com.sogou.pay.remit.entity.User.Role;
 import com.sogou.pay.remit.model.ApiResult;
 
@@ -56,13 +57,17 @@ public class CronController implements InitializingBean {
   private CronTriggerFactoryBean queryTrigger;
 
   @Autowired
+  @Qualifier("callbackTrigger")
+  private CronTriggerFactoryBean callbackTrigger;
+
+  @Autowired
   private SchedulerFactoryBean factory;
 
   @ApiMethod(description = "update cron")
   @RequestMapping(value = "/cron/{jobName}", method = RequestMethod.PUT)
   public ApiResult<?> pay(HttpServletRequest request, @PathVariable("jobName") JobName jobName,
       @RequestParam(name = "cron") @NotBlank String cron) {
-    if (!Objects.equals(Role.ADMIN, request.getAttribute("remituser"))) return ApiResult.forbidden();
+    if (!Objects.equals(Role.ADMIN, ((User) request.getAttribute("remituser")).getRole())) return ApiResult.forbidden();
     Tuple2<CronTriggerFactoryBean, TriggerKey> tuple = JOB_MAP.get(jobName);
     if (Objects.isNull(tuple)) return ApiResult.badRequest("invalid job");
     return reschedule(tuple.f, tuple.s, cron);
@@ -86,6 +91,7 @@ public class CronController implements InitializingBean {
   public void afterPropertiesSet() throws Exception {
     JOB_MAP.put(JobName.pay, new Tuple2<>(payTrigger, new TriggerKey("payTrigger")));
     JOB_MAP.put(JobName.query, new Tuple2<>(queryTrigger, new TriggerKey("queryTrigger")));
+    JOB_MAP.put(JobName.query, new Tuple2<>(callbackTrigger, new TriggerKey("callbackTrigger")));
   }
 
 }

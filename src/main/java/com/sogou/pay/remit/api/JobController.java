@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sogou.pay.remit.entity.User;
 import com.sogou.pay.remit.entity.User.Role;
 import com.sogou.pay.remit.job.TransferJob;
 import com.sogou.pay.remit.model.ApiResult;
@@ -36,14 +37,15 @@ public class JobController {
   @ApiMethod(description = "run job")
   @RequestMapping(value = "/job/{jobName}", method = RequestMethod.GET)
   public ApiResult<?> run(HttpServletRequest request, @PathVariable JobName jobName) {
-    if (!Objects.equals(Role.ADMIN, request.getAttribute("remituser"))) return ApiResult.forbidden();
+    if (!Objects.equals(Role.ADMIN, ((User) request.getAttribute("remituser")).getRole())) return ApiResult.forbidden();
     if (Objects.equals(JobName.pay, jobName)) transferJob.pay();
     else if (Objects.equals(JobName.query, jobName)) transferJob.query();
+    else if (Objects.equals(JobName.callback, jobName)) transferJob.callBack();
     return ApiResult.ok();
   }
 
   public enum JobName {
-    pay, query;
+    pay, query, callback;
   }
 
 }
