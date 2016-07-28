@@ -5,7 +5,6 @@
  */
 package com.sogou.pay.remit.api;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -60,13 +59,13 @@ public class LogInterceptor extends HandlerInterceptorAdapter {
     return true;
   }
 
-  private Map<String, Object> getPtokenDetail(String ptoken) throws Exception {
+  public static Map<String, Object> getPtokenDetail(String ptoken) throws Exception {
     ptoken = URLDecoder.decode(ptoken, DEFAULT_CHARSET);
     ptoken = PandoraManager.decryptPandora(Base64.getDecoder().decode(ptoken.replace(' ', '+')));
     return JsonHelper.toMap(ptoken);
   }
 
-  private String getUrl(HttpServletRequest request) throws UnsupportedEncodingException {
+  public static String getUrl(HttpServletRequest request) throws Exception {
     StringBuffer sb = request.getRequestURL().append('?');
     Enumeration<String> names = request.getParameterNames();
     for (String s; names.hasMoreElements();)
