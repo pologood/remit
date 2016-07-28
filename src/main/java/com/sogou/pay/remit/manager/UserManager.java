@@ -35,11 +35,11 @@ public class UserManager implements InitializingBean {
   private static final Map<Integer, User> ID_MAP = new HashMap<>();
 
   public static User getUserByUno(Integer uno) {
-    return UNO_MAP.get(uno);
+    return Objects.isNull(uno) ? null : UNO_MAP.get(uno);
   }
 
   public static User getUserById(Integer id) {
-    return ID_MAP.get(id);
+    return Objects.isNull(id) ? null : ID_MAP.get(id);
   }
 
   @Override

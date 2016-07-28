@@ -179,10 +179,11 @@ public class TransferBatchManager {
   }
 
   private void setAuditor(TransferBatch batch, User user) {
+    if (Objects.isNull(user)) return;
     Integer id = user.getId();
     for (int i = batch.getAuditTimes().size(); i-- > 0;)
       id *= 1000;
-    batch.setAuditor(batch.getAuditor() + id);
+    batch.setAuditor(Objects.isNull(batch.getAuditor()) ? 0 : batch.getAuditor() + id);
   }
 
   private ApiResult<?> busiCheck(TransferBatch batch) {
@@ -199,15 +200,15 @@ public class TransferBatchManager {
   }
 
   @Transactional
-  public ApiResult<?> batchUpdateTransferBatchStatus(User user, List<Tuple2<Integer, String>> dtos, Status status) {
-    List<Tuple2<Integer, String>> fails = new ArrayList<>();
-    for (Tuple2<Integer, String> dto : dtos) {
+  public ApiResult<?> batchUpdateTransferBatchStatus(User user, Integer appId, List<String> batchNos, Status status) {
+    List<String> fails = new ArrayList<>();
+    for (String batchNo : batchNos) {
       try {
-        if (ApiResult.isOK(this.audit(dto.f, dto.s, user, status, null))) fails.add(dto);
+        if (ApiResult.isNotOK(this.audit(appId, batchNo, user, status, null))) fails.add(batchNo);
       } catch (Exception e) {
         LOGGER.error(String.format("%s appId=%s batchNo=%s status to %s",
-            Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg(), dto.f, dto.s, status), e);
-        fails.add(dto);
+            Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg(), appId, batchNo, status), e);
+        fails.add(batchNo);
       }
     }
     return CollectionUtils.isEmpty(fails) ? ApiResult.ok() : new ApiResult<>(ErrorCode.INTERNAL_ERROR, fails);
