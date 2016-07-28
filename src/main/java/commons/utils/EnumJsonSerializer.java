@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.sogou.pay.remit.entity.TransferBatch.Channel;
 
 import commons.mybatis.EnumValueTypeHandler;
 
@@ -24,6 +25,7 @@ public class EnumJsonSerializer extends JsonSerializer<Enum<?>> {
   public void serialize(Enum<?> value, JsonGenerator gen, SerializerProvider serializers)
       throws IOException, JsonProcessingException {
     try {
+      if (Channel.class.isAssignableFrom(value.getClass())) throw new Exception();
       Method method = value.getClass().getMethod(EnumValueTypeHandler.METHOD_NAME);
       Object object = method.invoke(value);
       if (object instanceof Integer) gen.writeNumber((Integer) object);
