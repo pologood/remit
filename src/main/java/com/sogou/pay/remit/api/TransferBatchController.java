@@ -5,15 +5,14 @@
  */
 package com.sogou.pay.remit.api;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.jsondoc.core.annotation.Api;
@@ -36,8 +35,6 @@ import com.sogou.pay.remit.entity.User;
 import com.sogou.pay.remit.manager.TransferBatchManager;
 import com.sogou.pay.remit.model.ApiResult;
 
-import commons.utils.Tuple2;
-
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
 //-------------------------------------------------------
@@ -48,8 +45,6 @@ import commons.utils.Tuple2;
 public class TransferBatchController {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TransferBatchController.class);
-
-  private static final char SPLIT_CHAR = '^';
 
   @Autowired
   private TransferBatchManager transferBatchManager;
@@ -89,15 +84,13 @@ public class TransferBatchController {
   }
 
   @ApiMethod(description = "approve transfer batch")
-  @RequestMapping(value = "/transferBatch", method = RequestMethod.PUT)
-  public ApiResult<?> update(HttpServletRequest request, @RequestParam(name = "list") @NotEmpty List<String> batchNos) {
+  @RequestMapping(value = "/transferBatch/{appId}", method = RequestMethod.PUT)
+  public ApiResult<?> update(HttpServletRequest request, @PathVariable("appId") @NotNull Integer appId,
+      @RequestParam(name = "list") @NotEmpty List<String> batchNos) {
     User user = (User) request.getAttribute("remituser");
-    List<Tuple2<Integer, String>> list = new ArrayList<>();
-    for (String s : batchNos) {
-      String[] a = StringUtils.split(s, SPLIT_CHAR);
-      list.add(new Tuple2<>(Integer.parseInt(a[0]), a[1]));
-    }
-    return transferBatchManager.batchUpdateTransferBatchStatus(user, list, Status.getApprovedStatus(user.getRole()));
+    Status status = Status.getApprovedStatus(user.getRole());
+    if (Objects.isNull(status)) return ApiResult.forbidden();
+    return transferBatchManager.batchUpdateTransferBatchStatus(user, appId, batchNos, status);
   }
 
 }
