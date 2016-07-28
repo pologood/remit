@@ -47,10 +47,14 @@ public class Httpclient {
       .build();
 
   public static ApiResult<String> post(String url, String data) {
-    return post(url, data, CHARSET);
+    return post(url, data, CHARSET, false);
   }
 
-  public static ApiResult<String> post(String url, String data, Charset charset) {
+  public static ApiResult<String> post(String url, String data, boolean isJson) {
+    return post(url, data, CHARSET, isJson);
+  }
+
+  public static ApiResult<String> post(String url, String data, Charset charset, boolean isJson) {
     if (Objects.isNull(charset)) charset = StandardCharsets.UTF_8;
     long time = System.currentTimeMillis();
 
@@ -59,6 +63,7 @@ public class Httpclient {
     HttpPost post = new HttpPost(url);
     HttpEntity entity = new StringEntity(data, charset);
     post.setEntity(entity);
+    if (isJson) post.setHeader("Content-type", "application/json");
     CloseableHttpResponse response = null;
 
     try {
