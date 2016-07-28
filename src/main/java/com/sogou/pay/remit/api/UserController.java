@@ -5,12 +5,15 @@
  */
 package com.sogou.pay.remit.api;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.collections4.MapUtils;
+import org.hibernate.validator.constraints.NotBlank;
 import org.jsondoc.core.annotation.Api;
 import org.jsondoc.core.annotation.ApiMethod;
 import org.jsondoc.core.annotation.ApiQueryParam;
@@ -63,6 +66,13 @@ public class UserController {
   @RequestMapping(value = "/user", method = RequestMethod.GET)
   public ApiResult<?> get() throws Exception {
     return userManager.list();
+  }
+
+  @ApiMethod(description = "get users")
+  @RequestMapping(value = "/user/token", method = RequestMethod.GET)
+  public ApiResult<?> getInfo(@RequestParam(name = "token") @NotBlank String token) throws Exception {
+    User user = UserManager.getUserByUno(MapUtils.getInteger(LogInterceptor.getPtokenDetail(token), "uno"));
+    return Objects.isNull(user) ? ApiResult.forbidden() : new ApiResult<>(user);
   }
 
   @ApiMethod(description = "delete user")
