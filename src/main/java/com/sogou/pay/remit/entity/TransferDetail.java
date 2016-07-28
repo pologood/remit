@@ -14,6 +14,8 @@ import org.hibernate.validator.constraints.LuhnCheck;
 import org.jsondoc.core.annotation.ApiObjectField;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 import commons.utils.JsonHelper;
 
@@ -48,10 +50,13 @@ public class TransferDetail {
   @NotNull(message = "amount is required")
   private BigDecimal amount;
 
+  @JsonProperty(access = Access.WRITE_ONLY)
   private String bankName;
 
+  @JsonProperty(access = Access.WRITE_ONLY)
   private String bankCity;
 
+  @JsonProperty(access = Access.WRITE_ONLY)
   private String memo;
 
   //
