@@ -76,6 +76,11 @@ public class TransferBatchManager {
     return list(AUDIT_APPROVED_CONDITIONS);
   }
 
+  public ApiResult<List<TransferBatch>> listToNotify() {
+    List<TransferBatch> batchs = transferBatchMapper.listNotify();
+    return CollectionUtils.isEmpty(batchs) ? new ApiResult<>(ErrorCode.NOT_FOUND) : new ApiResult<>(batchs);
+  }
+
   public ApiResult<List<TransferBatch>> list(List<Tuple2<Status, BigDecimal>> conditions) {
     List<TransferBatch> batchs = transferBatchMapper.listWithStatusAndAmount(conditions);
     return CollectionUtils.isEmpty(batchs) ? new ApiResult<>(ErrorCode.NOT_FOUND) : new ApiResult<>(batchs);
@@ -220,5 +225,9 @@ public class TransferBatchManager {
       new Tuple2<>(Status.JUNIOR_APPROVED, new BigDecimal(JUNIOR_AUDIT_LIMIT)),
       new Tuple2<>(Status.SENIOR_APPROVED, new BigDecimal(SENIOR_AUDIT_LIMIT)),
       new Tuple2<>(Status.FINAL_APPROVED, new BigDecimal(Integer.MAX_VALUE)));
+
+  public void notify(TransferBatch batch) {
+    if (transferBatchMapper.logNotify(batch) < 1) LOGGER.error("notify log error:batch={}", batch);
+  }
 
 }
