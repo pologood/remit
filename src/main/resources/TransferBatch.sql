@@ -30,6 +30,7 @@ CREATE TABLE `transfer_batch` (
   `successAmount` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT '成功金额',
   `successCount` INT(4) NOT NULL DEFAULT 0 COMMENT '成功笔数',
   `outErrMsg` varchar(128) DEFAULT NULL COMMENT '错误信息',
+  `notifyFlag` tinyint(1) NOT NULL DEFAULT '0' COMMENT '回调标志',
   
   `createTime` TIMESTAMP NOT NULL DEFAULT 0 COMMENT 'immut',
   `upDateTime` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
