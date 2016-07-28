@@ -41,17 +41,10 @@ public class LogInterceptor extends HandlerInterceptorAdapter {
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
     String ptoken = request.getParameter("ptoken");
     Map<String, Object> map;
-    Long timestamp = null;
-    Integer uno = null;
     User user = null;
     if (StringUtils.isBlank(ptoken) || MapUtils.isEmpty(map = getPtokenDetail(ptoken))
-        || Objects.isNull(timestamp = MapUtils.getLong(map, "ts"))
-        || Math.abs(System.currentTimeMillis() - timestamp.longValue()) > TIME_INTERVAL
-        || Objects.isNull(uno = MapUtils.getInteger(map, "uno"))) {
-      response.sendRedirect(getUrl(request));
-      return false;
-    }
-    if (Objects.isNull(user = UserManager.getUserByUno(uno))) {
+        || Math.abs(System.currentTimeMillis() - MapUtils.getLongValue(map, "ts")) > TIME_INTERVAL
+        || Objects.isNull(user = UserManager.getUserByUno(MapUtils.getInteger(map, "uno")))) {
       SignInterceptor.writeResponse(response, ApiResult.forbidden());
       return false;
     }
