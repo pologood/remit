@@ -43,6 +43,9 @@ public class CmbManager implements InitializingBean {
 
   private static String URL;
 
+  /**
+   * @return Tuple2 BusiResultState, String first for result, second for message
+   */
   public ApiResult<?> queryDirectPay(TransferBatch batch) {
     XmlPacket packet = new XmlPacket(QUERY_DIRECT_PAY_FUNCTION_NAME, batch.getLoginName());
     ApiResult<String> result = Httpclient.post(URL, getQueryDirectPayRequest(batch, packet).toXmlString());
@@ -60,8 +63,8 @@ public class CmbManager implements InitializingBean {
       if (Objects.equals(BusiResultState.SUCCESS.getValue(), map.get(RESULT_STATE)))
         return new ApiResult<>(new Tuple2<>(BusiResultState.SUCCESS, null));
       if (Objects.equals(BusiResultState.BACK.getValue(), map.get(RESULT_STATE)))
-        return new ApiResult<>(new Tuple2<>(BusiResultState.BACK, map.get(PAY_ERROR_MESSAGE)));
-      else return new ApiResult<>(new Tuple2<>(BusiResultState.FAILED, map.get(PAY_ERROR_MESSAGE)));
+        return new ApiResult<>(new Tuple2<>(BusiResultState.BACK, map.get(PAY_QUERY_ERROR_MESSAGE)));
+      else return new ApiResult<>(new Tuple2<>(BusiResultState.FAILED, map.get(PAY_QUERY_ERROR_MESSAGE)));
     } else return new ApiResult<>(BusiRequestState.BANK_PROCESSING);
   }
 
@@ -78,7 +81,7 @@ public class CmbManager implements InitializingBean {
   }
 
   private String getEndDate(TransferBatch batch) {
-    return "20150920";
+    return "20150922";
   }
 
   private String getBeginDate(TransferBatch batch) {
@@ -100,7 +103,7 @@ public class CmbManager implements InitializingBean {
         .max((map1, map2) -> map1.get(OUT_TRADE_NO).compareTo(map2.get(OUT_TRADE_NO))).get();
     if (Objects.equals(BusiRequestState.FINISHED.getValue(), map.get(REQUEST_STATE))
         && Objects.equals(BusiResultState.FAILED.getValue(), map.get(RESULT_STATE)))
-      return ApiResult.notAcceptable(BusiResultState.FAILED.name());
+      return new ApiResult<>(map.get(PAY_ERROR_MESSAGE));
     else return ApiResult.ok();
   }
 
@@ -144,6 +147,9 @@ public class CmbManager implements InitializingBean {
     return xmlPacket;
   }
 
+  /**
+   * @return List AgencyDetailResultDto
+   */
   public ApiResult<?> queryAgencyPayDetail(TransferBatch batch) {
     XmlPacket packet = new XmlPacket(QUERY_AGENCY_PAY_DETAIL_FUNCTION_NAME, batch.getLoginName());
     ApiResult<String> result = Httpclient.post(URL, getQueryAgencyPayDetailRequest(batch, packet).toXmlString());
@@ -284,8 +290,9 @@ public class CmbManager implements InitializingBean {
   private static final String AGENCY_PAY_FUNCTION_NAME = "AgentRequest",
       QUERY_AGENCY_PAY_RESULT_FUNCTION_NAME = "GetAgentInfo", DIRECT_PAY_FUNCTION_NAME = "DCPAYMNT",
       QUERY_AGENCY_PAY_DETAIL_FUNCTION_NAME = "GetAgentDetail", QUERY_DIRECT_PAY_FUNCTION_NAME = "GetPaymentInfo",
-      BATCH_REQUEST_STATE = "REQSTA", REQUEST_STATE = "REQSTS", RESULT_STATE = "RTNFLG", PAY_ERROR_MESSAGE = "RTNNAR",
-      AGENCY_ERROR_MESSAGE = "ERRDSP", TRANSFER_ID = "TRSDSP", DETAIL_STATE = "STSCOD";
+      BATCH_REQUEST_STATE = "REQSTA", REQUEST_STATE = "REQSTS", RESULT_STATE = "RTNFLG",
+      PAY_QUERY_ERROR_MESSAGE = "RTNNAR", AGENCY_ERROR_MESSAGE = "ERRDSP", TRANSFER_ID = "TRSDSP",
+      DETAIL_STATE = "STSCOD", PAY_ERROR_MESSAGE = "ERRTXT";
 
   private static final String BUSICODE = "BUSCOD", BUSIMODE = "BUSMOD", TRANSTYPE = "TRSTYP", OUT_ACCOUNT_ID = "DBTACC",
       BRANCH_CODE = "BBKNBR", TRANSFER_COUNT = "TOTAL", TRANSFER_AMOUNT = "SUM", BATCHNO = "YURREF", MEMO = "MEMO",
