@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 
 import javax.validation.constraints.NotNull;
 
+import org.hibernate.validator.constraints.LuhnCheck;
 import org.jsondoc.core.annotation.ApiObjectField;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -34,13 +35,14 @@ public class TransferDetail {
   @NotNull(message = "transferId is required")
   private String transferId;
 
+  @ApiObjectField(description = "入款账号")
+  @NotNull(message = "inAccountId is required")
+  @LuhnCheck
+  private String inAccountId;
+
   @ApiObjectField(description = "入款账户名")
   @NotNull(message = "inAccountName is required")
   private String inAccountName;
-
-  @ApiObjectField(description = "入款账号")
-  @NotNull(message = "inAccountId is required")
-  private String inAccountId;
 
   @ApiObjectField(description = "金额")
   @NotNull(message = "amount is required")
