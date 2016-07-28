@@ -22,6 +22,7 @@ import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.ImmutableList;
 import com.sogou.pay.remit.entity.TransferBatch;
+import com.sogou.pay.remit.entity.TransferBatch.NotifyFlag;
 import com.sogou.pay.remit.entity.TransferBatch.Status;
 
 import commons.utils.Tuple2;
@@ -36,8 +37,8 @@ public interface TransferBatchMapper {
 
     private final static String TABLE = "`transfer_batch`";
 
-    private final static List<String> ITEMS_SELECTED_BY_BATCHNO = ImmutableList.of("appId", "batchNo", "status",
-        "outErrMsg", "transferCount", "transferAmount", "successCount", "successAmount");
+    private final static List<String> ITEMS_SELECTED_BY_BATCHNO = ImmutableList.of("appId", "batchNo", "channel",
+        "status", "outErrMsg", "transferCount", "transferAmount", "successCount", "successAmount");
 
     public static String selectByBatchNo(Map<String, Object> param) {
       SQL sql = new SQL();
@@ -93,6 +94,18 @@ public interface TransferBatchMapper {
       }
       return sql.toString();
     }
+
+    public static String listNotify() {
+      SQL sql = new SQL();
+      ITEMS_SELECTED_BY_BATCHNO.forEach(columns -> sql.SELECT(columns));
+      return sql.FROM(TABLE).WHERE(String.format("status > %d", Status.PROCESSING.getValue()))
+          .WHERE(String.format("notifyFlag != %d", NotifyFlag.SUCCESS.getValue())).toString();
+    }
+
+    public static String logNotify() {
+      return new SQL().UPDATE(TABLE).SET(String.format("notifyFlag = %d", NotifyFlag.SUCCESS.getValue()))
+          .WHERE("appId = #{appId}").WHERE("batchNo = #{batchNo}").toString();
+    }
   }
 
   @SelectProvider(type = Sql.class, method = "selectByBatchNo")
@@ -111,4 +124,9 @@ public interface TransferBatchMapper {
   @SelectProvider(type = Sql.class, method = "listWithStatusAndAmount")
   List<TransferBatch> listWithStatusAndAmount(@Param("conditions") List<Tuple2<Status, BigDecimal>> conditions);
 
+  @SelectProvider(type = Sql.class, method = "listNotify")
+  List<TransferBatch> listNotify();
+
+  @UpdateProvider(type = Sql.class, method = "logNotify")
+  int logNotify(TransferBatch batch);
 }
