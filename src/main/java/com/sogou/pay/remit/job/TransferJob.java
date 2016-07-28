@@ -15,30 +15,37 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.Channel;
+import com.sogou.pay.remit.entity.TransferBatch.SignType;
 import com.sogou.pay.remit.entity.TransferBatch.Status;
 import com.sogou.pay.remit.entity.TransferDetail;
+import com.sogou.pay.remit.manager.AppManager;
 import com.sogou.pay.remit.manager.CmbManager;
 import com.sogou.pay.remit.manager.CmbManager.BusiResultState;
 import com.sogou.pay.remit.manager.TransferBatchManager;
 import com.sogou.pay.remit.manager.TransferDetailManager;
 import com.sogou.pay.remit.model.ApiResult;
 
+import commons.utils.Httpclient;
+import commons.utils.JsonHelper;
 import commons.utils.Tuple2;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月19日;
 //-------------------------------------------------------
 @Component
-public class TransferJob {
+public class TransferJob implements InitializingBean {
 
   public void pay() {
     ApiResult<List<TransferBatch>> result = transferBatchManager.listApproved();
@@ -58,9 +65,11 @@ public class TransferJob {
 
     for (TransferBatch batch : list)
       try {
+        ApiResult<?> result;
         batch.setDetails(transferDetailManager.selectByBatchNo(batch.getAppId(), batch.getBatchNo()));
-        if (ApiResult.isOK(cmbManager.directPay(batch))) transferBatchManager.callBack(batch.getAppId(),
-            batch.getBatchNo(), Status.PROCESSING, null, null, null, null);
+        if (ApiResult.isOK(result = cmbManager.directPay(batch))) transferBatchManager.callBack(batch.getAppId(),
+            batch.getBatchNo(), Objects.isNull(result.getData()) ? Status.PROCESSING : Status.FAILED,
+            (String) result.getData(), null, null, null);
         else LOGGER.error("[directPay]appId:{} batchNo:{}", batch.getAppId(), batch.getBatchNo());
       } catch (Exception e) {
         LOGGER.error(String.format("[directPay]error:batch=%s", batch), e);
@@ -110,8 +119,8 @@ public class TransferJob {
         AgencyBatchResultDto dto = (AgencyBatchResultDto) result.getData();
         transferBatchManager.callBack(batch.getAppId(), batch.getBatchNo(), Status.valueOf(dto.getState().name()),
             dto.getErrMsg(), dto.getOutTradeNo(), dto.getSuccessCount(), dto.getSuccessAmount());
-        if (!Objects.equals(dto.getState(), BusiResultState.PART)) continue;
-        batch.setOutTradeNo(dto.getOutTradeNo());;
+        if (Objects.equals(dto.getState(), BusiResultState.SUCCESS)) continue;
+        batch.setOutTradeNo(dto.getOutTradeNo());
         result = cmbManager.queryAgencyPayDetail(batch);
         LOGGER.info("[agencyQuery]batch:{}, details:{}", batch, result);
         if (ApiResult.isNotOK(result) || Objects.isNull(result.getData()) || !(result.getData() instanceof List))
@@ -148,16 +157,46 @@ public class TransferJob {
       try {
         ApiResult<?> result = cmbManager.queryDirectPay(batch);
         LOGGER.info("[directQuery]batch:{}, result:{}", batch, result);
-        if (ApiResult.isOK(result) && Objects.nonNull(result.getData()) && result.getData() instanceof Tuple2) {
-          Tuple2<?, ?> tuple = (Tuple2<?, ?>) result.getData();
-          transferBatchManager.callBack(batch.getAppId(), batch.getBatchNo(),
-              Status.valueOf(((BusiResultState) tuple.f).name()), (String) tuple.s, null, null, null);
-        }
+        if (ApiResult.isNotOK(result) || Objects.isNull(result.getData()) || !(result.getData() instanceof Tuple2))
+          return;
+        Tuple2<?, ?> tuple = (Tuple2<?, ?>) result.getData();
+        transferBatchManager.callBack(batch.getAppId(), batch.getBatchNo(),
+            Status.valueOf(((BusiResultState) tuple.f).name()), (String) tuple.s, null, null, null);
       } catch (Exception e) {
         LOGGER.error(String.format("[directPay]error:batch=%s", batch), e);
       }
 
     LOGGER.info("direct query end");
+  }
+
+  public void callback() {
+    ApiResult<?> result = transferBatchManager.listToNotify();
+    if (ApiResult.isNotOK(result)) return;
+
+    LOGGER.info("callback start");
+
+    for (Object o : (List<?>) result.getData()) {
+      TransferBatch batch = (TransferBatch) o;
+      batch.setDetails(Objects.equals(Status.SUCCESS, batch.getStatus()) ? new ArrayList<>()
+          : transferDetailManager.selectByBatchNo(batch.getAppId(), batch.getBatchNo()));
+      try {
+        if (ApiResult.isOK(result = callback(batch))) transferBatchManager.notify(batch);
+      } catch (Exception e) {
+        LOGGER.error(String.format("callback error:batch=%s result=%s", batch, result), e);
+      }
+    }
+
+    LOGGER.info("callback end");
+  }
+
+  private ApiResult<?> callback(TransferBatch batch) {
+    batch.setSignType(SignType.SHA);
+    Map<String, Object> map = JsonHelper.toMap(batch.toString());
+    map.put("sign", AppManager.sign(map));
+    ApiResult<String> response = Httpclient.post(callBackUrl, JsonHelper.toJson(map), null, true);
+    return (ApiResult.isOK(response) && MapUtils.isNotEmpty(map = JsonHelper.toMap(response.getData()))
+        && Objects.equals(0, MapUtils.getInteger(map, "ret_code"))) ? ApiResult.ok()
+            : ApiResult.notAcceptable(response.getData());
   }
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TransferJob.class);
@@ -170,6 +209,16 @@ public class TransferJob {
 
   @Autowired
   private TransferDetailManager transferDetailManager;
+
+  @Autowired
+  private Environment env;
+
+  private String callBackUrl;
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    callBackUrl = env.getRequiredProperty("pandora.callback.url");
+  }
 
   public static class AgencyDetailResultDto {
 
@@ -313,4 +362,5 @@ public class TransferJob {
       return ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE);
     }
   }
+
 }
