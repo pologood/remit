@@ -24,6 +24,7 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.hibernate.validator.constraints.LuhnCheck;
 import org.hibernate.validator.constraints.NotBlank;
 import org.jsondoc.core.annotation.ApiObjectField;
 import org.springframework.format.annotation.NumberFormat;
@@ -110,6 +111,7 @@ public class TransferBatch {
   @ApiObjectField(description = "出款账号")
   @NotBlank(message = "outAccountId is required")
   @Pattern(regexp = "^[a-zA-Z0-9]+$")
+  //@LuhnCheck
   private String outAccountId;
 
   @ApiObjectField(description = "出款账户名")
@@ -140,7 +142,6 @@ public class TransferBatch {
   private SettleChannel settleChannel;
 
   //notify
-
   @JsonIgnore
   private String outTradeNo;
 
@@ -164,6 +165,9 @@ public class TransferBatch {
   @NotNull
   @Size(min = 1, message = "details can not be empty")
   private List<TransferDetail> details;
+
+  @JsonIgnore
+  private NotifyFlag notifyFlag;
 
   public Long getId() {
     return id;
@@ -413,9 +417,31 @@ public class TransferBatch {
     this.details = details;
   }
 
+  public NotifyFlag getNotifyFlag() {
+    return notifyFlag;
+  }
+
+  public void setNotifyFlag(NotifyFlag notifyFlag) {
+    this.notifyFlag = notifyFlag;
+  }
+
   @Override
   public String toString() {
     return JsonHelper.toJson(this);
+  }
+
+  public enum NotifyFlag {
+    NEVER(0), SUCCESS(1);
+
+    private int value;
+
+    private NotifyFlag(int value) {
+      this.value = value;
+    }
+
+    public int getValue() {
+      return value;
+    }
   }
 
   public enum SignType {
@@ -470,9 +496,9 @@ public class TransferBatch {
 
     static {
       NEXT_MAP.put(INIT, Sets.newHashSet(JUNIOR_APPROVED, JUNIOR_REJECTED));
-      NEXT_MAP.put(JUNIOR_APPROVED, Sets.newHashSet(SENIOR_APPROVED, SENIOR_REJECTED, PROCESSING));
-      NEXT_MAP.put(SENIOR_APPROVED, Sets.newHashSet(FINAL_APPROVED, FINAL_REJECTED, PROCESSING));
-      NEXT_MAP.put(FINAL_APPROVED, Sets.newHashSet(PROCESSING));
+      NEXT_MAP.put(JUNIOR_APPROVED, Sets.newHashSet(SENIOR_APPROVED, SENIOR_REJECTED, PROCESSING, FAILED));
+      NEXT_MAP.put(SENIOR_APPROVED, Sets.newHashSet(FINAL_APPROVED, FINAL_REJECTED, PROCESSING, FAILED));
+      NEXT_MAP.put(FINAL_APPROVED, Sets.newHashSet(PROCESSING, FAILED));
       NEXT_MAP.put(PROCESSING, Sets.newHashSet(SUCCESS, FAILED, BACK, PART));
     }
 
