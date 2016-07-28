@@ -40,7 +40,7 @@ public class JobController {
     if (!Objects.equals(Role.ADMIN, ((User) request.getAttribute("remituser")).getRole())) return ApiResult.forbidden();
     if (Objects.equals(JobName.pay, jobName)) transferJob.pay();
     else if (Objects.equals(JobName.query, jobName)) transferJob.query();
-    else if (Objects.equals(JobName.callback, jobName)) transferJob.callBack();
+    else if (Objects.equals(JobName.callback, jobName)) transferJob.callback();
     return ApiResult.ok();
   }
 
