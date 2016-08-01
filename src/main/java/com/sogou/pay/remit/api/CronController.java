@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import org.hibernate.validator.constraints.NotBlank;
 import org.jsondoc.core.annotation.Api;
 import org.jsondoc.core.annotation.ApiMethod;
 import org.jsondoc.core.annotation.ApiPathParam;
@@ -68,7 +67,7 @@ public class CronController implements InitializingBean {
   @RequestMapping(value = "/cron/{jobName}", method = RequestMethod.PUT)
   public ApiResult<?> pay(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
       @ApiPathParam(clazz = JobName.class, name = "jobName", description = "定时任务名") @PathVariable("jobName") JobName jobName,
-      @ApiQueryParam(name = "cron", description = "cron expression") @RequestParam(name = "cron") @NotBlank String cron) {
+      @ApiQueryParam(name = "cron", description = "cron expression") @RequestParam(name = "cron") String cron) {
     if (!Objects.equals(Role.ADMIN, user.getRole())) return ApiResult.unAuthorized();
     Tuple2<CronTriggerFactoryBean, TriggerKey> tuple = JOB_MAP.get(jobName);
     if (Objects.isNull(tuple)) return ApiResult.badRequest("invalid job");

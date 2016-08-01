@@ -7,21 +7,18 @@ package com.sogou.pay.remit.api;
 
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.constraints.NotNull;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.hibernate.validator.constraints.NotBlank;
 import org.jsondoc.core.annotation.Api;
 import org.jsondoc.core.annotation.ApiMethod;
 import org.jsondoc.core.annotation.ApiQueryParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sogou.pay.remit.entity.TransferDetail;
+import com.sogou.pay.remit.entity.User;
 import com.sogou.pay.remit.manager.TransferDetailManager;
 import com.sogou.pay.remit.model.ApiResult;
 
@@ -39,11 +36,11 @@ public class TransferDetailController {
 
   @ApiMethod(description = "get transfer detail")
   @RequestMapping(value = "/transferDetail", method = RequestMethod.GET)
-  public ApiResult<?> get(HttpServletRequest request,
-      @ApiQueryParam(name = "appId", description = "业务线") @RequestParam(name = "appId") @NotNull Integer appId,
-      @ApiQueryParam(name = "batchNo", description = "批次号") @RequestParam(name = "batchNo") @NotBlank String batchNo) {
+  public ApiResult<?> get(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
+      @ApiQueryParam(name = "appId", description = "业务线") @RequestParam(name = "appId") Integer appId,
+      @ApiQueryParam(name = "batchNo", description = "批次号") @RequestParam(name = "batchNo") String batchNo) {
     List<TransferDetail> details = transferDetailManager.selectByBatchNo(appId, batchNo);
-    return CollectionUtils.isEmpty(details) ? ApiResult.notFound() : new ApiResult<>(details);
+    return new ApiResult<>(details);
   }
 
 }

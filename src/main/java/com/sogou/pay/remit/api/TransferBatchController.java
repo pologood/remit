@@ -9,12 +9,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
-import org.hibernate.validator.constraints.NotBlank;
-import org.hibernate.validator.constraints.NotEmpty;
 import org.jsondoc.core.annotation.Api;
 import org.jsondoc.core.annotation.ApiBodyObject;
 import org.jsondoc.core.annotation.ApiMethod;
@@ -25,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -55,9 +52,8 @@ public class TransferBatchController {
 
   @ApiMethod(consumes = "application/json", description = "add transfer batch")
   @RequestMapping(value = "/transferBatch", method = RequestMethod.POST, consumes = "application/json")
-  public ApiResult<?> add(HttpServletRequest request,
-      @ApiBodyObject(clazz = TransferBatch.class) @RequestBody @Valid TransferBatch batch, BindingResult bindingResult)
-          throws Exception {
+  public ApiResult<?> add(@ApiBodyObject(clazz = TransferBatch.class) @RequestBody @Valid TransferBatch batch,
+      BindingResult bindingResult) throws Exception {
     if (bindingResult.hasErrors()) {
       LOGGER.error("[add]bad request:batch={}", batch);
       return ApiResult.bindingResult(bindingResult);
@@ -68,39 +64,37 @@ public class TransferBatchController {
   @ApiMethod(description = "get transfer batch")
   @RequestMapping(value = "/transferBatch", method = RequestMethod.GET)
   public ApiResult<?> get(
-      @ApiQueryParam(name = "appId", description = "业务线") @RequestParam(name = "appId") @NotNull Integer appId,
-      @ApiQueryParam(name = "batchNo", description = "批次号") @RequestParam(name = "batchNo") @NotBlank String batchNo) {
+      @ApiQueryParam(name = "appId", description = "业务线") @RequestParam(name = "appId") Integer appId,
+      @ApiQueryParam(name = "batchNo", description = "批次号") @RequestParam(name = "batchNo") String batchNo) {
     return transferBatchManager.get(appId, batchNo, true);
   }
 
   @ApiMethod(description = "get transfer batch with status")
   @RequestMapping(value = "/transferBatch/{channel}", method = RequestMethod.GET)
-  public ApiResult<?> get(HttpServletRequest request,
-      @ApiPathParam(clazz = Channel.class, name = "channel", description = "渠道") @NotNull @PathVariable("channel") Channel channel) {
-    User user = (User) request.getAttribute("remituser");
+  public ApiResult<?> get(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
+      @ApiPathParam(clazz = Channel.class, name = "channel", description = "渠道") @PathVariable("channel") Channel channel) {
     ApiResult<?> result = transferBatchManager.list(channel, Status.getToDoStatus(user.getRole()));
     return Objects.equals(ErrorCode.NOT_FOUND, result.getCode()) ? ApiResult.ok() : result;
   }
 
   @ApiMethod(description = "reject transfer batch")
   @RequestMapping(value = "/transferBatch/{appId}/{batchNo}", method = RequestMethod.PUT)
-  public ApiResult<?> update(HttpServletRequest request,
-      @ApiPathParam(name = "appId", description = "业务线") @PathVariable("appId") @NotNull Integer appId,
-      @ApiPathParam(name = "batchNo", description = "批次号") @PathVariable("batchNo") @NotBlank String batchNo,
-      @RequestParam(name = "opinion", required = false) Optional<String> opinion) {
-    User user = (User) request.getAttribute("remituser");
+  public ApiResult<?> update(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
+      @ApiPathParam(name = "appId", description = "业务线") @PathVariable("appId") int appId,
+      @ApiPathParam(name = "batchNo", description = "批次号") @PathVariable("batchNo") String batchNo,
+      @ApiQueryParam(name = "opinion", description = "驳回意见") @RequestParam(name = "opinion") Optional<String> opinion) {
     Status status = Status.getRejectedStatus(user.getRole());
+    if (Objects.isNull(status)) return ApiResult.unAuthorized();
     return transferBatchManager.audit(appId, batchNo, user, status, opinion.orElse(null));
   }
 
   @ApiMethod(description = "approve transfer batch")
   @RequestMapping(value = "/transferBatch/{appId}", method = RequestMethod.PUT)
-  public ApiResult<?> update(HttpServletRequest request,
-      @ApiPathParam(name = "appId", description = "业务线") @PathVariable("appId") @NotNull Integer appId,
-      @ApiQueryParam(name = "batchNos", description = "批次号列表") @NotEmpty @RequestParam(name = "batchNos") List<String> batchNos) {
-    User user = (User) request.getAttribute("remituser");
+  public ApiResult<?> update(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
+      @ApiPathParam(name = "appId", description = "业务线") @PathVariable("appId") Integer appId,
+      @ApiQueryParam(name = "batchNos", description = "批次号列表") @RequestParam(name = "batchNos") List<String> batchNos) {
     Status status = Status.getApprovedStatus(user.getRole());
-    if (Objects.isNull(status)) return ApiResult.forbidden();
+    if (Objects.isNull(status)) return ApiResult.unAuthorized();
     return transferBatchManager.batchUpdateTransferBatchStatus(user, appId, batchNos, status);
   }
 
