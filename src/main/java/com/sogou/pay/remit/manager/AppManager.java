@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
@@ -56,11 +55,6 @@ public class AppManager implements InitializingBean {
 
   public static String sign(Map<String, ?> map) {
     return sign(map, MapUtils.getInteger(map, APP_ITEM));
-  }
-
-  public static String sign(Map<String, ?> map, Set<String> signItems) {
-    return sign(map.entrySet().stream().filter(e -> signItems.contains(e.getKey()))
-        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue())));
   }
 
   public static String sign(Map<String, ?> map, int appId) {
