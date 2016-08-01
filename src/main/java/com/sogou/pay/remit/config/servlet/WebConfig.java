@@ -35,9 +35,8 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
   @Bean
   public MappedInterceptor logInterceptor() {
-    return new MappedInterceptor(
-        new String[] { "/api/transferDetail", "/api/transferBatch/**", "/api/job/*", "/api/cron/*", "/api/user" },
-        new LogInterceptor());
+    return new MappedInterceptor(new String[] { "/api/transferDetail", "/api/transferBatch/*", "/api/transferBatch/*/*",
+        "/api/job/*", "/api/cron/*", "/api/user" }, new LogInterceptor());
   }
 
   @Override
