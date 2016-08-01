@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import javax.validation.constraints.NotNull;
 
 import org.hibernate.validator.constraints.LuhnCheck;
+import org.jsondoc.core.annotation.ApiObject;
 import org.jsondoc.core.annotation.ApiObjectField;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -22,6 +23,7 @@ import commons.utils.JsonHelper;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
 //-------------------------------------------------------
+@ApiObject(name = "TransferDetail", description = "明细单")
 public class TransferDetail {
 
   @JsonIgnore
@@ -50,12 +52,15 @@ public class TransferDetail {
   @NotNull(message = "amount is required")
   private BigDecimal amount;
 
+  @ApiObjectField(description = "他行名")
   @JsonProperty(access = Access.WRITE_ONLY)
   private String bankName;
 
+  @ApiObjectField(description = "他行地址")
   @JsonProperty(access = Access.WRITE_ONLY)
   private String bankCity;
 
+  @ApiObjectField(description = "备注")
   @JsonProperty(access = Access.WRITE_ONLY)
   private String memo;
 
@@ -68,6 +73,7 @@ public class TransferDetail {
   @JsonIgnore
   private LocalDateTime updateTime;
 
+  @ApiObject(name = "TransferDetail.Status", description = "明细状态")
   public enum Status {
 
     INIT(0), OUT_INIT(1), SUCCESS(2), FAILED(3), CANCELED(4);

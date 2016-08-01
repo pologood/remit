@@ -26,6 +26,8 @@ import javax.validation.constraints.Size;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.validator.constraints.LuhnCheck;
 import org.hibernate.validator.constraints.NotBlank;
+import org.hibernate.validator.constraints.NotEmpty;
+import org.jsondoc.core.annotation.ApiObject;
 import org.jsondoc.core.annotation.ApiObjectField;
 import org.springframework.format.annotation.NumberFormat;
 
@@ -42,6 +44,7 @@ import commons.utils.XssHelper;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
 //-------------------------------------------------------
+@ApiObject(name = "TransferBatch", description = "批次单")
 public class TransferBatch {
 
   public TransferBatch makeXssSafe() {
@@ -162,8 +165,7 @@ public class TransferBatch {
   //details
   @Valid
   @ApiObjectField(description = "转账明细")
-  @NotNull
-  @Size(min = 1, message = "details can not be empty")
+  @NotEmpty
   private List<TransferDetail> details;
 
   @JsonIgnore
@@ -444,6 +446,7 @@ public class TransferBatch {
     }
   }
 
+  @ApiObject(name = "SignType", description = "签名方式")
   public enum SignType {
     MD5(0), SHA(1);
 
@@ -468,6 +471,7 @@ public class TransferBatch {
     }
   }
 
+  @ApiObject(name = "TransferBatch.Status", description = "批次状态")
   public enum Status {
 
     INIT(0), //
@@ -513,8 +517,15 @@ public class TransferBatch {
     private static final Map<Role, Status> APPROVED_MAP = ImmutableMap.of(Role.JUNIOR, JUNIOR_APPROVED, Role.SENIOR,
         SENIOR_APPROVED, Role.FINAL, FINAL_APPROVED);
 
+    private static final Map<Role, Status> TODO_MAP = ImmutableMap.of(Role.JUNIOR, INIT, Role.SENIOR, JUNIOR_APPROVED,
+        Role.FINAL, SENIOR_APPROVED);
+
     public static Status getRejectedStatus(Role role) {
       return REJECTED_MAP.get(role);
+    }
+
+    public static Status getToDoStatus(Role role) {
+      return TODO_MAP.get(role);
     }
 
     public static Status getApprovedStatus(Role role) {
@@ -522,6 +533,7 @@ public class TransferBatch {
     }
   }
 
+  @ApiObject(name = "BusiMode", description = "业务模式")
   public enum BusiMode {
     DIRECT_PAYROLL("00001"), //直接代发工资
     CLIENT_PAYROLL("00002"); //客户端代发工资
@@ -537,6 +549,7 @@ public class TransferBatch {
     }
   }
 
+  @ApiObject(name = "BusiCode", description = "业务类型")
   public enum BusiCode {
     /*支付*/
     PAY("N02030"), //支付
@@ -560,6 +573,7 @@ public class TransferBatch {
     }
   }
 
+  @ApiObject(name = "Channel", description = "渠道")
   public enum Channel {
     PAY(0), //支付
     AGENCY(1); //代发代扣
@@ -575,6 +589,7 @@ public class TransferBatch {
     }
   }
 
+  @ApiObject(name = "SettleChannel", description = "结算方式")
   public enum SettleChannel {
     ORDINARY("N"), FAST("F");
 
@@ -589,6 +604,7 @@ public class TransferBatch {
     }
   }
 
+  @ApiObject(name = "BranchCode", description = "分行号")
   public enum BranchCode {
     Root("01"), //
     RootAccounting("03"), //
@@ -650,6 +666,7 @@ public class TransferBatch {
 
   }
 
+  @ApiObject(name = "TransType", description = "交易类型")
   public enum TransType {
     //pay
     ORDINARY("100001", "普通汇兑"),
@@ -779,6 +796,7 @@ public class TransferBatch {
     }
   }
 
+  @ApiObject(name = "Currency", description = "币种")
   public enum Currency {
     RMB("10");
 
