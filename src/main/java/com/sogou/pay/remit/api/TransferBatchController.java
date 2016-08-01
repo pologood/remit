@@ -37,6 +37,7 @@ import com.sogou.pay.remit.entity.TransferBatch.Status;
 import com.sogou.pay.remit.entity.User;
 import com.sogou.pay.remit.manager.TransferBatchManager;
 import com.sogou.pay.remit.model.ApiResult;
+import com.sogou.pay.remit.model.ErrorCode;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
@@ -77,7 +78,8 @@ public class TransferBatchController {
   public ApiResult<?> get(HttpServletRequest request,
       @ApiPathParam(clazz = Channel.class, name = "channel", description = "渠道") @NotNull @PathVariable("channel") Channel channel) {
     User user = (User) request.getAttribute("remituser");
-    return transferBatchManager.list(channel, Status.getToDoStatus(user.getRole()));
+    ApiResult<?> result = transferBatchManager.list(channel, Status.getToDoStatus(user.getRole()));
+    return Objects.equals(ErrorCode.NOT_FOUND, result.getCode()) ? ApiResult.ok() : result;
   }
 
   @ApiMethod(description = "reject transfer batch")
@@ -95,7 +97,7 @@ public class TransferBatchController {
   @RequestMapping(value = "/transferBatch/{appId}", method = RequestMethod.PUT)
   public ApiResult<?> update(HttpServletRequest request,
       @ApiPathParam(name = "appId", description = "业务线") @PathVariable("appId") @NotNull Integer appId,
-      @ApiQueryParam(name = "list", description = "批次号列表") @RequestParam(name = "list") @NotEmpty List<String> batchNos) {
+      @ApiQueryParam(name = "batchNos", description = "批次号列表") @NotEmpty @RequestParam(name = "batchNos") List<String> batchNos) {
     User user = (User) request.getAttribute("remituser");
     Status status = Status.getApprovedStatus(user.getRole());
     if (Objects.isNull(status)) return ApiResult.forbidden();
