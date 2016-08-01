@@ -15,6 +15,7 @@ import javax.validation.constraints.NotNull;
 import org.apache.commons.collections4.MapUtils;
 import org.hibernate.validator.constraints.NotBlank;
 import org.jsondoc.core.annotation.Api;
+import org.jsondoc.core.annotation.ApiBodyObject;
 import org.jsondoc.core.annotation.ApiMethod;
 import org.jsondoc.core.annotation.ApiQueryParam;
 import org.slf4j.Logger;
@@ -45,7 +46,7 @@ public class UserController {
 
   @ApiMethod(description = "add user")
   @RequestMapping(value = "/user", method = RequestMethod.POST)
-  public ApiResult<?> add(HttpServletRequest request, @ApiQueryParam @RequestBody @Valid User user,
+  public ApiResult<?> add(HttpServletRequest request, @ApiBodyObject(clazz = User.class) @RequestBody @Valid User user,
       BindingResult bindingResult) throws Exception {
     if (bindingResult.hasErrors()) {
       LOGGER.error("[add]bad request:user={}", user);
@@ -56,9 +57,11 @@ public class UserController {
 
   @ApiMethod(description = "update user")
   @RequestMapping(value = "/user", method = RequestMethod.PUT)
-  public ApiResult<?> update(@RequestParam(name = "uno") @NotNull Integer uno,
-      @RequestParam(name = "mobile", required = false) Optional<String> mobile,
-      @RequestParam(name = "role", required = false) Optional<Role> role) throws Exception {
+  public ApiResult<?> update(
+      @ApiQueryParam(name = "uno", description = "工号", format = "\\d+") @RequestParam(name = "uno") @NotNull Integer uno,
+      @ApiQueryParam(name = "mobile", description = "手机号", required = false) @RequestParam(name = "mobile", required = false) Optional<String> mobile,
+      @ApiQueryParam(name = "role", description = "角色", required = false) @RequestParam(name = "role", required = false) Optional<Role> role)
+          throws Exception {
     return userManager.update(uno, mobile.orElse(null), role.orElse(null));
   }
 
@@ -70,14 +73,18 @@ public class UserController {
 
   @ApiMethod(description = "get users")
   @RequestMapping(value = "/user/token", method = RequestMethod.GET)
-  public ApiResult<?> getInfo(@RequestParam(name = "token") @NotBlank String token) throws Exception {
+  public ApiResult<?> getInfo(
+      @ApiQueryParam(name = "ptoken", description = "令牌") @RequestParam(name = "ptoken") @NotBlank String token)
+          throws Exception {
     User user = UserManager.getUserByUno(MapUtils.getInteger(LogInterceptor.getPtokenDetail(token), "uno"));
     return Objects.isNull(user) ? ApiResult.forbidden() : new ApiResult<>(user);
   }
 
   @ApiMethod(description = "delete user")
   @RequestMapping(value = "/user", method = RequestMethod.DELETE)
-  public ApiResult<?> delete(@RequestParam(name = "uno") @NotNull Integer uno) throws Exception {
+  public ApiResult<?> delete(
+      @ApiQueryParam(name = "uno", description = "工号") @RequestParam(name = "uno") @NotNull Integer uno)
+          throws Exception {
     return userManager.delete(uno);
   }
 
