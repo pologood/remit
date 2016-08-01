@@ -7,6 +7,7 @@ package com.sogou.pay.remit.api;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -84,10 +85,10 @@ public class TransferBatchController {
   public ApiResult<?> update(HttpServletRequest request,
       @ApiPathParam(name = "appId", description = "业务线") @PathVariable("appId") @NotNull Integer appId,
       @ApiPathParam(name = "batchNo", description = "批次号") @PathVariable("batchNo") @NotBlank String batchNo,
-      @RequestParam(name = "opinion") String opinion) {
+      @RequestParam(name = "opinion", required = false) Optional<String> opinion) {
     User user = (User) request.getAttribute("remituser");
     Status status = Status.getRejectedStatus(user.getRole());
-    return transferBatchManager.audit(appId, batchNo, user, status, opinion);
+    return transferBatchManager.audit(appId, batchNo, user, status, opinion.orElse(null));
   }
 
   @ApiMethod(description = "approve transfer batch")
