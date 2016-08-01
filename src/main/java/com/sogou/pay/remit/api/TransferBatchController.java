@@ -92,7 +92,7 @@ public class TransferBatchController {
   @RequestMapping(value = "/transferBatch/{appId}", method = RequestMethod.PUT)
   public ApiResult<?> update(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
       @ApiPathParam(name = "appId", description = "业务线") @PathVariable("appId") Integer appId,
-      @ApiQueryParam(name = "batchNos", description = "批次号列表") @RequestParam(name = "batchNos") List<String> batchNos) {
+      @ApiQueryParam(name = "batchNos", description = "批次号列表") @RequestParam(name = "batchNos[]") List<String> batchNos) {
     Status status = Status.getApprovedStatus(user.getRole());
     if (Objects.isNull(status)) return ApiResult.unAuthorized();
     return transferBatchManager.batchUpdateTransferBatchStatus(user, appId, batchNos, status);
