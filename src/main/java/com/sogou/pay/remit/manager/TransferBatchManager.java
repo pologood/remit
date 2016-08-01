@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.ImmutableMap;
 import com.sogou.pay.remit.entity.BankInfo;
 import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.Channel;
@@ -67,8 +69,8 @@ public class TransferBatchManager {
     return new ApiResult<>(batch);
   }
 
-  public ApiResult<List<TransferBatch>> list(Status status) {
-    List<TransferBatch> batchs = transferBatchMapper.list(status.getValue());
+  public ApiResult<List<TransferBatch>> list(Channel channel, Status status) {
+    List<TransferBatch> batchs = transferBatchMapper.list(channel, status);
     return CollectionUtils.isEmpty(batchs) ? new ApiResult<>(ErrorCode.NOT_FOUND) : new ApiResult<>(batchs);
   }
 
@@ -153,16 +155,16 @@ public class TransferBatchManager {
     Status oldStatus = batch.getStatus();
     if (Objects.equals(oldStatus, status)) return ApiResult.ok();
     if (!TransferBatch.Status.isShiftValid(oldStatus, status)) {
-      LOGGER.error("[update]{}:from{}to{}", Exceptions.STATUS_INVALID.getErrMsg(), oldStatus, status);
+      LOGGER.error("[update]{}:from {} to {}", Exceptions.STATUS_INVALID.getErrMsg(), oldStatus, status);
       return ApiResult.badRequest(Exceptions.STATUS_INVALID);
     }
     if (transferBatchMapper
         .update(setUpdateItems(batch, errMsg, opinion, status, user, outTradeNo, successCount, successAmount)) < 1) {
-      LOGGER.error("[update]{}:appId={},batchNo={},from{}to{},outErrMsg={},opinion={}",
+      LOGGER.error("[update]{}:appId={},batchNo={},from {} to {},outErrMsg={},opinion={}",
           Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg(), appId, batchNo, oldStatus, status, errMsg, opinion);
       return ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg());
     }
-    return ApiResult.ok();
+    return new ApiResult<>(batchNo);
   }
 
   private TransferBatch setUpdateItems(TransferBatch batch, String outErrMsg, String opinion, Status status, User user,
@@ -206,17 +208,18 @@ public class TransferBatchManager {
 
   @Transactional
   public ApiResult<?> batchUpdateTransferBatchStatus(User user, Integer appId, List<String> batchNos, Status status) {
-    List<String> fails = new ArrayList<>();
+    List<Map<String, Object>> result = new ArrayList<>();
     for (String batchNo : batchNos) {
       try {
-        if (ApiResult.isNotOK(this.audit(appId, batchNo, user, status, null))) fails.add(batchNo);
+        result.add(ImmutableMap.of("batchNo", batchNo, "result",
+            ApiResult.isOK(this.audit(appId, batchNo, user, status, null))));
       } catch (Exception e) {
         LOGGER.error(String.format("%s appId=%s batchNo=%s status to %s",
             Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg(), appId, batchNo, status), e);
-        fails.add(batchNo);
+        result.add(ImmutableMap.of("batchNo", batchNo, "result", false));
       }
     }
-    return CollectionUtils.isEmpty(fails) ? ApiResult.ok() : new ApiResult<>(ErrorCode.INTERNAL_ERROR, fails);
+    return new ApiResult<>(result);
   }
 
   private static final int JUNIOR_AUDIT_LIMIT = 30_0000, SENIOR_AUDIT_LIMIT = 50_0000;
