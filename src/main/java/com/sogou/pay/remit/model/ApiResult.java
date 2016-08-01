@@ -56,7 +56,7 @@ public class ApiResult<Data> {
 
   void setErrorHint() {
     RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-    if (Objects.isNull(requestAttributes)) return;
+    if (Objects.isNull(requestAttributes) || Objects.isNull(message)) return;
     HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
     HttpServletResponse response = (HttpServletResponse) request.getAttribute(RESPONSE);
     String error = String.format("%s:%s", code, message.substring(0, Math.min(100, message.length())));
