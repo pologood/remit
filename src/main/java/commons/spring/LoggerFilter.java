@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.Map;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -186,14 +187,22 @@ public class LoggerFilter implements Filter {
 
   private static class ResettableStreamHttpServletRequest extends HttpServletRequestWrapper {
 
+    private final Map<String, String[]> paramMap;
+
     private byte rawData[];
 
     private ServletInputStreamImpl servletStream;
 
     public ResettableStreamHttpServletRequest(HttpServletRequest request) throws IOException {
       super(request);
+      paramMap = request.getParameterMap();
       rawData = StreamUtils.copyToByteArray(super.getInputStream());
       this.servletStream = new ServletInputStreamImpl();
+    }
+
+    @Override
+    public String[] getParameterValues(String name) {
+      return paramMap.get(name);
     }
 
     public byte[] getData() {
@@ -201,7 +210,7 @@ public class LoggerFilter implements Filter {
     }
 
     @Override
-    public ServletInputStream getInputStream() throws IOException {     
+    public ServletInputStream getInputStream() throws IOException {
       servletStream.setData(rawData);
       return servletStream;
     }
