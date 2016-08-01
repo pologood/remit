@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.hibernate.validator.constraints.NotBlank;
 import org.jsondoc.core.annotation.Api;
 import org.jsondoc.core.annotation.ApiMethod;
+import org.jsondoc.core.annotation.ApiPathParam;
+import org.jsondoc.core.annotation.ApiQueryParam;
 import org.quartz.CronExpression;
 import org.quartz.TriggerKey;
 import org.slf4j.Logger;
@@ -65,8 +67,9 @@ public class CronController implements InitializingBean {
 
   @ApiMethod(description = "update cron")
   @RequestMapping(value = "/cron/{jobName}", method = RequestMethod.PUT)
-  public ApiResult<?> pay(HttpServletRequest request, @PathVariable("jobName") JobName jobName,
-      @RequestParam(name = "cron") @NotBlank String cron) {
+  public ApiResult<?> pay(HttpServletRequest request,
+      @ApiPathParam(clazz = JobName.class, name = "jobName", description = "定时任务名") @PathVariable("jobName") JobName jobName,
+      @ApiQueryParam(name = "cron", description = "cron expression") @RequestParam(name = "cron") @NotBlank String cron) {
     if (!Objects.equals(Role.ADMIN, ((User) request.getAttribute("remituser")).getRole())) return ApiResult.forbidden();
     Tuple2<CronTriggerFactoryBean, TriggerKey> tuple = JOB_MAP.get(jobName);
     if (Objects.isNull(tuple)) return ApiResult.badRequest("invalid job");
@@ -91,7 +94,7 @@ public class CronController implements InitializingBean {
   public void afterPropertiesSet() throws Exception {
     JOB_MAP.put(JobName.pay, new Tuple2<>(payTrigger, new TriggerKey("payTrigger")));
     JOB_MAP.put(JobName.query, new Tuple2<>(queryTrigger, new TriggerKey("queryTrigger")));
-    JOB_MAP.put(JobName.query, new Tuple2<>(callbackTrigger, new TriggerKey("callbackTrigger")));
+    JOB_MAP.put(JobName.callback, new Tuple2<>(callbackTrigger, new TriggerKey("callbackTrigger")));
   }
 
 }

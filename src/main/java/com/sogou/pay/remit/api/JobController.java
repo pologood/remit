@@ -11,7 +11,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.jsondoc.core.annotation.Api;
 import org.jsondoc.core.annotation.ApiMethod;
-
+import org.jsondoc.core.annotation.ApiObject;
+import org.jsondoc.core.annotation.ApiPathParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,7 +37,8 @@ public class JobController {
 
   @ApiMethod(description = "run job")
   @RequestMapping(value = "/job/{jobName}", method = RequestMethod.GET)
-  public ApiResult<?> run(HttpServletRequest request, @PathVariable JobName jobName) {
+  public ApiResult<?> run(HttpServletRequest request,
+      @ApiPathParam(name = "jobName", clazz = JobName.class, description = "定时任务名") @PathVariable JobName jobName) {
     if (!Objects.equals(Role.ADMIN, ((User) request.getAttribute("remituser")).getRole())) return ApiResult.forbidden();
     if (Objects.equals(JobName.pay, jobName)) transferJob.pay();
     else if (Objects.equals(JobName.query, jobName)) transferJob.query();
@@ -44,6 +46,7 @@ public class JobController {
     return ApiResult.ok();
   }
 
+  @ApiObject(name = "JobName", description = "定时任务名")
   public enum JobName {
     pay, query, callback;
   }
