@@ -22,6 +22,7 @@ import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.ImmutableList;
 import com.sogou.pay.remit.entity.TransferBatch;
+import com.sogou.pay.remit.entity.TransferBatch.Channel;
 import com.sogou.pay.remit.entity.TransferBatch.NotifyFlag;
 import com.sogou.pay.remit.entity.TransferBatch.Status;
 
@@ -47,7 +48,9 @@ public interface TransferBatchMapper {
     }
 
     public static String list(Map<String, Object> map) {
-      return new SQL().SELECT("*").FROM(TABLE).WHERE("status = #{status}").toString();
+      SQL sql = new SQL().SELECT("*").FROM(TABLE).WHERE("status = #{status}");
+      if (Objects.nonNull(map.get("channel"))) sql.WHERE("channel = #{channel}");
+      return sql.toString();
     }
 
     public static String update(TransferBatch batch) {
@@ -112,7 +115,7 @@ public interface TransferBatchMapper {
   TransferBatch selectByBatchNo(@Param("appId") Integer appId, @Param("batchNo") String batchNo);
 
   @SelectProvider(type = Sql.class, method = "list")
-  List<TransferBatch> list(@Param("status") int status);
+  List<TransferBatch> list(@Param("channel") Channel channel, @Param("status") Status status);
 
   @UpdateProvider(type = Sql.class, method = "update")
   int update(TransferBatch batch);
