@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -33,23 +34,34 @@ import commons.utils.JsonHelper;
 //-------------------------------------------------------
 public class LogInterceptor extends HandlerInterceptorAdapter {
 
-  private static final String DEFAULT_CHARSET = StandardCharsets.UTF_8.name();
+  private static final String DEFAULT_CHARSET = StandardCharsets.UTF_8.name(), PTOKEN = "ptoken";
 
   private static final long TIME_INTERVAL = TimeUnit.MINUTES.toMillis(30);
 
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-    String ptoken = request.getParameter("ptoken");
+    String ptoken = request.getParameter(PTOKEN), reqBody;
+    if (StringUtils.isBlank(ptoken) && StringUtils.isNotBlank(reqBody = IOUtils.toString(request.getReader())))
+      ptoken = getPtokenFromReqBody(reqBody);
     Map<String, Object> map;
     User user = null;
     if (StringUtils.isBlank(ptoken) || MapUtils.isEmpty(map = getPtokenDetail(ptoken))
-        || Math.abs(System.currentTimeMillis() - MapUtils.getLongValue(map, "ts")) > TIME_INTERVAL
-        || Objects.isNull(user = UserManager.getUserByUno(MapUtils.getInteger(map, "uno")))) {
+        || Math.abs(System.currentTimeMillis() - MapUtils.getLongValue(map, "ts")) > TIME_INTERVAL) {
       SignInterceptor.writeResponse(response, ApiResult.forbidden());
+      return false;
+    }
+    if (Objects.isNull(user = UserManager.getUserByUno(MapUtils.getInteger(map, "uno")))) {
+      SignInterceptor.writeResponse(response, ApiResult.unAuthorized());
       return false;
     }
     request.setAttribute("remituser", user);
     return true;
+  }
+
+  private String getPtokenFromReqBody(String reqBody) {
+    int idx = reqBody.indexOf(PTOKEN);
+    if (idx == -1) return null;
+    return reqBody.substring(idx + 7, (idx = reqBody.indexOf('&', idx)) == -1 ? reqBody.length() : idx);
   }
 
   public static Map<String, Object> getPtokenDetail(String ptoken) throws Exception {
