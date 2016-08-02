@@ -25,12 +25,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.ImmutableMap;
+import com.sogou.pay.remit.api.SignInterceptor;
 import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.Channel;
-import com.sogou.pay.remit.entity.TransferBatch.SignType;
 import com.sogou.pay.remit.entity.TransferBatch.Status;
 import com.sogou.pay.remit.entity.TransferDetail;
-import com.sogou.pay.remit.manager.AppManager;
 import com.sogou.pay.remit.manager.CmbManager;
 import com.sogou.pay.remit.manager.CmbManager.BusiResultState;
 import com.sogou.pay.remit.manager.TransferBatchManager;
@@ -94,7 +94,7 @@ public class TransferJob implements InitializingBean {
   }
 
   public void query() {
-    ApiResult<List<TransferBatch>> result = transferBatchManager.list(Status.PROCESSING);
+    ApiResult<List<TransferBatch>> result = transferBatchManager.list(null, Status.PROCESSING);
     if (ApiResult.isNotOK(result)) return;
     List<TransferBatch> list = result.getData(), direct = new ArrayList<>(), agency = new ArrayList<>();
     for (TransferBatch batch : list) {
@@ -189,11 +189,11 @@ public class TransferJob implements InitializingBean {
     LOGGER.info("callback end");
   }
 
-  private ApiResult<?> callback(TransferBatch batch) {
-    batch.setSignType(SignType.SHA);
-    Map<String, Object> map = JsonHelper.toMap(batch.toString());
-    map.put("sign", AppManager.sign(map));
-    ApiResult<String> response = Httpclient.post(callBackUrl, JsonHelper.toJson(map), null, true);
+  private ApiResult<?> callback(TransferBatch batch) throws Exception {
+    Map<String, Object> map = new HashMap<>();
+    String context = batch.toString();
+    ApiResult<String> response = Httpclient.post(callBackUrl, context, null, true,
+        ImmutableMap.of(SignInterceptor.PANDORA_SIGN, SignInterceptor.sign(context)));
     return (ApiResult.isOK(response) && MapUtils.isNotEmpty(map = JsonHelper.toMap(response.getData()))
         && Objects.equals(0, MapUtils.getInteger(map, "ret_code"))) ? ApiResult.ok()
             : ApiResult.notAcceptable(response.getData());
