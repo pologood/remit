@@ -24,7 +24,6 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.hibernate.validator.constraints.LuhnCheck;
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.jsondoc.core.annotation.ApiObject;
@@ -64,14 +63,6 @@ public class TransferBatch {
   @ApiObjectField(description = "渠道")
   @NotNull(message = "channel is required")
   private Channel channel;
-
-  @ApiObjectField(description = "签名")
-  @NotBlank(message = "sign is required")
-  @Pattern(regexp = "^[0-9a-f]{40}$")
-  private String sign;
-
-  @ApiObjectField(description = "签名方式")
-  private SignType signType;
 
   @ApiObjectField(description = "业务线Id")
   @NotNull(message = "appId is required")
@@ -114,7 +105,6 @@ public class TransferBatch {
   @ApiObjectField(description = "出款账号")
   @NotBlank(message = "outAccountId is required")
   @Pattern(regexp = "^[a-zA-Z0-9]+$")
-  //@LuhnCheck
   private String outAccountId;
 
   @ApiObjectField(description = "出款账户名")
@@ -193,22 +183,6 @@ public class TransferBatch {
 
   public void setChannel(Channel channel) {
     this.channel = channel;
-  }
-
-  public String getSign() {
-    return sign;
-  }
-
-  public void setSign(String sign) {
-    this.sign = sign;
-  }
-
-  public SignType getSignType() {
-    return signType;
-  }
-
-  public void setSignType(SignType signType) {
-    this.signType = signType;
   }
 
   public Integer getAppId() {

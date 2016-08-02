@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 
 import javax.validation.constraints.NotNull;
 
-import org.hibernate.validator.constraints.LuhnCheck;
 import org.jsondoc.core.annotation.ApiObject;
 import org.jsondoc.core.annotation.ApiObjectField;
 
@@ -41,7 +40,6 @@ public class TransferDetail {
 
   @ApiObjectField(description = "入款账号")
   @NotNull(message = "inAccountId is required")
-  @LuhnCheck
   private String inAccountId;
 
   @ApiObjectField(description = "入款账户名")
