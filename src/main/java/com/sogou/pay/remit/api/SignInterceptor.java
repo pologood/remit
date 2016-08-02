@@ -52,12 +52,14 @@ public class SignInterceptor extends HandlerInterceptorAdapter {
           .filter(e -> Objects.nonNull(e.getValue()) && e.getValue().length > 0)
           .forEach(e -> map.put(e.getKey(), e.getValue()[0]));
       sign = AppManager.sign(map);
-    } else if (RequestMethod.POST.name().equalsIgnoreCase(request.getMethod())) {
-      String context = IOUtils.toString(request.getReader());
-      sign = SignHelper.sign(context,
-          AppManager.getKey(MapUtils.getInteger(JsonHelper.toMap(context), AppManager.APP_ITEM)));
-    }
+    } else if (RequestMethod.POST.name().equalsIgnoreCase(request.getMethod()))
+      sign = sign(IOUtils.toString(request.getReader()));
     return sign;
+  }
+
+  public static String sign(String context) {
+    return SignHelper.sign(context,
+        AppManager.getKey(MapUtils.getInteger(JsonHelper.toMap(context), AppManager.APP_ITEM)));
   }
 
   public static void writeResponse(HttpServletResponse response, ApiResult<?> result) throws Exception {
@@ -70,7 +72,7 @@ public class SignInterceptor extends HandlerInterceptorAdapter {
     }
   }
 
-  private static final String PANDORA_SIGN = "pandorasign";
+  public static final String PANDORA_SIGN = "pandorasign";
 
   private static final Set<String> FILTERED_METHOD = Sets.newHashSet(RequestMethod.GET.name(),
       RequestMethod.POST.name());
