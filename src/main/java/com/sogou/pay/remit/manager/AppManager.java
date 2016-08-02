@@ -31,11 +31,9 @@ import commons.utils.SignHelper;
 @Component
 public class AppManager implements InitializingBean {
 
-  private static final boolean SIGN_SWITCH = true;
-
   private static final String SIGN_ITEM = "sign";
 
-  private static final String APP_ITEM = "appId";
+  public static final String APP_ITEM = "appId";
 
   public static final String SIGN_TYPE = "signType";
 
@@ -59,10 +57,6 @@ public class AppManager implements InitializingBean {
 
   public static String sign(Map<String, ?> map, int appId) {
     return SignHelper.sign(MapHelper.filter(map, EXCLUDES), getKey(appId));
-  }
-
-  public static boolean checkSign(Map<String, ?> map) {
-    return SIGN_SWITCH ? Objects.equals(map.get(SIGN_ITEM), sign(map)) : true;
   }
 
   @Override
