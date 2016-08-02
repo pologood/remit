@@ -13,11 +13,7 @@
 		<java.version>1.8</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-
-
-
 		<jetty.http.port>8888</jetty.http.port>
-
 
 		<servlet.version>3.1.0</servlet.version>
 		<!-- jsondoc start -->
@@ -41,6 +37,8 @@
 		<lang.version>3.4</lang.version>
 		<collection.version>4.1</collection.version>
 		<httpclient.version>4.5.2</httpclient.version>
+		<log4j2.version>2.6.2</log4j2.version>
+		<commons-io.version>2.5</commons-io.version>
 		<!-- apache end -->
 		<!-- google start -->
 		<guava.version>19.0</guava.version>
@@ -177,6 +175,7 @@
 			<version>${jsondoc.version}</version>
 		</dependency>
 		<!-- jsondoc end -->
+		
 		<dependency>
 			<groupId>com.qcloud</groupId>
 			<artifactId>qcloud-sdk</artifactId>
@@ -202,22 +201,22 @@
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-slf4j-impl</artifactId>
-			<version>2.6.2</version>
+			<version>${log4j2.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-			<version>2.6.2</version>
+			<version>${log4j2.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-			<version>2.6.2</version>
+			<version>${log4j2.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.5</version>
+			<version>${commons-io.version}</version>
 		</dependency>
 		<!-- apache end -->
 
@@ -246,17 +245,6 @@
 			<version>${jackson.version}</version>
 		</dependency>
 		<!-- jackson end -->
-		<dependency>
-			<groupId>cglib</groupId>
-			<artifactId>cglib</artifactId>
-			<version>3.2.4</version>
-		</dependency>
-
-		<dependency>
-    <groupId>org.bouncycastle</groupId>
-    <artifactId>bcprov-jdk16</artifactId>
-    <version>1.46</version>
-</dependency>
 	</dependencies>
 
 	<build>
