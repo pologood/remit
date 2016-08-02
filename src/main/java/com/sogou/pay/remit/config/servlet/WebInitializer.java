@@ -26,7 +26,8 @@ public class WebInitializer extends AbstractAnnotationConfigDispatcherServletIni
 
   @Override
   protected Filter[] getServletFilters() {
-    return new Filter[] { new DelegatingFilterProxy("loggerFilter"), new DelegatingFilterProxy("xssFilter"), };
+    return new Filter[] { new DelegatingFilterProxy("loggerFilter"), new DelegatingFilterProxy("xssFilter"),
+        new DelegatingFilterProxy("multiReadableFilter") };
   }
 
   @Override

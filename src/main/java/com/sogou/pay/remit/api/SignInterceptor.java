@@ -74,7 +74,7 @@ public class SignInterceptor extends HandlerInterceptorAdapter {
 
   public static final String PANDORA_SIGN = "pandorasign";
 
-  private static final Set<String> FILTERED_METHOD = Sets.newHashSet(RequestMethod.GET.name(),
+  public static final Set<String> FILTERED_METHOD = Sets.newHashSet(RequestMethod.GET.name(),
       RequestMethod.POST.name());
 
 }
