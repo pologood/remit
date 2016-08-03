@@ -8,12 +8,13 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 public class ObjectHelper {
+
   static String dumpImpl(Object obj) throws Exception {
     if (obj == null) return "NIL";
-                       
+
     Class<?> clazz = obj.getClass();
     String pkg = clazz.getPackage().getName();
-    
+
     StringBuilder builder = new StringBuilder();
 
     String separator = "";
@@ -28,18 +29,17 @@ public class ObjectHelper {
       return builder.toString();
     } else if (Map.class.isAssignableFrom(clazz)) {
       Map<?, ?> map = (Map<?, ?>) obj;
-  
+
       builder.append("{");
       for (Entry<?, ?> entry : map.entrySet()) {
-        builder.append(separator).append(dumpImpl(entry.getKey()))
-          .append("=").append(dumpImpl(entry.getValue()));
+        builder.append(separator).append(dumpImpl(entry.getKey())).append("=").append(dumpImpl(entry.getValue()));
         separator = ", ";
       }
       builder.append("}");
       return builder.toString();
     } else if (String.class.isAssignableFrom(clazz)) {
       return (String) obj;
-    } else if(pkg.startsWith("java.time") || clazz.isEnum()) {
+    } else if (pkg.startsWith("java.time") || clazz.isEnum()) {
       return obj.toString();
     } else {
       return dumpPojo(obj);
@@ -55,9 +55,8 @@ public class ObjectHelper {
     for (Field field : fields) {
       int modifier = field.getModifiers();
       if (Modifier.isFinal(modifier)) continue;
-      
-      builder.append(separator).append(field.getName()).append("=")
-        .append(dumpImpl(field.get(obj)));
+
+      builder.append(separator).append(field.getName()).append("=").append(dumpImpl(field.get(obj)));
       separator = "; ";
     }
 
@@ -66,7 +65,7 @@ public class ObjectHelper {
       String methodName = method.getName();
       if (methodName.equals("getClass")) continue;
       if (methodName.length() < 4) continue;
-      
+
       if (methodName.startsWith("get") && method.getParameterCount() == 0) {
         String name;
         if (methodName.length() == 4) {
@@ -75,8 +74,7 @@ public class ObjectHelper {
           name = methodName.substring(3, 4).toLowerCase() + methodName.substring(4);
         }
 
-        builder.append(separator).append(name).append("=")
-          .append(dumpImpl(method.invoke(obj)));
+        builder.append(separator).append(name).append("=").append(dumpImpl(method.invoke(obj)));
         separator = "; ";
       }
     }

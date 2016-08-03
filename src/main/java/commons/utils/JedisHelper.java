@@ -4,6 +4,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 public class JedisHelper {
+
   public static String get(JedisPool pool, String key) {
     try (Jedis c = pool.getResource()) {
       return c.get(key);
@@ -41,4 +42,3 @@ public class JedisHelper {
   }
 
 }
-

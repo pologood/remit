@@ -21,9 +21,16 @@ import commons.mybatis.EnumValueTypeHandler;
 //-------------------------------------------------------
 public class EnumJsonSerializer extends JsonSerializer<Enum<?>> {
 
+  private static final String METHOD_NAME = "getDescription";
+
   @Override
   public void serialize(Enum<?> value, JsonGenerator gen, SerializerProvider serializers)
       throws IOException, JsonProcessingException {
+    try {
+      Method method = value.getClass().getMethod(METHOD_NAME);
+      gen.writeString((String) method.invoke(value));
+      return;
+    } catch (Exception e) {}
     try {
       if (Channel.class.isAssignableFrom(value.getClass())) throw new Exception();
       Method method = value.getClass().getMethod(EnumValueTypeHandler.METHOD_NAME);
