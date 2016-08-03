@@ -25,6 +25,7 @@ import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.Channel;
 import com.sogou.pay.remit.entity.TransferBatch.NotifyFlag;
 import com.sogou.pay.remit.entity.TransferBatch.Status;
+import com.sogou.pay.remit.entity.User;
 
 import commons.utils.Tuple2;
 
@@ -50,6 +51,12 @@ public interface TransferBatchMapper {
     public static String list(Map<String, Object> map) {
       SQL sql = new SQL().SELECT("*").FROM(TABLE).WHERE("status = #{status}");
       if (Objects.nonNull(map.get("channel"))) sql.WHERE("channel = #{channel}");
+      if (Objects.nonNull(map.get("user"))) {
+        User user = (User) map.get("user");
+        int id, i;
+        for (i = user.getRole().getValue(), id = user.getId(); --i > 0; id *= 1000);
+        sql.WHERE(String.format("auditor & %d = %d", id, id));
+      }
       return sql.toString();
     }
 
@@ -61,6 +68,7 @@ public interface TransferBatchMapper {
       if (StringUtils.isNotBlank(batch.getOutTradeNo())) sql.SET("outTradeNo = #{outTradeNo}");
       if (Objects.nonNull(batch.getSuccessAmount())) sql.SET("successAmount = #{successAmount}");
       if (Objects.nonNull(batch.getSuccessCount())) sql.SET("successCount = #{successCount}");
+      if (Objects.nonNull(batch.getAuditor())) sql.SET("auditor = #{auditor}");
       return sql.SET("status = #{status}").WHERE("appId = #{appId}").WHERE("batchNo = #{batchNo}").toString();
     }
 
@@ -115,7 +123,7 @@ public interface TransferBatchMapper {
   TransferBatch selectByBatchNo(@Param("appId") Integer appId, @Param("batchNo") String batchNo);
 
   @SelectProvider(type = Sql.class, method = "list")
-  List<TransferBatch> list(@Param("channel") Channel channel, @Param("status") Status status);
+  List<TransferBatch> list(@Param("channel") Channel channel, @Param("status") Status status, @Param("user") User user);
 
   @UpdateProvider(type = Sql.class, method = "update")
   int update(TransferBatch batch);

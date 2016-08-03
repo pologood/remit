@@ -70,7 +70,13 @@ public class TransferBatchManager {
   }
 
   public ApiResult<List<TransferBatch>> list(Channel channel, Status status) {
-    List<TransferBatch> batchs = transferBatchMapper.list(channel, status);
+    return list(channel, status, null);
+  }
+
+  public ApiResult<List<TransferBatch>> list(Channel channel, Status status, User user) {
+    List<TransferBatch> batchs = transferBatchMapper.list(channel, status, user);
+    if (Objects.equals(channel, Channel.PAY)) batchs.forEach(
+        batch -> batch.setDetails(transferDetailManager.selectByBatchNo(batch.getAppId(), batch.getBatchNo())));
     return CollectionUtils.isEmpty(batchs) ? new ApiResult<>(ErrorCode.NOT_FOUND) : new ApiResult<>(batchs);
   }
 
@@ -188,9 +194,8 @@ public class TransferBatchManager {
   private void setAuditor(TransferBatch batch, User user) {
     if (Objects.isNull(user)) return;
     Integer id = user.getId();
-    for (int i = batch.getAuditTimes().size(); i-- > 0;)
-      id *= 1000;
-    batch.setAuditor(Objects.isNull(batch.getAuditor()) ? 0 : batch.getAuditor() + id);
+    for (int i = batch.getAuditTimes().size(); i-- > 0; id *= 1000);
+    batch.setAuditor(Objects.isNull(batch.getAuditor()) ? id : batch.getAuditor() + id);
   }
 
   private ApiResult<?> busiCheck(TransferBatch batch) {
