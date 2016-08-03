@@ -38,12 +38,12 @@ public class TransferDetailManager {
     if (Objects.isNull(detailInDB)) return ApiResult.notFound();
     if (!Objects.equals(detail.getAmount(), detailInDB.getAmount())
         || !Objects.equals(detail.getInAccountId(), detailInDB.getInAccountId())) {
-      LOGGER.error("{}:detail:{} detail in db:{}", Exceptions.DETAIL_INVALID.getErrMsg(), detail, detailInDB);
-      return ApiResult.notAcceptable(Exceptions.DETAIL_INVALID.getErrMsg());
+      LOGGER.error("{}:detail:{} detail in db:{}", Exceptions.DETAIL_INVALID, detail, detailInDB);
+      return ApiResult.notAcceptable(Exceptions.DETAIL_INVALID);
     }
     if (transferDetailMapper.update(detail) < 1) {
-      LOGGER.error("{} detail:{}", Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg(), detail);
-      return ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg());
+      LOGGER.error("{} detail:{}", Exceptions.DATA_PERSISTENCE_FAILED, detail);
+      return ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED);
     }
     return ApiResult.ok();
   }

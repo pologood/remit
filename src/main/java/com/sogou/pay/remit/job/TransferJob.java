@@ -72,7 +72,7 @@ public class TransferJob implements InitializingBean {
             (String) result.getData(), null, null, null);
         else LOGGER.error("[directPay]appId:{} batchNo:{}", batch.getAppId(), batch.getBatchNo());
       } catch (Exception e) {
-        LOGGER.error(String.format("[directPay]error:batch=%s", batch), e);
+        LOGGER.error("[directPay]error:batch={}", batch, e);
       }
 
     LOGGER.info("direct pay end");
@@ -87,7 +87,7 @@ public class TransferJob implements InitializingBean {
         if (ApiResult.isOK(cmbManager.agencyPay(batch))) transferBatchManager.callBack(batch.getAppId(),
             batch.getBatchNo(), Status.PROCESSING, null, null, null, null);
       } catch (Exception e) {
-        LOGGER.error(String.format("[agencyPay]error:batch=%s", batch), e);
+        LOGGER.error("[agencyPay]error:batch={}", batch, e);
       }
 
     LOGGER.info("agency pay end");
@@ -129,7 +129,7 @@ public class TransferJob implements InitializingBean {
         transferDetailManager.update(details.stream().map(o -> getDetailFromResult((AgencyDetailResultDto) o, batch))
             .collect(Collectors.toList()));
       } catch (Exception e) {
-        LOGGER.error(String.format("[agencyPay]error:batch=%s", batch), e);
+        LOGGER.error("[agencyPay]error:batch={}", batch, e);
       }
 
     LOGGER.info("agency query end");
@@ -163,7 +163,7 @@ public class TransferJob implements InitializingBean {
         transferBatchManager.callBack(batch.getAppId(), batch.getBatchNo(),
             Status.valueOf(((BusiResultState) tuple.f).name()), (String) tuple.s, null, null, null);
       } catch (Exception e) {
-        LOGGER.error(String.format("[directPay]error:batch=%s", batch), e);
+        LOGGER.error("[directPay]error:batch={}", batch, e);
       }
 
     LOGGER.info("direct query end");
@@ -182,7 +182,7 @@ public class TransferJob implements InitializingBean {
       try {
         if (ApiResult.isOK(result = callback(batch))) transferBatchManager.notify(batch);
       } catch (Exception e) {
-        LOGGER.error(String.format("callback error:batch=%s result=%s", batch, result), e);
+        LOGGER.error("callback error:batch=%s result={}", batch, result, e);
       }
     }
 

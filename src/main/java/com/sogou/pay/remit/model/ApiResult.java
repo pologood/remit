@@ -92,8 +92,16 @@ public class ApiResult<Data> {
     return new ApiResult<>(ErrorCode.NOT_ACCEPTABLE, msg);
   }
 
+  public static ApiResult<?> notAcceptable(Exceptions e) {
+    return notAcceptable(e.getErrMsg());
+  }
+
   public static ApiResult<?> internalError(String msg) {
     return new ApiResult<>(ErrorCode.INTERNAL_ERROR, msg);
+  }
+
+  public static ApiResult<?> internalError(Exceptions e) {
+    return internalError(e.getErrMsg());
   }
 
   public static ApiResult<?> notImplemented() {

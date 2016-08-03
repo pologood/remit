@@ -54,13 +54,11 @@ public class UserManager implements InitializingBean {
   }
 
   public ApiResult<?> add(User user) {
-    return userMapper.add(user) > 0 ? ApiResult.ok()
-        : ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg());
+    return userMapper.add(user) > 0 ? ApiResult.ok() : ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED);
   }
 
   public ApiResult<?> delete(Integer uno) {
-    return userMapper.delete(uno) > 0 ? ApiResult.ok()
-        : ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg());
+    return userMapper.delete(uno) > 0 ? ApiResult.ok() : ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED);
   }
 
   public ApiResult<?> list() {
@@ -70,7 +68,7 @@ public class UserManager implements InitializingBean {
 
   public ApiResult<?> update(Integer uno, String mobile, Role role) {
     return (Objects.isNull(mobile) && Objects.isNull(role)) || userMapper.update(uno, mobile, role) > 0 ? ApiResult.ok()
-        : ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg());
+        : ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED);
   }
 
 }

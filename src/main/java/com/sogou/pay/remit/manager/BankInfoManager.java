@@ -40,7 +40,7 @@ public class BankInfoManager implements InitializingBean {
   public BankInfo getBankInfo(String accountId, Channel channel) throws BadRequestException {
     if (Objects.equals(channel, Channel.PAY)) return PAY_MAP.get(accountId);
     if (Objects.equals(channel, Channel.AGENCY)) return AGENCY_MAP.get(accountId);
-    LOGGER.error("[getBankInfo]{}:{}", Exceptions.CHANNEL_INVALID.getErrMsg(), channel.name());
+    LOGGER.error("[getBankInfo]{}:{}", Exceptions.CHANNEL_INVALID, channel.name());
     throw new BadRequestException(Exceptions.CHANNEL_INVALID);
   }
 

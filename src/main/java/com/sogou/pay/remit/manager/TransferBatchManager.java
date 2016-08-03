@@ -62,7 +62,7 @@ public class TransferBatchManager {
   public ApiResult<?> get(int appId, String batchNo, boolean withDetails) {
     TransferBatch batch = transferBatchMapper.selectByBatchNo(appId, batchNo);
     if (Objects.isNull(batch)) {
-      LOGGER.error("[get]{}:appId={},batchNo={}", Exceptions.ENTITY_NOT_FOUND.getErrMsg(), appId, batchNo);
+      LOGGER.error("[get]{}:appId={},batchNo={}", Exceptions.ENTITY_NOT_FOUND, appId, batchNo);
       return ApiResult.notFound();
     }
     if (withDetails) batch.setDetails(transferDetailManager.selectByBatchNo(appId, batchNo));
@@ -106,9 +106,8 @@ public class TransferBatchManager {
       return busiCheckResult;
     }
     if (ApiResult.isOK(get(batch.getAppId(), batch.getBatchNo()))) {
-      LOGGER.error("[add]{}:appId={} batchNo={}", Exceptions.BATCHNO_INVALID.getErrMsg(), batch.getAppId(),
-          batch.getBatchNo());
-      return ApiResult.badRequest(Exceptions.BATCHNO_INVALID.getErrMsg());
+      LOGGER.error("[add]{}:appId={} batchNo={}", Exceptions.BATCHNO_INVALID, batch.getAppId(), batch.getBatchNo());
+      return ApiResult.badRequest(Exceptions.BATCHNO_INVALID);
     }
     if (isLackOfBankInfo(batch))
       setBankInfo(batch, bankInfoManager.getBankInfo(batch.getOutAccountId(), batch.getChannel()));
@@ -117,7 +116,7 @@ public class TransferBatchManager {
       transferDetailManager.add(batch.getDetails());
       return needReturn ? new ApiResult<>(batch) : ApiResult.ok();
     } catch (Exception e) {
-      LOGGER.error(String.format("[add]%s:%s", Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg(), batch), e);
+      LOGGER.error("[add]{}:{}", Exceptions.DATA_PERSISTENCE_FAILED, batch, e);
       throw new InternalErrorException(e);
     }
   }
@@ -130,7 +129,7 @@ public class TransferBatchManager {
   }
 
   private void setBankInfo(TransferBatch batch, BankInfo bankInfo) {
-    if (Objects.isNull(bankInfo)) throw new BadRequestException(Exceptions.BANKINFO_NOT_FOUND.getErrMsg());
+    if (Objects.isNull(bankInfo)) throw new BadRequestException(Exceptions.BANKINFO_NOT_FOUND);
     if (StringUtils.isBlank(batch.getLoginName())) batch.setLoginName(bankInfo.getLoginName());
     if (StringUtils.isBlank(batch.getOutAccountName())) batch.setOutAccountName(bankInfo.getAccountName());
     if (Objects.isNull(batch.getBusiMode())) batch.setBusiMode(bankInfo.getBusiMode());
@@ -161,14 +160,14 @@ public class TransferBatchManager {
     Status oldStatus = batch.getStatus();
     if (Objects.equals(oldStatus, status)) return ApiResult.ok();
     if (!TransferBatch.Status.isShiftValid(oldStatus, status)) {
-      LOGGER.error("[update]{}:from {} to {}", Exceptions.STATUS_INVALID.getErrMsg(), oldStatus, status);
+      LOGGER.error("[update]{}:from {} to {}", Exceptions.STATUS_INVALID, oldStatus, status);
       return ApiResult.badRequest(Exceptions.STATUS_INVALID);
     }
     if (transferBatchMapper
         .update(setUpdateItems(batch, errMsg, opinion, status, user, outTradeNo, successCount, successAmount)) < 1) {
       LOGGER.error("[update]{}:appId={},batchNo={},from {} to {},outErrMsg={},opinion={}",
-          Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg(), appId, batchNo, oldStatus, status, errMsg, opinion);
-      return ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg());
+          Exceptions.DATA_PERSISTENCE_FAILED, appId, batchNo, oldStatus, status, errMsg, opinion);
+      return ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED);
     }
     return new ApiResult<>(batchNo);
   }
@@ -208,7 +207,7 @@ public class TransferBatchManager {
       sum = sum.add(detail.getAmount());
     }
     return 0 == batch.getTransferAmount().compareTo(sum) ? ApiResult.ok()
-        : ApiResult.badRequest(Exceptions.AMOUNT_INVALID.getErrMsg());
+        : ApiResult.badRequest(Exceptions.AMOUNT_INVALID);
   }
 
   @Transactional
@@ -219,8 +218,8 @@ public class TransferBatchManager {
         result.add(ImmutableMap.of("batchNo", batchNo, "result",
             ApiResult.isOK(this.audit(appId, batchNo, user, status, null))));
       } catch (Exception e) {
-        LOGGER.error(String.format("%s appId=%s batchNo=%s status to %s",
-            Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg(), appId, batchNo, status), e);
+        LOGGER.error("{} appId={} batchNo={} status to {}", Exceptions.DATA_PERSISTENCE_FAILED, appId, batchNo, status,
+            e);
         result.add(ImmutableMap.of("batchNo", batchNo, "result", false));
       }
     }
