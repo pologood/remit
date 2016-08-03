@@ -22,31 +22,29 @@ import commons.utils.JsonHelper;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
 //-------------------------------------------------------
-@ApiObject(name = "TransferDetail", description = "明细单")
+@ApiObject(name = "TransferDetail", description = "明细单", group = "TransferDetail")
 public class TransferDetail {
 
   @JsonIgnore
   private Long id;
 
-  @JsonIgnore
   private Integer appId;
 
-  @JsonIgnore
   private String batchNo;
 
-  @ApiObjectField(description = "转账流水号")
+  @ApiObjectField(description = "转账流水号", required = true)
   @NotNull(message = "transferId is required")
   private String transferId;
 
-  @ApiObjectField(description = "入款账号")
+  @ApiObjectField(description = "入款账号", required = true)
   @NotNull(message = "inAccountId is required")
   private String inAccountId;
 
-  @ApiObjectField(description = "入款账户名")
+  @ApiObjectField(description = "入款账户名", required = true)
   @NotNull(message = "inAccountName is required")
   private String inAccountName;
 
-  @ApiObjectField(description = "金额")
+  @ApiObjectField(description = "金额", required = true)
   @NotNull(message = "amount is required")
   private BigDecimal amount;
 
@@ -62,16 +60,17 @@ public class TransferDetail {
   @JsonProperty(access = Access.WRITE_ONLY)
   private String memo;
 
-  //
+  @JsonProperty(access = Access.READ_ONLY)
   private Status status;
 
+  @JsonProperty(access = Access.READ_ONLY)
   private String outErrMsg;
 
   //time stamp
   @JsonIgnore
   private LocalDateTime updateTime;
 
-  @ApiObject(name = "TransferDetail.Status", description = "明细状态")
+  @ApiObject(name = "Detail.Status", description = "明细状态", group = "TransferDetail")
   public enum Status {
 
     INIT(0), OUT_INIT(1), SUCCESS(2), FAILED(3), CANCELED(4);

@@ -15,29 +15,29 @@ import org.jsondoc.core.annotation.ApiObjectField;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月20日;
 //-------------------------------------------------------
-@ApiObject(name = "user", description = "用户")
+@ApiObject(name = "User", description = "用户", group = "User")
 public class User {
 
   private Integer id;
 
-  @ApiObjectField(description = "工号")
+  @ApiObjectField(description = "工号", required = true)
   @NotNull(message = "uno is required")
   private Integer uno;
 
-  @ApiObjectField(description = "姓名")
+  @ApiObjectField(description = "姓名", required = true)
   @NotBlank(message = "name is required")
   private String name;
 
-  @ApiObjectField(description = "邮箱")
+  @ApiObjectField(description = "邮箱", required = true)
   @NotBlank(message = "email is required")
   private String email;
 
-  @ApiObjectField(description = "手机")
+  @ApiObjectField(description = "手机", required = true)
   @NotBlank(message = "mobile is required")
   @Pattern(regexp = "^[0-9]{11}$")
   private String mobile;
 
-  @ApiObjectField(description = "角色")
+  @ApiObjectField(description = "角色", required = true)
   @NotNull(message = "role is required")
   private Role role;
 
@@ -89,7 +89,7 @@ public class User {
     this.role = role;
   }
 
-  @ApiObject(name = "role", description = "角色")
+  @ApiObject(name = "Role", description = "角色", group = "User")
   public enum Role {
     ADMIN(0), JUNIOR(1), SENIOR(2), FINAL(3);
 

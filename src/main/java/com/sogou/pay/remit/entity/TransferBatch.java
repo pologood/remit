@@ -43,7 +43,7 @@ import commons.utils.XssHelper;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
 //-------------------------------------------------------
-@ApiObject(name = "TransferBatch", description = "批次单")
+@ApiObject(name = "TransferBatch", description = "批次单", group = "TransferBatch")
 public class TransferBatch {
 
   public TransferBatch makeXssSafe() {
@@ -55,36 +55,39 @@ public class TransferBatch {
   @JsonIgnore
   private Long id;
 
-  @ApiObjectField(description = "版本号")
+  @ApiObjectField(description = "版本号", required = true)
   @NotBlank(message = "version is required")
   @Pattern(regexp = "^[a-zA-Z0-9\\.]+$")
   private String version;
 
-  @ApiObjectField(description = "渠道")
+  @ApiObjectField(description = "渠道", required = true)
   @NotNull(message = "channel is required")
   private Channel channel;
 
-  @ApiObjectField(description = "业务线Id")
+  @ApiObjectField(description = "业务线Id", required = true)
   @NotNull(message = "appId is required")
   @Min(value = 1, message = "appId at least be 1")
   @Max(value = 9999, message = "appId at most be 9999")
   private Integer appId;
 
-  @ApiObjectField(description = "批次号")
+  @ApiObjectField(description = "批次号", required = true)
   @NotBlank(message = "batchNo is required")
   @Size(max = 26, message = "limit of size of batchNo is 26")
   @Pattern(regexp = "^[a-zA-Z0-9]+$")
   private String batchNo;
 
-  @ApiObjectField(description = "付款笔数")
+  @ApiObjectField(description = "付款笔数", required = true)
+  @NotNull
+  @Min(value = 1, message = "transferCount at least be 1")
   private Integer transferCount;
 
-  @ApiObjectField(description = "金额")
+  @ApiObjectField(description = "金额", required = true)
   @DecimalMin(value = "0.01", message = "amount at least be 0.01")
   @NumberFormat(pattern = "0.00")
+  @NotNull
   private BigDecimal transferAmount;
 
-  @ApiObjectField(description = "备注")
+  @ApiObjectField(description = "备注", required = true)
   @NotBlank(message = "memo is required")
   private String memo;
 
@@ -95,19 +98,22 @@ public class TransferBatch {
   //audit
   private Long auditor;
 
+  @JsonProperty(access = Access.READ_ONLY)
   private List<String> auditTimes = new ArrayList<>();
 
+  @JsonProperty(access = Access.READ_ONLY)
   private List<String> auditOpinions = new ArrayList<>();
 
+  @JsonProperty(access = Access.READ_ONLY)
   private Status status;
 
   //bank
-  @ApiObjectField(description = "出款账号")
+  @ApiObjectField(description = "出款账号", required = true)
   @NotBlank(message = "outAccountId is required")
   @Pattern(regexp = "^[a-zA-Z0-9]+$")
   private String outAccountId;
 
-  @ApiObjectField(description = "出款账户名")
+  @ApiObjectField(description = "出款账户名", required = true)
   private String outAccountName;
 
   @ApiObjectField(description = "登录用户名")
@@ -138,8 +144,10 @@ public class TransferBatch {
   @JsonIgnore
   private String outTradeNo;
 
+  @JsonProperty(access = Access.READ_ONLY)
   private Integer successCount;
 
+  @JsonProperty(access = Access.READ_ONLY)
   private BigDecimal successAmount;
 
   @JsonProperty(access = Access.READ_ONLY)
@@ -154,7 +162,7 @@ public class TransferBatch {
 
   //details
   @Valid
-  @ApiObjectField(description = "转账明细")
+  @ApiObjectField(description = "转账明细", required = true)
   @NotEmpty
   private List<TransferDetail> details;
 
@@ -445,7 +453,7 @@ public class TransferBatch {
     }
   }
 
-  @ApiObject(name = "TransferBatch.Status", description = "批次状态")
+  @ApiObject(name = "Batch.Status", description = "批次状态", group = "TransferBatch")
   public enum Status {
 
     INIT(0), //
@@ -507,7 +515,7 @@ public class TransferBatch {
     }
   }
 
-  @ApiObject(name = "BusiMode", description = "业务模式")
+  @ApiObject(name = "BusiMode", description = "业务模式", group = "TransferBatch")
   public enum BusiMode {
     DIRECT_PAYROLL("00001"), //直接代发工资
     CLIENT_PAYROLL("00002"); //客户端代发工资
@@ -523,7 +531,7 @@ public class TransferBatch {
     }
   }
 
-  @ApiObject(name = "BusiCode", description = "业务类型")
+  @ApiObject(name = "BusiCode", description = "业务类型", group = "TransferBatch")
   public enum BusiCode {
     /*支付*/
     PAY("N02030"), //支付
@@ -547,7 +555,7 @@ public class TransferBatch {
     }
   }
 
-  @ApiObject(name = "Channel", description = "渠道")
+  @ApiObject(name = "Channel", description = "渠道", group = "TransferBatch")
   public enum Channel {
     PAY(0), //支付
     AGENCY(1); //代发代扣
@@ -563,7 +571,7 @@ public class TransferBatch {
     }
   }
 
-  @ApiObject(name = "SettleChannel", description = "结算方式")
+  @ApiObject(name = "SettleChannel", description = "结算方式", group = "TransferBatch")
   public enum SettleChannel {
     ORDINARY("N"), FAST("F");
 
@@ -578,7 +586,7 @@ public class TransferBatch {
     }
   }
 
-  @ApiObject(name = "BranchCode", description = "分行号")
+  @ApiObject(name = "BranchCode", description = "分行号", group = "TransferBatch")
   public enum BranchCode {
     Root("01"), //
     RootAccounting("03"), //
@@ -640,7 +648,7 @@ public class TransferBatch {
 
   }
 
-  @ApiObject(name = "TransType", description = "交易类型")
+  @ApiObject(name = "TransType", description = "交易类型", group = "TransferBatch")
   public enum TransType {
     //pay
     ORDINARY("100001", "普通汇兑"),
@@ -770,7 +778,7 @@ public class TransferBatch {
     }
   }
 
-  @ApiObject(name = "Currency", description = "币种")
+  @ApiObject(name = "Currency", description = "币种", group = "TransferBatch")
   public enum Currency {
     RMB("10");
 
