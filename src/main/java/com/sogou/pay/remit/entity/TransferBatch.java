@@ -132,8 +132,6 @@ public class TransferBatch {
   @ApiObjectField(description = "交易类型")
   private TransType transType;
 
-  //since version 1 only supports ￥ so ignore it
-  @JsonIgnore
   @ApiObjectField(description = "币种")
   private Currency currency;
 
@@ -534,24 +532,34 @@ public class TransferBatch {
   @ApiObject(name = "BusiCode", description = "业务类型", group = "TransferBatch")
   public enum BusiCode {
     /*支付*/
-    PAY("N02030"), //支付
-    DIRECT_PAY("N02031"), //直接支付
-    GROUP_PAY("N02040"), //集团支付
-    DIRECT_GROUP_PAY("N02041"), //直接集团支付
+    PAY("N02030", "支付"),
+
+    DIRECT_PAY("N02031", "直接支付"),
+
+    GROUP_PAY("N02040", "集团支付"),
+
+    DIRECT_GROUP_PAY("N02041", "直接集团支付"),
 
     /*代发代扣 */
-    PAYROLL("N03010"), //代发工资
-    AGENT_PAY("N03020"), //代发
-    WITHHOLD("N03030");//代扣
+    PAYROLL("N03010", "代发工资"),
 
-    private String value;
+    AGENT_PAY("N03020", "代发"),
 
-    private BusiCode(String value) {
+    WITHHOLD("N03030", "代扣");
+
+    private String value, description;
+
+    private BusiCode(String value, String description) {
       this.value = value;
+      this.description = description;
     }
 
     public String getValue() {
       return value;
+    }
+
+    public String getDescription() {
+      return description;
     }
   }
 
@@ -573,79 +581,134 @@ public class TransferBatch {
 
   @ApiObject(name = "SettleChannel", description = "结算方式", group = "TransferBatch")
   public enum SettleChannel {
-    ORDINARY("N"), FAST("F");
+    ORDINARY("N", "普通"), FAST("F", "快速");
 
-    private String value;
+    private String value, description;
 
-    private SettleChannel(String value) {
+    private SettleChannel(String value, String description) {
       this.value = value;
+      this.description = description;
     }
 
     public String getValue() {
       return this.value;
+    }
+
+    public String getDescription() {
+      return description;
     }
   }
 
   @ApiObject(name = "BranchCode", description = "分行号", group = "TransferBatch")
   public enum BranchCode {
-    Root("01"), //
-    RootAccounting("03"), //
-    Beijing("10"), //
-    OffshoreBranch("12"), //
-    RootOffshoreCenter("13"), //
-    Guangzhou("20"), //
-    Shanghai("21"), //
-    Tianjin("22"), //
-    Chongqing("23"), //
-    Shenyang("24"), //
-    Nanjing("25"), //
-    Wuhan("27"), //
-    Chengdu("28"), //
-    Xian("29"), //
-    Taiyuan("35"), //
-    Zhengzhou("37"), //
-    Shijiazhuang("38"), //
-    Tangshan("39"), //
-    Dalian("41"), //
-    Changchun("43"), //
-    Harbin("45"), //
-    Huhehaote("47"), //
-    Yinchuan("51"), //
-    Suzhou("52"), //
-    Qingdao("53"), //
-    Ningbo("54"), //
-    Hefei("55"), //
-    Jinan("56"), //
-    Hangzhou("57"), //
-    Wenzhou("58"), //
-    Fuzhou("59"), //
-    Quanzhou("60"), //
-    Wuxi("62"), //
-    Dongguan("69"), //
-    Nanning("71"), //
-    Xining("72"), //
-    Changsha("73"), //
-    Shenzhen("75"), //
-    Foshan("77"), //
-    Nanchang("79"), //
-    Guiyang("85"), //
-    Kunming("87"), //
-    Haikou("89"), //
-    Urumqi("91"), //
-    Xiamen("92"), //
-    Lanzhou("93"), //
-    Hongkong("97");
+    Root("01", "总行"),
 
-    private String value;
+    RootAccounting("03", "总行会计部"),
 
-    private BranchCode(String value) {
+    Beijing("10", "北京"),
+
+    OffshoreBranch("12", "离岸分行"),
+
+    RootOffshoreCenter("13", "总行离岸中心"),
+
+    Guangzhou("20", "广州"),
+
+    Shanghai("21", "上海"),
+
+    Tianjin("22", "天津"),
+
+    Chongqing("23", "重庆"),
+
+    Shenyang("24", "沈阳"),
+
+    Nanjing("25", "南京"),
+
+    Wuhan("27", "武汉"),
+
+    Chengdu("28", "成都"),
+
+    Xian("29", "西安"),
+
+    Taiyuan("35", "太原"),
+
+    Zhengzhou("37", "郑州"),
+
+    Shijiazhuang("38", "石家庄"),
+
+    Tangshan("39", "唐山"),
+
+    Dalian("41", "大连"),
+
+    Changchun("43", "长春"),
+
+    Harbin("45", "哈尔滨"),
+
+    Huhehaote("47", "呼和浩特"),
+
+    Yinchuan("51", "银川"),
+
+    Suzhou("52", "苏州"),
+
+    Qingdao("53", "青岛"),
+
+    Ningbo("54", "宁波"),
+
+    Hefei("55", "合肥"),
+
+    Jinan("56", "济南"),
+
+    Hangzhou("57", "杭州"),
+
+    Wenzhou("58", "温州"),
+
+    Fuzhou("59", "福州"),
+
+    Quanzhou("60", "泉州"),
+
+    Wuxi("62", "无锡"),
+
+    Dongguan("69", "东莞"),
+
+    Nanning("71", "南宁"),
+
+    Xining("72", "西宁"),
+
+    Changsha("73", "长沙"),
+
+    Shenzhen("75", "深圳"),
+
+    Foshan("77", "佛山"),
+
+    Nanchang("79", "南昌"),
+
+    Guiyang("85", "贵阳"),
+
+    Kunming("87", "昆明"),
+
+    Haikou("89", "海口"),
+
+    Urumqi("91", "乌鲁木齐"),
+
+    Xiamen("92", "厦门"),
+
+    Lanzhou("93", "兰州"),
+
+    Hongkong("97", "香港");
+
+    private String value, description;
+
+    private BranchCode(String value, String description) {
       this.value = value;
+      this.description = description;
     }
 
     public String getValue() {
       return this.value;
     }
 
+    public String getDescription() {
+      return description;
+    }
   }
 
   @ApiObject(name = "TransType", description = "交易类型", group = "TransferBatch")
@@ -762,34 +825,39 @@ public class TransferBatch {
 
     WITHHOLD_BATCH_DEDUCTIONS("AYBT", "代扣批量扣费");
 
-    private String value, message;
+    private String value, description;
 
-    private TransType(String value, String message) {
+    private TransType(String value, String description) {
       this.value = value;
-      this.message = message;
+      this.description = description;
     }
 
     public String getValue() {
       return value;
     }
 
-    public String getMessage() {
-      return message;
+    public String getDescription() {
+      return description;
     }
   }
 
   @ApiObject(name = "Currency", description = "币种", group = "TransferBatch")
   public enum Currency {
-    RMB("10");
+    RMB("10", "人民币");
 
-    private String value;
+    private String value, description;
 
-    private Currency(String value) {
+    private Currency(String value, String description) {
       this.value = value;
+      this.description = description;
     }
 
     public String getValue() {
       return value;
+    }
+
+    public String getDescription() {
+      return description;
     }
   }
 
