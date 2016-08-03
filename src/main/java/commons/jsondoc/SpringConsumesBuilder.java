@@ -13,8 +13,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public class SpringConsumesBuilder {
 
   /**
-   * From Spring's documentation: [consumes is] supported at the type level as well as at the method level! 
-   * When used at the type level, all method-level mappings override this consumes restriction.
+   * From Spring's documentation: [consumes is] supported at the type level as well as at the method level! When used at
+   * the type level, all method-level mappings override this consumes restriction.
+   * 
    * @param method
    * @param controller
    * @return
@@ -37,16 +38,15 @@ public class SpringConsumesBuilder {
         consumes.addAll(Arrays.asList(requestMapping.consumes()));
       } else {
         List<RequestMethod> methods = Arrays.asList(requestMapping.method());
-        if (methods.contains(RequestMethod.POST) ||
-            methods.contains(RequestMethod.PUT)) {
+        if (methods.contains(RequestMethod.POST) || methods.contains(RequestMethod.PUT)) {
           consumes.clear();
           consumes.add(MediaType.APPLICATION_FORM_URLENCODED_VALUE);
         }
       }
     }
-    
+
     if (consumes.isEmpty()) {
-        consumes.add("*");
+      consumes.add("*");
     }
 
     return consumes;

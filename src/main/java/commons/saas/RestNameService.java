@@ -5,11 +5,12 @@ import java.util.HashMap;
 import org.springframework.core.env.Environment;
 
 public class RestNameService {
+
   Map<String, String> map = new HashMap<>();
-  
+
   public RestNameService(Environment env) {
     String token = null;
-    
+
     for (int i = 1; i < 101; ++i) {
       String value = env.getProperty("rest.nameservice." + String.valueOf(i));
       if (value == null) continue;

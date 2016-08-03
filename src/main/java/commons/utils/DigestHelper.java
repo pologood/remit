@@ -7,8 +7,9 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Hex;
 
 public class DigestHelper {
+
   private static final Charset charset = Charset.forName("UTF-8");
-  
+
   public static String sha1(byte[] input) {
     try {
       MessageDigest crypt = MessageDigest.getInstance("SHA-1");

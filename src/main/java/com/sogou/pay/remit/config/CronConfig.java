@@ -80,7 +80,7 @@ public class CronConfig {
   public SchedulerFactoryBean schedulerFactoryBean() {
     SchedulerFactoryBean bean = new SchedulerFactoryBean();
     bean.setTriggers(payTrigger().getObject(), queryTrigger().getObject(), callbackTrigger().getObject());
-    bean.setAutoStartup(true);
+    bean.setAutoStartup(false);
     return bean;
   }
 }

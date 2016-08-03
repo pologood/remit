@@ -17,10 +17,14 @@ import commons.utils.DigestHelper;
 import commons.spring.LooseGsonHttpMessageConverter;
 
 class Phone {
+
   public String nationcode;
+
   public String phone;
-  
-  public Phone() {}
+
+  public Phone() {
+  }
+
   public Phone(String phone) {
     this.phone = phone;
     this.nationcode = "86";
@@ -28,20 +32,28 @@ class Phone {
 }
 
 class SendSmsReqBody {
-  public Phone   tel;
-  public String  msg;
-  public String  sig;
+
+  public Phone tel;
+
+  public String msg;
+
+  public String sig;
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class SendSmsRespBody {
-  public int    result;
+
+  public int result;
+
   public String errmsg;
 }
 
 public class QCloudSmsService extends SmsService {
+
   private static final Charset charset = Charset.forName("UTF-8");
+
   private String appkey;
+
   private String uri;
 
   public QCloudSmsService(String appid, String appkey, JedisPool jedisPool) {
@@ -65,8 +77,8 @@ public class QCloudSmsService extends SmsService {
     headers.setContentType(MediaType.APPLICATION_JSON);
     HttpEntity<SendSmsReqBody> reqEntity = new HttpEntity<>(reqBody, headers);
 
-    ResponseEntity<SendSmsRespBody> respEntity = restTemplate.exchange(
-      uri, HttpMethod.POST, reqEntity, SendSmsRespBody.class);
+    ResponseEntity<SendSmsRespBody> respEntity = restTemplate.exchange(uri, HttpMethod.POST, reqEntity,
+        SendSmsRespBody.class);
 
     if (respEntity.getStatusCode() != HttpStatus.OK) {
       throw new SmsException("couldn't connect sms server");
