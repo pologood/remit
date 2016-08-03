@@ -38,7 +38,7 @@ public class JobController {
   @RequestMapping(value = "/job/{jobName}", method = RequestMethod.GET)
   public ApiResult<?> run(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
       @ApiPathParam(name = "jobName", clazz = JobName.class, description = "定时任务名") @PathVariable JobName jobName) {
-    if (!Objects.equals(Role.ADMIN, user.getRole())) return ApiResult.unAuthorized();
+    if (!Objects.equals(Role.ADMIN, user.getRole())) return ApiResult.forbidden();
     if (Objects.equals(JobName.pay, jobName)) transferJob.pay();
     else if (Objects.equals(JobName.query, jobName)) transferJob.query();
     else if (Objects.equals(JobName.callback, jobName)) transferJob.callback();

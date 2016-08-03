@@ -43,11 +43,11 @@ public class LogInterceptor extends HandlerInterceptorAdapter {
     Map<String, Object> map;
     User user = null;
     if (StringUtils.isBlank(ptoken) || MapUtils.isEmpty(map = getPtokenDetail(ptoken))
-        || Math.abs(System.currentTimeMillis() - MapUtils.getLongValue(map, "ts")) > TIME_INTERVAL) {
+        || Objects.isNull(user = UserManager.getUserByUno(MapUtils.getInteger(map, "uno")))) {
       SignInterceptor.writeResponse(response, ApiResult.forbidden());
       return false;
     }
-    if (Objects.isNull(user = UserManager.getUserByUno(MapUtils.getInteger(map, "uno")))) {
+    if (Math.abs(System.currentTimeMillis() - MapUtils.getLongValue(map, "ts")) > TIME_INTERVAL) {
       SignInterceptor.writeResponse(response, ApiResult.unAuthorized());
       return false;
     }

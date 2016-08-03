@@ -68,7 +68,7 @@ public class CronController implements InitializingBean {
   public ApiResult<?> pay(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
       @ApiPathParam(clazz = JobName.class, name = "jobName", description = "定时任务名") @PathVariable("jobName") JobName jobName,
       @ApiQueryParam(name = "cron", description = "cron expression") @RequestParam(name = "cron") String cron) {
-    if (!Objects.equals(Role.ADMIN, user.getRole())) return ApiResult.unAuthorized();
+    if (!Objects.equals(Role.ADMIN, user.getRole())) return ApiResult.forbidden();
     Tuple2<CronTriggerFactoryBean, TriggerKey> tuple = JOB_MAP.get(jobName);
     if (Objects.isNull(tuple)) return ApiResult.badRequest("invalid job");
     return reschedule(tuple.f, tuple.s, cron);
