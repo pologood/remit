@@ -6,6 +6,7 @@
 package com.sogou.pay.remit.api;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -14,6 +15,7 @@ import javax.validation.Valid;
 import org.jsondoc.core.annotation.Api;
 import org.jsondoc.core.annotation.ApiBodyObject;
 import org.jsondoc.core.annotation.ApiMethod;
+import org.jsondoc.core.annotation.ApiObject;
 import org.jsondoc.core.annotation.ApiPathParam;
 import org.jsondoc.core.annotation.ApiQueryParam;
 import org.slf4j.Logger;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.common.collect.ImmutableMap;
 import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.Channel;
 import com.sogou.pay.remit.entity.TransferBatch.Status;
@@ -70,11 +73,13 @@ public class TransferBatchController {
   }
 
   @ApiMethod(description = "get transfer batch with status")
-  @RequestMapping(value = "/transferBatch/{channel}", method = RequestMethod.GET)
+  @RequestMapping(value = "/transferBatch/{channel}/{status}", method = RequestMethod.GET)
   public ApiResult<?> get(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
-      @ApiPathParam(clazz = Channel.class, name = "channel", description = "渠道") @PathVariable("channel") Channel channel) {
-    ApiResult<?> result = transferBatchManager.list(channel, Status.getToDoStatus(user.getRole()));
-    return Objects.equals(ErrorCode.NOT_FOUND, result.getCode()) ? ApiResult.ok() : result;
+      @ApiPathParam(clazz = Channel.class, name = "channel", description = "渠道") @PathVariable("channel") Channel channel,
+      @ApiPathParam(clazz = AuditStatus.class, name = "status", description = "审批状态") @PathVariable("status") AuditStatus status) {
+    ApiResult<?> result = transferBatchManager.list(channel, STATUS_MAP.get(status).getStatus(user, status),
+        Objects.equals(AuditStatus.INIT, status) ? null : user);
+    return Objects.equals(ErrorCode.NOT_FOUND.getCode(), result.getCode()) ? ApiResult.ok() : result;
   }
 
   @ApiMethod(description = "reject transfer batch")
@@ -96,6 +101,22 @@ public class TransferBatchController {
     Status status = Status.getApprovedStatus(user.getRole());
     if (Objects.isNull(status)) return ApiResult.unAuthorized();
     return transferBatchManager.batchUpdateTransferBatchStatus(user, appId, batchNos, status);
+  }
+
+  @ApiObject(name = "AuditStatus", description = "审批状态")
+  public enum AuditStatus {
+    INIT, REJECTED, APPROVED;
+  }
+
+  private static final Map<AuditStatus, StatusGetter> STATUS_MAP = ImmutableMap.of(AuditStatus.INIT,
+      (user, auditStatus) -> Status.getToDoStatus(user.getRole()), AuditStatus.REJECTED,
+      (user, auditStatus) -> Status.getRejectedStatus(user.getRole()), AuditStatus.APPROVED,
+      (user, auditStatus) -> Status.getApprovedStatus(user.getRole()));
+
+  @FunctionalInterface
+  public interface StatusGetter {
+
+    public Status getStatus(User user, AuditStatus auditStatus);
   }
 
 }
