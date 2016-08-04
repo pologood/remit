@@ -6,6 +6,7 @@
 package com.sogou.pay.remit.mapper;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -49,6 +50,7 @@ public interface TransferBatchMapper {
     }
 
     public static String list(Map<String, Object> map) {
+      LocalDateTime beginTime, endTime;
       SQL sql = new SQL().SELECT("*").FROM(TABLE).WHERE("status = #{status}");
       if (Objects.nonNull(map.get("channel"))) sql.WHERE("channel = #{channel}");
       if (Objects.nonNull(map.get("user"))) {
@@ -57,6 +59,9 @@ public interface TransferBatchMapper {
         for (i = user.getRole().getValue(), id = user.getId(); --i > 0; id *= 1000);
         sql.WHERE(String.format("auditor & %d = %d", id, id));
       }
+      if (Objects.nonNull(beginTime = (LocalDateTime) map.get("beginTime"))
+          && Objects.nonNull(endTime = (LocalDateTime) map.get("endTime")) && beginTime.isBefore(endTime))
+        sql.WHERE("createTime >= #{beginTime}").WHERE("createTime <= #{endTime}");
       return sql.toString();
     }
 
@@ -123,7 +128,8 @@ public interface TransferBatchMapper {
   TransferBatch selectByBatchNo(@Param("appId") Integer appId, @Param("batchNo") String batchNo);
 
   @SelectProvider(type = Sql.class, method = "list")
-  List<TransferBatch> list(@Param("channel") Channel channel, @Param("status") Status status, @Param("user") User user);
+  List<TransferBatch> list(@Param("channel") Channel channel, @Param("status") Status status, @Param("user") User user,
+      @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime);
 
   @UpdateProvider(type = Sql.class, method = "update")
   int update(TransferBatch batch);

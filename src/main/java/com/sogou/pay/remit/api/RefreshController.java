@@ -39,7 +39,7 @@ public class RefreshController {
   @RequestMapping(value = "/refresh", method = RequestMethod.GET)
   public ApiResult<?> refresh() {
     try {
-      userManager.afterPropertiesSet();
+      userManager.init();
       appManager.init();
       return ApiResult.ok();
     } catch (Exception e) {
