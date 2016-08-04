@@ -44,7 +44,7 @@ public class RefreshController {
       return ApiResult.ok();
     } catch (Exception e) {
       LOGGER.error("refresh error", e);
-      return ApiResult.internalError(e.getMessage());
+      return ApiResult.internalError(e);
     }
   }
 }
