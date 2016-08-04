@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sogou.pay.remit.entity.User;
-import com.sogou.pay.remit.entity.User.Role;
 import com.sogou.pay.remit.job.TransferJob;
 import com.sogou.pay.remit.model.ApiResult;
 
@@ -72,7 +71,6 @@ public class JobController implements InitializingBean {
   @RequestMapping(value = "/job/{jobName}", method = RequestMethod.GET)
   public ApiResult<?> run(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
       @ApiPathParam(name = "jobName", clazz = JobName.class, description = "定时任务名") @PathVariable JobName jobName) {
-    if (!Objects.equals(Role.ADMIN, user.getRole())) return ApiResult.forbidden();
     try {
       if (Objects.equals(JobName.pay, jobName)) transferJob.pay();
       else if (Objects.equals(JobName.query, jobName)) transferJob.query();
@@ -89,7 +87,6 @@ public class JobController implements InitializingBean {
   @RequestMapping(value = "/job/{jobName}", method = RequestMethod.DELETE)
   public ApiResult<?> stop(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
       @ApiPathParam(clazz = JobName.class, name = "jobName", description = "定时任务名") @PathVariable("jobName") JobName jobName) {
-    if (!Objects.equals(Role.ADMIN, user.getRole())) return ApiResult.forbidden();
     Tuple2<CronTriggerFactoryBean, TriggerKey> tuple = JOB_MAP.get(jobName);
     if (Objects.isNull(tuple)) return ApiResult.badRequest("invalid job");
     try {
@@ -107,7 +104,6 @@ public class JobController implements InitializingBean {
   @RequestMapping(value = "/job/{jobName}", method = RequestMethod.POST)
   public ApiResult<?> start(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
       @ApiPathParam(clazz = JobName.class, name = "jobName", description = "定时任务名") @PathVariable("jobName") JobName jobName) {
-    if (!Objects.equals(Role.ADMIN, user.getRole())) return ApiResult.forbidden();
     Tuple2<CronTriggerFactoryBean, TriggerKey> tuple = JOB_MAP.get(jobName);
     if (Objects.isNull(tuple)) return ApiResult.badRequest("invalid job");
     try {
@@ -127,7 +123,6 @@ public class JobController implements InitializingBean {
   public ApiResult<?> update(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
       @ApiPathParam(clazz = JobName.class, name = "jobName", description = "定时任务名") @PathVariable("jobName") JobName jobName,
       @ApiQueryParam(name = "cron", description = "cron expression") @RequestParam(name = "cron") String cron) {
-    if (!Objects.equals(Role.ADMIN, user.getRole())) return ApiResult.forbidden();
     Tuple2<CronTriggerFactoryBean, TriggerKey> tuple = JOB_MAP.get(jobName);
     if (Objects.isNull(tuple)) return ApiResult.badRequest("invalid job");
     return reschedule(tuple.f, tuple.s, cron);
@@ -149,7 +144,6 @@ public class JobController implements InitializingBean {
   @ApiMethod(description = "stop all job")
   @RequestMapping(value = "/job", method = RequestMethod.DELETE)
   public ApiResult<?> delete(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user) {
-    if (!Objects.equals(Role.ADMIN, user.getRole())) return ApiResult.forbidden();
     try {
       if (factory.isRunning()) factory.stop();
       return ApiResult.ok();
@@ -163,7 +157,6 @@ public class JobController implements InitializingBean {
   @ApiMethod(description = "start all job")
   @RequestMapping(value = "/job", method = RequestMethod.GET)
   public ApiResult<?> init(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user) {
-    if (!Objects.equals(Role.ADMIN, user.getRole())) return ApiResult.forbidden();
     try {
       if (!factory.isRunning()) factory.start();
       Scheduler scheduler = factory.getScheduler();

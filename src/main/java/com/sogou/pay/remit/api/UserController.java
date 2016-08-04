@@ -49,22 +49,21 @@ public class UserController {
   public ApiResult<?> add(@RequestAttribute(name = USER_ATTRIBUTE) User admin,
       @ApiBodyObject(clazz = User.class) @RequestBody @Valid User rookie, BindingResult bindingResult)
           throws Exception {
-    if (!Objects.equals(admin.getRole(), Role.FINAL)) return ApiResult.forbidden();
     if (bindingResult.hasErrors()) {
       LOGGER.error("[add]bad request:rookie={}", rookie);
       return ApiResult.bindingResult(bindingResult);
     }
-    return userManager.add(rookie);
+    ApiResult<?> result = userManager.add(rookie);
+    return result;
   }
 
   @ApiMethod(description = "update user")
   @RequestMapping(value = "/user", method = RequestMethod.PUT)
   public ApiResult<?> update(@RequestAttribute(name = USER_ATTRIBUTE) User admin,
-      @ApiQueryParam(name = "uno", description = "工号", format = "\\d+") @RequestParam(name = "uno") @NotNull Integer uno,
+      @ApiQueryParam(name = "uno", description = "工号", format = "\\d+") @RequestParam(name = "uno") Integer uno,
       @ApiQueryParam(name = "mobile", description = "手机号", required = false) @RequestParam(name = "mobile", required = false) Optional<String> mobile,
       @ApiQueryParam(name = "role", description = "角色", required = false) @RequestParam(name = "role", required = false) Role role)
           throws Exception {
-    if (!Objects.equals(admin.getRole(), Role.FINAL)) return ApiResult.forbidden();
     return userManager.update(uno, mobile.orElse(null), role);
   }
 
@@ -74,8 +73,8 @@ public class UserController {
     return userManager.list();
   }
 
-  @ApiMethod(description = "get user")
-  @RequestMapping(value = "/user/token", method = RequestMethod.GET)
+  @ApiMethod(description = "get user info")
+  @RequestMapping(value = "/user/info", method = RequestMethod.GET)
   public ApiResult<?> getInfo(
       @ApiQueryParam(name = "token", description = "令牌") @RequestParam(name = "token") String token) throws Exception {
     Map<String, Object> map = LogInterceptor.getPtokenDetail(token);
@@ -90,7 +89,6 @@ public class UserController {
   public ApiResult<?> delete(@RequestAttribute(name = USER_ATTRIBUTE) User admin,
       @ApiQueryParam(name = "uno", description = "工号") @RequestParam(name = "uno") @NotNull Integer uno)
           throws Exception {
-    if (!Objects.equals(admin.getRole(), Role.FINAL)) return ApiResult.forbidden();
     return userManager.delete(uno);
   }
 

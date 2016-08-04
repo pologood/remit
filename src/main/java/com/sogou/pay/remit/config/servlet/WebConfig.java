@@ -1,5 +1,7 @@
 package com.sogou.pay.remit.config.servlet;
 
+import com.sogou.pay.remit.api.AdminInterceptor;
+import com.sogou.pay.remit.api.FinalInterceptor;
 import com.sogou.pay.remit.api.LogInterceptor;
 import com.sogou.pay.remit.api.SignInterceptor;
 import com.sogou.pay.remit.config.ProjectInfo;
@@ -10,6 +12,7 @@ import java.io.IOException;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +30,9 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 @EnableWebMvc
 @ComponentScan({ ProjectInfo.API_PKG })
 public class WebConfig extends WebMvcConfigurerAdapter {
+
+  @Autowired
+  private FinalInterceptor finalInterceptor;
 
   @Override
   public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
@@ -51,7 +57,9 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         new Object[] { new MappedInterceptor(new String[] { "/api/transferBatch" }, new SignInterceptor()),
             new MappedInterceptor(
                 new String[] { "/api/transferDetail", "/api/transferBatch/**", "/api/job", "/api/job/**", "/api/user" },
-                new LogInterceptor()) });
+                new LogInterceptor()),
+        new MappedInterceptor(new String[] { "/api/job", "/api/job/**", "/api/refresh" }, new AdminInterceptor()),
+        new MappedInterceptor(new String[] { "/api/user" }, finalInterceptor) });
     return r;
   }
 }
