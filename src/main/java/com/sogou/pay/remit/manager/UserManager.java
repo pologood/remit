@@ -13,7 +13,7 @@ import java.util.Objects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.sogou.pay.remit.entity.User;
 import com.sogou.pay.remit.entity.User.Role;
@@ -24,7 +24,7 @@ import com.sogou.pay.remit.model.ApiResult;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月25日;
 //-------------------------------------------------------
-@Component
+@Service
 public class UserManager implements InitializingBean {
 
   @Autowired
@@ -42,8 +42,7 @@ public class UserManager implements InitializingBean {
     return Objects.isNull(id) ? null : ID_MAP.get(id);
   }
 
-  @Override
-  public void afterPropertiesSet() throws Exception {
+  public void init() {
     ApiResult<?> result = list();
     if (ApiResult.isNotOK(result)) return;
     for (Object o : (List<?>) result.getData()) {
@@ -51,6 +50,11 @@ public class UserManager implements InitializingBean {
       UNO_MAP.put(user.getUno(), user);
       ID_MAP.put(user.getId(), user);
     }
+  }
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    init();
   }
 
   public ApiResult<?> add(User user) {

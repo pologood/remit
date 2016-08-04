@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableMap;
 import com.sogou.pay.remit.api.SignInterceptor;
@@ -44,7 +44,7 @@ import commons.utils.Tuple2;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月19日;
 //-------------------------------------------------------
-@Component
+@Service
 public class TransferJob implements InitializingBean {
 
   public void pay() {

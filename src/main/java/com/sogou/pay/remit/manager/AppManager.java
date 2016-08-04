@@ -16,7 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableSet;
 import com.sogou.pay.remit.entity.App;
@@ -28,7 +28,7 @@ import commons.utils.SignHelper;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月12日;
 //-------------------------------------------------------
-@Component
+@Service
 public class AppManager implements InitializingBean {
 
   private static final String SIGN_ITEM = "sign";

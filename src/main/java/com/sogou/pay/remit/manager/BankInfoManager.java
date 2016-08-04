@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.sogou.pay.remit.entity.BankInfo;
 import com.sogou.pay.remit.entity.TransferBatch.Channel;
@@ -25,7 +25,7 @@ import com.sogou.pay.remit.model.BadRequestException;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月8日;
 //-------------------------------------------------------
-@Component
+@Service
 public class BankInfoManager implements InitializingBean {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BankInfoManager.class);

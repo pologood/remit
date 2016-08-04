@@ -18,7 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.Currency;
@@ -35,7 +35,7 @@ import commons.utils.cmb.XmlPacket;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月20日;
 //-------------------------------------------------------
-@Component
+@Service
 public class CmbManager implements InitializingBean {
 
   @Autowired

@@ -9,12 +9,14 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.jdbc.SQL;
+import org.springframework.stereotype.Repository;
 
 import com.sogou.pay.remit.entity.App;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月12日;
 //-------------------------------------------------------
+@Repository
 public interface AppMapper {
 
   class Sql {

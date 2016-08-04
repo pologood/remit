@@ -18,7 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableMap;
@@ -41,7 +41,7 @@ import commons.utils.Tuple2;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
 //-------------------------------------------------------
-@Component
+@Service
 public class TransferBatchManager {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TransferBatchManager.class);
@@ -74,7 +74,12 @@ public class TransferBatchManager {
   }
 
   public ApiResult<List<TransferBatch>> list(Channel channel, Status status, User user) {
-    List<TransferBatch> batchs = transferBatchMapper.list(channel, status, user);
+    return list(channel, status, user, null, null);
+  }
+
+  public ApiResult<List<TransferBatch>> list(Channel channel, Status status, User user, LocalDateTime beginTime,
+      LocalDateTime endTime) {
+    List<TransferBatch> batchs = transferBatchMapper.list(channel, status, user, beginTime, endTime);
     if (Objects.equals(channel, Channel.PAY)) batchs.forEach(
         batch -> batch.setDetails(transferDetailManager.selectByBatchNo(batch.getAppId(), batch.getBatchNo())));
     return CollectionUtils.isEmpty(batchs) ? new ApiResult<>(ErrorCode.NOT_FOUND) : new ApiResult<>(batchs);

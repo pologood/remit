@@ -18,12 +18,12 @@ import javax.crypto.Cipher;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月26日;
 //-------------------------------------------------------
-@Component
+@Service
 public class PandoraManager implements InitializingBean {
 
   private static final String BEGIN = "BEGIN", END = "END", RSA = "RSA";
