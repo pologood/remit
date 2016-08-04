@@ -104,6 +104,10 @@ public class ApiResult<Data> {
     return internalError(e.getErrMsg());
   }
 
+  public static ApiResult<?> internalError(Exception e) {
+    return internalError(e.getMessage());
+  }
+
   public static ApiResult<?> notImplemented() {
     return new ApiResult<>(ErrorCode.NOT_IMPLEMENTED);
   }
