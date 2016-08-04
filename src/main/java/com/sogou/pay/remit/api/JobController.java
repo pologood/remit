@@ -80,8 +80,8 @@ public class JobController implements InitializingBean {
       else return ApiResult.notImplemented();
       return ApiResult.ok();
     } catch (Exception e) {
-      LOGGER.error("run {} job error", jobName.name(), e);
-      return ApiResult.internalError(e.getMessage());
+      LOGGER.error("run {} job error", jobName, e);
+      return ApiResult.internalError(e);
     }
   }
 
@@ -98,8 +98,8 @@ public class JobController implements InitializingBean {
       if (scheduler.checkExists(tuple.s)) scheduler.unscheduleJob(tuple.s);
       return ApiResult.ok();
     } catch (Exception e) {
-      LOGGER.error("stop {} job error", jobName.name(), e);
-      return ApiResult.internalError(e.getMessage());
+      LOGGER.error("stop {} job error", jobName, e);
+      return ApiResult.internalError(e);
     }
   }
 
@@ -113,17 +113,18 @@ public class JobController implements InitializingBean {
     try {
       if (!factory.isRunning()) factory.start();
       Scheduler scheduler = factory.getScheduler();
+      tuple.f.afterPropertiesSet();
       if (!scheduler.checkExists(tuple.s)) scheduler.scheduleJob(tuple.f.getObject());
       return ApiResult.ok();
     } catch (Exception e) {
       LOGGER.error("start {} job error", jobName.name(), e);
-      return ApiResult.internalError(e.getMessage());
+      return ApiResult.internalError(e);
     }
   }
 
   @ApiMethod(description = "update cron")
   @RequestMapping(value = "/job/{jobName}", method = RequestMethod.PUT)
-  public ApiResult<?> pay(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
+  public ApiResult<?> update(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
       @ApiPathParam(clazz = JobName.class, name = "jobName", description = "定时任务名") @PathVariable("jobName") JobName jobName,
       @ApiQueryParam(name = "cron", description = "cron expression") @RequestParam(name = "cron") String cron) {
     if (!Objects.equals(Role.ADMIN, user.getRole())) return ApiResult.forbidden();
@@ -140,9 +141,42 @@ public class JobController implements InitializingBean {
       factory.getScheduler().rescheduleJob(key, trigger.getObject());
     } catch (Exception e) {
       LOGGER.error("reschedule %s error", key.getName(), e);
-      return ApiResult.internalError(e.getMessage());
+      return ApiResult.internalError(e);
     }
     return ApiResult.ok();
+  }
+
+  @ApiMethod(description = "stop all job")
+  @RequestMapping(value = "/job", method = RequestMethod.DELETE)
+  public ApiResult<?> delete(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user) {
+    if (!Objects.equals(Role.ADMIN, user.getRole())) return ApiResult.forbidden();
+    try {
+      if (factory.isRunning()) factory.stop();
+      return ApiResult.ok();
+    } catch (Exception e) {
+      LOGGER.error("stop all job error", e);
+      return ApiResult.internalError(e);
+    }
+
+  }
+
+  @ApiMethod(description = "start all job")
+  @RequestMapping(value = "/job", method = RequestMethod.GET)
+  public ApiResult<?> init(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user) {
+    if (!Objects.equals(Role.ADMIN, user.getRole())) return ApiResult.forbidden();
+    try {
+      if (!factory.isRunning()) factory.start();
+      Scheduler scheduler = factory.getScheduler();
+      for (Tuple2<CronTriggerFactoryBean, TriggerKey> tuple : JOB_MAP.values())
+        if (!scheduler.checkExists(tuple.s)) {
+          tuple.f.afterPropertiesSet();
+          scheduler.scheduleJob(tuple.f.getObject());
+        }
+      return ApiResult.ok();
+    } catch (Exception e) {
+      LOGGER.error("start all job error", e);
+      return ApiResult.internalError(e);
+    }
   }
 
   @Override
