@@ -40,7 +40,7 @@ public interface UserMapper {
     public static String update(Map<String, Object> map) {
       SQL sql = new SQL().UPDATE(TABLE);
       if (Objects.nonNull(map.get("mobile"))) sql.SET("mobile = #{mobile}");
-      if (Objects.nonNull(map.get("role"))) sql.SET("mobile = #{role}");
+      if (Objects.nonNull(map.get("role"))) sql.SET("role = #{role}");
       return sql.WHERE("uno = #{uno}").toString();
     }
 

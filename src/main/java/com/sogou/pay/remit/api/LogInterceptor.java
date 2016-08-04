@@ -35,7 +35,7 @@ public class LogInterceptor extends HandlerInterceptorAdapter {
 
   private static final String DEFAULT_CHARSET = StandardCharsets.UTF_8.name(), PTOKEN = "ptoken";
 
-  private static final long TIME_INTERVAL = TimeUnit.MINUTES.toMillis(30);
+  public static final long TIME_INTERVAL = TimeUnit.MINUTES.toMillis(30);
 
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {

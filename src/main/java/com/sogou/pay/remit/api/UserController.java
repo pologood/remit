@@ -5,6 +5,7 @@
  */
 package com.sogou.pay.remit.api;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -48,7 +49,7 @@ public class UserController {
   public ApiResult<?> add(@RequestAttribute(name = USER_ATTRIBUTE) User admin,
       @ApiBodyObject(clazz = User.class) @RequestBody @Valid User rookie, BindingResult bindingResult)
           throws Exception {
-    if (Objects.equals(admin.getRole(), Role.FINAL)) return ApiResult.unAuthorized();
+    if (!Objects.equals(admin.getRole(), Role.FINAL)) return ApiResult.forbidden();
     if (bindingResult.hasErrors()) {
       LOGGER.error("[add]bad request:rookie={}", rookie);
       return ApiResult.bindingResult(bindingResult);
@@ -61,10 +62,10 @@ public class UserController {
   public ApiResult<?> update(@RequestAttribute(name = USER_ATTRIBUTE) User admin,
       @ApiQueryParam(name = "uno", description = "工号", format = "\\d+") @RequestParam(name = "uno") @NotNull Integer uno,
       @ApiQueryParam(name = "mobile", description = "手机号", required = false) @RequestParam(name = "mobile", required = false) Optional<String> mobile,
-      @ApiQueryParam(name = "role", description = "角色", required = false) @RequestParam(name = "role", required = false) Optional<Role> role)
+      @ApiQueryParam(name = "role", description = "角色", required = false) @RequestParam(name = "role", required = false) Role role)
           throws Exception {
-    if (Objects.equals(admin.getRole(), Role.FINAL)) return ApiResult.unAuthorized();
-    return userManager.update(uno, mobile.orElse(null), role.orElse(null));
+    if (!Objects.equals(admin.getRole(), Role.FINAL)) return ApiResult.forbidden();
+    return userManager.update(uno, mobile.orElse(null), role);
   }
 
   @ApiMethod(description = "get users")
@@ -73,12 +74,14 @@ public class UserController {
     return userManager.list();
   }
 
-  @ApiMethod(description = "get users")
+  @ApiMethod(description = "get user")
   @RequestMapping(value = "/user/token", method = RequestMethod.GET)
   public ApiResult<?> getInfo(
-      @ApiQueryParam(name = "ptoken", description = "令牌") @RequestParam(name = "ptoken") String token)
-          throws Exception {
-    User user = UserManager.getUserByUno(MapUtils.getInteger(LogInterceptor.getPtokenDetail(token), "uno"));
+      @ApiQueryParam(name = "token", description = "令牌") @RequestParam(name = "token") String token) throws Exception {
+    Map<String, Object> map = LogInterceptor.getPtokenDetail(token);
+    if (Math.abs(System.currentTimeMillis() - MapUtils.getLongValue(map, "ts")) > LogInterceptor.TIME_INTERVAL)
+      return ApiResult.unAuthorized();
+    User user = UserManager.getUserByUno(MapUtils.getInteger(map, "uno"));
     return Objects.isNull(user) ? ApiResult.forbidden() : new ApiResult<>(user);
   }
 
@@ -87,7 +90,7 @@ public class UserController {
   public ApiResult<?> delete(@RequestAttribute(name = USER_ATTRIBUTE) User admin,
       @ApiQueryParam(name = "uno", description = "工号") @RequestParam(name = "uno") @NotNull Integer uno)
           throws Exception {
-    if (Objects.equals(admin.getRole(), Role.FINAL)) return ApiResult.unAuthorized();
+    if (!Objects.equals(admin.getRole(), Role.FINAL)) return ApiResult.forbidden();
     return userManager.delete(uno);
   }
 

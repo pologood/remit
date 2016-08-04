@@ -5,6 +5,7 @@
  */
 package com.sogou.pay.remit.api;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -64,6 +65,7 @@ public class TransferBatchController {
     return transferBatchManager.add(batch.makeXssSafe());
   }
 
+  //for pandora
   @ApiMethod(description = "get transfer batch")
   @RequestMapping(value = "/transferBatch", method = RequestMethod.GET)
   public ApiResult<?> get(
@@ -72,11 +74,14 @@ public class TransferBatchController {
     return transferBatchManager.get(appId, batchNo, true);
   }
 
+  //for pandora
   @ApiMethod(description = "get transfer batch with status")
   @RequestMapping(value = "/transferBatch/{channel}/{status}", method = RequestMethod.GET)
   public ApiResult<?> get(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
       @ApiPathParam(clazz = Channel.class, name = "channel", description = "渠道") @PathVariable("channel") Channel channel,
-      @ApiPathParam(clazz = AuditStatus.class, name = "status", description = "审批状态") @PathVariable("status") AuditStatus status) {
+      @ApiPathParam(clazz = AuditStatus.class, name = "status", description = "审批状态") @PathVariable("status") AuditStatus status,
+      @ApiQueryParam(name = "beginTime", description = "起始时间", required = false, format = "yyyy-MM-dd HH:mm:ss") @RequestParam(name = "beginTime", required = false) LocalDateTime beginTime,
+      @ApiQueryParam(name = "endTime", description = "结束时间", required = false, format = "yyyy-MM-dd HH:mm:ss") @RequestParam(name = "endTime", required = false) LocalDateTime endTime) {
     ApiResult<?> result = transferBatchManager.list(channel, STATUS_MAP.get(status).getStatus(user, status),
         Objects.equals(AuditStatus.INIT, status) ? null : user);
     return Objects.equals(ErrorCode.NOT_FOUND.getCode(), result.getCode()) ? ApiResult.ok() : result;

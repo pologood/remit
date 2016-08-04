@@ -28,18 +28,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 @ComponentScan({ ProjectInfo.API_PKG })
 public class WebConfig extends WebMvcConfigurerAdapter {
 
-  @Bean
-  public MappedInterceptor signInterceptor() {
-    return new MappedInterceptor(new String[] { "/api/transferBatch" }, new SignInterceptor());
-  }
-
-  @Bean
-  public MappedInterceptor logInterceptor() {
-    return new MappedInterceptor(
-        new String[] { "/api/transferDetail", "/api/transferBatch/?**", "/api/job/**", "/api/user" },
-        new LogInterceptor());
-  }
-
   @Override
   public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
     StringHttpMessageConverter stringConverter = new StringHttpMessageConverter();
@@ -56,7 +44,14 @@ public class WebConfig extends WebMvcConfigurerAdapter {
   @Bean
   public RequestMappingHandlerMapping requestMappingHandlerMapping() {
     RequestMappingHandlerMapping r = new RequestMappingHandlerMapping();
+    r.setUseTrailingSlashMatch(false);
+    r.setUseSuffixPatternMatch(false);
     r.setRemoveSemicolonContent(false);
+    r.setInterceptors(
+        new Object[] { new MappedInterceptor(new String[] { "/api/transferBatch" }, new SignInterceptor()),
+            new MappedInterceptor(
+                new String[] { "/api/transferDetail", "/api/transferBatch/**", "/api/job", "/api/job/**", "/api/user" },
+                new LogInterceptor()) });
     return r;
   }
 }
