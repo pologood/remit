@@ -22,6 +22,7 @@ import org.jsondoc.core.annotation.ApiQueryParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestAttribute;
@@ -65,7 +66,6 @@ public class TransferBatchController {
     return transferBatchManager.add(batch.makeXssSafe());
   }
 
-  //for pandora
   @ApiMethod(description = "get transfer batch")
   @RequestMapping(value = "/transferBatch", method = RequestMethod.GET)
   public ApiResult<?> get(
@@ -74,16 +74,15 @@ public class TransferBatchController {
     return transferBatchManager.get(appId, batchNo, true);
   }
 
-  //for pandora
   @ApiMethod(description = "get transfer batch with status")
   @RequestMapping(value = "/transferBatch/{channel}/{status}", method = RequestMethod.GET)
   public ApiResult<?> get(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
       @ApiPathParam(clazz = Channel.class, name = "channel", description = "渠道") @PathVariable("channel") Channel channel,
       @ApiPathParam(clazz = AuditStatus.class, name = "status", description = "审批状态") @PathVariable("status") AuditStatus status,
-      @ApiQueryParam(name = "beginTime", description = "起始时间", required = false, format = "yyyy-MM-dd HH:mm:ss") @RequestParam(name = "beginTime", required = false) LocalDateTime beginTime,
-      @ApiQueryParam(name = "endTime", description = "结束时间", required = false, format = "yyyy-MM-dd HH:mm:ss") @RequestParam(name = "endTime", required = false) LocalDateTime endTime) {
+      @ApiQueryParam(name = "beginTime", description = "起始时间", required = false, format = "yyyy-MM-dd HH:mm:ss") @RequestParam(name = "beginTime", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime beginTime,
+      @ApiQueryParam(name = "endTime", description = "结束时间", required = false, format = "yyyy-MM-dd HH:mm:ss") @RequestParam(name = "endTime", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
     ApiResult<?> result = transferBatchManager.list(channel, STATUS_MAP.get(status).getStatus(user, status),
-        Objects.equals(AuditStatus.INIT, status) ? null : user);
+        Objects.equals(AuditStatus.INIT, status) ? null : user, beginTime, endTime);
     return Objects.equals(ErrorCode.NOT_FOUND.getCode(), result.getCode()) ? ApiResult.ok() : result;
   }
 
