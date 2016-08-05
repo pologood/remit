@@ -5,8 +5,8 @@
  */
 package com.sogou.pay.remit.manager;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.spec.X509EncodedKeySpec;
@@ -15,6 +15,7 @@ import java.util.List;
 
 import javax.crypto.Cipher;
 
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -35,8 +36,8 @@ public class PandoraManager implements InitializingBean {
   @Autowired
   private Environment env;
 
-  public static Key loadPublicKey(String path) throws Exception {
-    String pem = getStringFromPem(Files.readAllLines(Paths.get(path)));
+  public static Key loadPublicKey(InputStream inputStream) throws Exception {
+    String pem = getStringFromPem(IOUtils.readLines(inputStream, StandardCharsets.UTF_8));
     return KeyFactory.getInstance(RSA).generatePublic(new X509EncodedKeySpec(Base64.getDecoder().decode(pem)));
   }
 
@@ -58,7 +59,7 @@ public class PandoraManager implements InitializingBean {
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    PUBLIC_KEY = loadPublicKey(env.getRequiredProperty("pem.path"));
+    PUBLIC_KEY = loadPublicKey(getClass().getClassLoader().getResourceAsStream(env.getRequiredProperty("pem.path")));
     PANDORA_URL = env.getRequiredProperty("pandora.url");
   }
 
