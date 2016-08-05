@@ -1,1 +1,7 @@
+com.sogou.pay.axis-1.0.jar
+com.sogou.pay.cmbc-fbsdk-1.0.jar
+com.sogou.pay.jaxrpc-1.0.jar
+com.sogou.pay.commons-0.0.1.jar
+org.quartz-scheduler.quartz-2.2.2.jar
+com.sogou.pay.sogou-pay-0.0.1.pom
 org.patchca.patchca-0.6.0.jar
