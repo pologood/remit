@@ -296,8 +296,19 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>2.9</version>
+				<configuration>
+					<dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
 				<version>3.6</version>
+				<configuration>
+					<linkXRef>false</linkXRef>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -306,7 +317,7 @@
 				<configuration>
 					<excludeFilterFile>findbugs-exclude.xml</excludeFilterFile>
 				</configuration>
-			</plugin>			
+			</plugin>
 		</plugins>
 	</reporting>
 </project>
