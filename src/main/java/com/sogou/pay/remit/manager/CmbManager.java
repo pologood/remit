@@ -41,7 +41,7 @@ public class CmbManager implements InitializingBean {
   @Autowired
   private Environment env;
 
-  private static String URL;
+  private String URL;
 
   /**
    * @return Tuple2 BusiResultState, String first for result, second for message

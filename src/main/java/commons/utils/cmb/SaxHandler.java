@@ -72,7 +72,7 @@ public class SaxHandler extends DefaultHandler {
   public void characters(char[] ch, int start, int length) throws SAXException {
     if (layer == 3) {
       String value = new String(ch, start, length);
-      if (ch.equals("\n")) {
+      if (value.equals("\n")) {
         curValue += "\r\n";
       } else {
         curValue += value;

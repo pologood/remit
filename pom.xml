@@ -300,22 +300,13 @@
 				<version>3.6</version>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-site-plugin</artifactId>
-				<version>3.0</version>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>3.0.4</version>
 				<configuration>
-					<reportPlugins>
-						<plugin>
-							<groupId>org.codehaus.mojo</groupId>
-							<artifactId>findbugs-maven-plugin</artifactId>
-							<version>3.0.3</version>
-							<configuration>
-								<excludeFilterFile>findbugs-exclude.xml</excludeFilterFile>
-							</configuration>
-						</plugin>
-					</reportPlugins>
+					<excludeFilterFile>findbugs-exclude.xml</excludeFilterFile>
 				</configuration>
-			</plugin>
+			</plugin>			
 		</plugins>
 	</reporting>
 </project>
