@@ -66,7 +66,7 @@ public class SignInterceptor extends HandlerInterceptorAdapter {
       (writer = response.getWriter()).print(JsonHelper.toJson(result));
       writer.flush();
     } finally {
-      writer.close();
+      if (Objects.nonNull(writer)) writer.close();
     }
   }
 
