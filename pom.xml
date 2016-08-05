@@ -175,7 +175,7 @@
 			<version>${jsondoc.version}</version>
 		</dependency>
 		<!-- jsondoc end -->
-		
+
 		<dependency>
 			<groupId>com.qcloud</groupId>
 			<artifactId>qcloud-sdk</artifactId>
@@ -300,11 +300,20 @@
 				<version>3.6</version>
 			</plugin>
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>3.0.3</version>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>3.0</version>
 				<configuration>
-					<excludeFilterFile>findbugs-exclude.xml</excludeFilterFile>
+					<reportPlugins>
+						<plugin>
+							<groupId>org.codehaus.mojo</groupId>
+							<artifactId>findbugs-maven-plugin</artifactId>
+							<version>3.0.3</version>
+							<configuration>
+								<excludeFilterFile>findbugs-exclude.xml</excludeFilterFile>
+							</configuration>
+						</plugin>
+					</reportPlugins>
 				</configuration>
 			</plugin>
 		</plugins>
