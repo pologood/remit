@@ -9,7 +9,6 @@ import com.sogou.pay.remit.config.ProjectInfo;
 import commons.utils.JsonHelper;
 
 import java.io.IOException;
-
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +18,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.PathMatcher;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -32,7 +33,16 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 public class WebConfig extends WebMvcConfigurerAdapter {
 
   @Autowired
-  private FinalInterceptor finalInterceptor;
+  SignInterceptor signInterceptor;
+
+  @Autowired
+  LogInterceptor logInterceptor;
+
+  @Autowired
+  FinalInterceptor finalInterceptor;
+
+  @Autowired
+  AdminInterceptor adminInterceptor;
 
   @Override
   public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
@@ -47,19 +57,25 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     return new StandardServletMultipartResolver();
   }
 
+  public static void main(String[] args) {
+    PathMatcher matcher = new AntPathMatcher();
+    System.out.println(matcher.match("/api/transferBatch/*", "/api/transferBatch"));
+  }
+
   @Bean
   public RequestMappingHandlerMapping requestMappingHandlerMapping() {
     RequestMappingHandlerMapping r = new RequestMappingHandlerMapping();
     r.setUseTrailingSlashMatch(false);
     r.setUseSuffixPatternMatch(false);
     r.setRemoveSemicolonContent(false);
-    r.setInterceptors(
-        new Object[] { new MappedInterceptor(new String[] { "/api/transferBatch" }, new SignInterceptor()),
-            new MappedInterceptor(
-                new String[] { "/api/transferDetail", "/api/transferBatch/?**", "/api/job/**", "/api/user" },
-                new LogInterceptor()),
-        new MappedInterceptor(new String[] { "/api/job/**", "/api/refresh" }, new AdminInterceptor()),
-        new MappedInterceptor(new String[] { "/api/user" }, finalInterceptor) });
+    r.setInterceptors(new Object[] { new MappedInterceptor(new String[] { "/api/transferBatch" }, signInterceptor),
+        new MappedInterceptor(
+            new String[] { "/api/transferDetail", "/api/transferBatch/**", "/api/job/**", "/api/user" },
+            new String[] { "/api/transferBatch" }, logInterceptor),
+        new MappedInterceptor(new String[] { "/api/user" }, finalInterceptor),
+        new MappedInterceptor(new String[] { "/api/job/**", "/api/refresh" }, adminInterceptor) });
+    r.setOrder(0);
     return r;
   }
+
 }
