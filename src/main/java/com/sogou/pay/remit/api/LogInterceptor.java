@@ -6,10 +6,8 @@
 package com.sogou.pay.remit.api;
 
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Enumeration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -67,15 +65,6 @@ public class LogInterceptor extends HandlerInterceptorAdapter {
     ptoken = URLDecoder.decode(ptoken, DEFAULT_CHARSET);
     ptoken = PandoraManager.decryptPandora(Base64.getDecoder().decode(ptoken.replace(' ', '+')));
     return JsonHelper.toMap(ptoken);
-  }
-
-  public static String getUrl(HttpServletRequest request) throws Exception {
-    StringBuffer sb = request.getRequestURL().append('?');
-    Enumeration<String> names = request.getParameterNames();
-    for (String s; names.hasMoreElements();)
-      sb.append(s = names.nextElement()).append('=').append(request.getParameter(s)).append('&');
-    return StringUtils.join(PandoraManager.PANDORA_URL,
-        URLEncoder.encode(sb.substring(0, sb.length() - 1), DEFAULT_CHARSET));
   }
 
 }

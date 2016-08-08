@@ -29,8 +29,6 @@ public class PandoraManager implements InitializingBean {
 
   private static final String BEGIN = "BEGIN", END = "END", RSA = "RSA";
 
-  public static String PANDORA_URL;
-
   public static Key PUBLIC_KEY;
 
   @Autowired
@@ -60,7 +58,6 @@ public class PandoraManager implements InitializingBean {
   @Override
   public void afterPropertiesSet() throws Exception {
     PUBLIC_KEY = loadPublicKey(getClass().getClassLoader().getResourceAsStream(env.getRequiredProperty("pem.path")));
-    PANDORA_URL = env.getRequiredProperty("pandora.url");
   }
 
 }
