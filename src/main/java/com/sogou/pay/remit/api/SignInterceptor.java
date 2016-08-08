@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -31,6 +32,7 @@ import commons.utils.SignHelper;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月18日;
 //-------------------------------------------------------
+@Component
 public class SignInterceptor extends HandlerInterceptorAdapter {
 
   @Override

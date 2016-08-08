@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import com.google.common.collect.ImmutableMap;
@@ -32,6 +33,7 @@ import commons.utils.JsonHelper;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月20日;
 //-------------------------------------------------------
+@Component
 public class LogInterceptor extends HandlerInterceptorAdapter {
 
   public static final String DEFAULT_CHARSET = StandardCharsets.UTF_8.name(), PTOKEN = "ptoken",

@@ -11,6 +11,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import com.google.common.collect.Sets;
@@ -21,6 +22,7 @@ import com.sogou.pay.remit.model.ApiResult;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年8月4日;
 //-------------------------------------------------------
+@Component
 public class AdminInterceptor extends HandlerInterceptorAdapter {
 
   @Override
