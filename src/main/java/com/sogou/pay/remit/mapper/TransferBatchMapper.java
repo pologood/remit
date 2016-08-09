@@ -41,7 +41,8 @@ public interface TransferBatchMapper {
     private final static String TABLE = "`transfer_batch`";
 
     private final static List<String> ITEMS_SELECTED_BY_BATCHNO = ImmutableList.of("appId", "batchNo", "channel",
-        "status", "outErrMsg", "transferCount", "transferAmount", "successCount", "successAmount");
+        "status", "outErrMsg", "transferCount", "transferAmount", "successCount", "successAmount", "auditor",
+        "auditTimes");
 
     public static String selectByBatchNo(Map<String, Object> param) {
       SQL sql = new SQL();
