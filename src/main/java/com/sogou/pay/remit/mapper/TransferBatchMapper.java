@@ -61,7 +61,7 @@ public interface TransferBatchMapper {
       }
       if (Objects.nonNull(beginTime = (LocalDateTime) map.get("beginTime"))
           && Objects.nonNull(endTime = (LocalDateTime) map.get("endTime")) && beginTime.isBefore(endTime))
-        sql.WHERE("createTime >= #{beginTime}").WHERE("createTime <= #{endTime}");
+        sql.WHERE("createTime >= #{beginTime}").WHERE("createTime <= #{endTime}").ORDER_BY("id DESC");
       return sql.toString();
     }
 
