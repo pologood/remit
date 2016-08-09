@@ -21,8 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestAttribute;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -47,7 +47,7 @@ public class UserController {
   @ApiMethod(description = "add user")
   @RequestMapping(value = "/user", method = RequestMethod.POST)
   public ApiResult<?> add(@RequestAttribute(name = USER_ATTRIBUTE) User admin,
-      @ApiBodyObject(clazz = User.class) @RequestBody @Valid User rookie, BindingResult bindingResult)
+      @ApiBodyObject(clazz = User.class) @ModelAttribute @Valid User rookie, BindingResult bindingResult)
           throws Exception {
     if (bindingResult.hasErrors()) {
       LOGGER.error("[add]bad request:rookie={}", rookie);
