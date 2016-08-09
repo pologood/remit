@@ -476,6 +476,9 @@ public class TransferBatch {
       return this.value;
     }
 
+    public static final Set<Status> AUDIT_STATUS = Sets.newHashSet(JUNIOR_APPROVED, JUNIOR_REJECTED, SENIOR_APPROVED,
+        SENIOR_REJECTED, FINAL_APPROVED, FINAL_REJECTED);
+
     public static final Map<Status, Set<Status>> NEXT_MAP = new HashMap<>();
 
     static {

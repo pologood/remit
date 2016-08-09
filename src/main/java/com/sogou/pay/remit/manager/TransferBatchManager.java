@@ -182,13 +182,10 @@ public class TransferBatchManager {
     setAuditor(batch, user);
     batch.setOutErrMsg(outErrMsg);
     batch.setOutTradeNo(outTradeNo);
-    if (StringUtils.isNotBlank(opinion)) {
-      batch.getAuditOpinions().add(opinion);
-      batch.getAuditTimes().add(LocalDateTime.now().format(LocalDateTimeJsonSerializer.dtFmt));
-    } else {
-      batch.setAuditOpinions(null);
-      batch.setAuditTimes(null);
-    }
+    if (StringUtils.isNotBlank(opinion)) batch.getAuditOpinions().add(opinion);
+    else batch.setAuditOpinions(null);
+    if (!Status.AUDIT_STATUS.contains(status)) batch.setAuditTimes(null);
+    else batch.getAuditTimes().add(LocalDateTime.now().format(LocalDateTimeJsonSerializer.dtFmt));
     batch.setStatus(status);
     batch.setSuccessCount(successCount);
     batch.setSuccessAmount(successAmount);
