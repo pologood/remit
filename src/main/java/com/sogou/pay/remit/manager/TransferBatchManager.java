@@ -195,7 +195,7 @@ public class TransferBatchManager {
   private void setAuditor(TransferBatch batch, User user) {
     if (Objects.isNull(user)) return;
     Integer id = user.getId();
-    for (int i = batch.getAuditTimes().size(); i-- > 0; id *= 1000);
+    for (int i = batch.getAuditTimes().size(); i-- > 0; id *= 100);
     batch.setAuditor(Objects.isNull(batch.getAuditor()) ? id : batch.getAuditor() + id);
   }
 

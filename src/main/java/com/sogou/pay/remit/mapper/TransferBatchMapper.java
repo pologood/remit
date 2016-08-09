@@ -57,7 +57,7 @@ public interface TransferBatchMapper {
       if (Objects.nonNull(map.get("user"))) {
         User user = (User) map.get("user");
         int id, i;
-        for (i = user.getRole().getValue(), id = user.getId(); --i > 0; id *= 1000);
+        for (i = user.getRole().getValue(), id = user.getId(); --i > 0; id *= 100);
         sql.WHERE(String.format("auditor & %d = %d", id, id));
       }
       if (Objects.nonNull(beginTime = (LocalDateTime) map.get("beginTime"))
