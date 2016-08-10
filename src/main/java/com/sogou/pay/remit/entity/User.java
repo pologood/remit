@@ -5,12 +5,16 @@
  */
 package com.sogou.pay.remit.entity;
 
+import java.util.Map;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import org.hibernate.validator.constraints.NotBlank;
 import org.jsondoc.core.annotation.ApiObject;
 import org.jsondoc.core.annotation.ApiObjectField;
+
+import com.google.common.collect.ImmutableMap;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月20日;
@@ -101,6 +105,15 @@ public class User {
 
     public int getValue() {
       return value;
+    }
+
+    public static final int JUNIOR_AUDIT_LIMIT = 30_0000, SENIOR_AUDIT_LIMIT = 50_0000;
+
+    private static final Map<Role, Integer> LIMIT_MAP = ImmutableMap.of(SENIOR, JUNIOR_AUDIT_LIMIT, FINAL,
+        SENIOR_AUDIT_LIMIT);
+
+    public static Integer getLimit(Role role) {
+      return LIMIT_MAP.get(role);
     }
   }
 

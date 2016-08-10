@@ -65,6 +65,7 @@ public interface TransferBatchMapper {
       if (Objects.nonNull(beginTime = (LocalDateTime) map.get("beginTime"))
           && Objects.nonNull(endTime = (LocalDateTime) map.get("endTime")) && beginTime.isBefore(endTime))
         sql.WHERE("createTime >= #{beginTime}").WHERE("createTime <= #{endTime}");
+      if (Objects.nonNull(map.get("min"))) sql.WHERE("transferAmount >= #{min}");
       return sql.ORDER_BY("id DESC").toString();
     }
 
@@ -133,7 +134,7 @@ public interface TransferBatchMapper {
 
   @SelectProvider(type = Sql.class, method = "list")
   List<TransferBatch> list(@Param("channel") Channel channel, @Param("status") Status status, @Param("user") User user,
-      @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime);
+      @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("min") Integer min);
 
   @UpdateProvider(type = Sql.class, method = "update")
   int update(TransferBatch batch);

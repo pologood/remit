@@ -37,9 +37,12 @@ import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.Channel;
 import com.sogou.pay.remit.entity.TransferBatch.Status;
 import com.sogou.pay.remit.entity.User;
+import com.sogou.pay.remit.entity.User.Role;
 import com.sogou.pay.remit.manager.TransferBatchManager;
 import com.sogou.pay.remit.model.ApiResult;
 import com.sogou.pay.remit.model.ErrorCode;
+
+import commons.utils.Tuple2;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
@@ -81,8 +84,9 @@ public class TransferBatchController {
       @ApiPathParam(clazz = AuditStatus.class, name = "status", description = "审批状态") @PathVariable("status") AuditStatus status,
       @ApiQueryParam(name = "beginTime", description = "起始时间", required = false, format = "yyyy-MM-dd HH:mm:ss") @RequestParam(name = "beginTime", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime beginTime,
       @ApiQueryParam(name = "endTime", description = "结束时间", required = false, format = "yyyy-MM-dd HH:mm:ss") @RequestParam(name = "endTime", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
-    ApiResult<?> result = transferBatchManager.list(channel, STATUS_MAP.get(status).getStatus(user, status),
-        Objects.equals(AuditStatus.INIT, status) ? null : user, beginTime, endTime);
+    Tuple2<Status, Integer> tuple = STATUS_MAP.get(status).getStatus(user, status);
+    ApiResult<?> result = transferBatchManager.list(channel, tuple.f,
+        Objects.equals(AuditStatus.INIT, status) ? null : user, beginTime, endTime, tuple.s);
     return Objects.equals(ErrorCode.NOT_FOUND.getCode(), result.getCode()) ? ApiResult.ok() : result;
   }
 
@@ -113,14 +117,14 @@ public class TransferBatchController {
   }
 
   private static final Map<AuditStatus, StatusGetter> STATUS_MAP = ImmutableMap.of(AuditStatus.INIT,
-      (user, auditStatus) -> Status.getToDoStatus(user.getRole()), AuditStatus.REJECTED,
-      (user, auditStatus) -> Status.getRejectedStatus(user.getRole()), AuditStatus.APPROVED,
-      (user, auditStatus) -> Status.getApprovedStatus(user.getRole()));
+      (user, auditStatus) -> new Tuple2<>(Status.getToDoStatus(user.getRole()), Role.getLimit(user.getRole())),
+      AuditStatus.REJECTED, (user, auditStatus) -> new Tuple2<>(Status.getRejectedStatus(user.getRole()), null),
+      AuditStatus.APPROVED, (user, auditStatus) -> new Tuple2<>(Status.getApprovedStatus(user.getRole()), null));
 
   @FunctionalInterface
   public interface StatusGetter {
 
-    public Status getStatus(User user, AuditStatus auditStatus);
+    public Tuple2<Status, Integer> getStatus(User user, AuditStatus auditStatus);
   }
 
 }

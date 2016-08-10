@@ -26,6 +26,7 @@ import com.sogou.pay.remit.entity.BankInfo;
 import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.Channel;
 import com.sogou.pay.remit.entity.TransferBatch.Status;
+import com.sogou.pay.remit.entity.User.Role;
 import com.sogou.pay.remit.entity.TransferDetail;
 import com.sogou.pay.remit.entity.User;
 import com.sogou.pay.remit.enums.Exceptions;
@@ -79,7 +80,12 @@ public class TransferBatchManager {
 
   public ApiResult<List<TransferBatch>> list(Channel channel, Status status, User user, LocalDateTime beginTime,
       LocalDateTime endTime) {
-    List<TransferBatch> batchs = transferBatchMapper.list(channel, status, user, beginTime, endTime);
+    return list(channel, status, user, beginTime, endTime, null);
+  }
+
+  public ApiResult<List<TransferBatch>> list(Channel channel, Status status, User user, LocalDateTime beginTime,
+      LocalDateTime endTime, Integer min) {
+    List<TransferBatch> batchs = transferBatchMapper.list(channel, status, user, beginTime, endTime, min);
     if (Objects.equals(channel, Channel.PAY)) batchs.forEach(
         batch -> batch.setDetails(transferDetailManager.selectByBatchNo(batch.getAppId(), batch.getBatchNo())));
     return CollectionUtils.isEmpty(batchs) ? new ApiResult<>(ErrorCode.NOT_FOUND) : new ApiResult<>(batchs);
@@ -228,11 +234,9 @@ public class TransferBatchManager {
     return new ApiResult<>(result);
   }
 
-  private static final int JUNIOR_AUDIT_LIMIT = 30_0000, SENIOR_AUDIT_LIMIT = 50_0000;
-
   private static final List<Tuple2<Status, BigDecimal>> AUDIT_APPROVED_CONDITIONS = Arrays.asList(
-      new Tuple2<>(Status.JUNIOR_APPROVED, new BigDecimal(JUNIOR_AUDIT_LIMIT)),
-      new Tuple2<>(Status.SENIOR_APPROVED, new BigDecimal(SENIOR_AUDIT_LIMIT)),
+      new Tuple2<>(Status.JUNIOR_APPROVED, new BigDecimal(Role.JUNIOR_AUDIT_LIMIT)),
+      new Tuple2<>(Status.SENIOR_APPROVED, new BigDecimal(Role.SENIOR_AUDIT_LIMIT)),
       new Tuple2<>(Status.FINAL_APPROVED, new BigDecimal(Integer.MAX_VALUE)));
 
   public void notify(TransferBatch batch) {
