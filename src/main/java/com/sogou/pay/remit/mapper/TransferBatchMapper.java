@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.Options;
@@ -41,12 +42,12 @@ public interface TransferBatchMapper {
     private final static String TABLE = "`transfer_batch`";
 
     private final static List<String> ITEMS_SELECTED_BY_BATCHNO = ImmutableList.of("appId", "batchNo", "channel",
-        "status", "outErrMsg", "transferCount", "transferAmount", "successCount", "successAmount", "auditor",
-        "auditTimes");
+        "status", "outErrMsg", "transferCount", "transferAmount", "successCount", "successAmount");
 
     public static String selectByBatchNo(Map<String, Object> param) {
       SQL sql = new SQL();
-      ITEMS_SELECTED_BY_BATCHNO.forEach(columns -> sql.SELECT(columns));
+      if (MapUtils.getBooleanValue(param, "withAll")) sql.SELECT("*");
+      else ITEMS_SELECTED_BY_BATCHNO.forEach(columns -> sql.SELECT(columns));
       return sql.FROM(TABLE).WHERE("appId = #{appId}").WHERE("batchNo = #{batchNo}").toString();
     }
 
@@ -126,7 +127,8 @@ public interface TransferBatchMapper {
   }
 
   @SelectProvider(type = Sql.class, method = "selectByBatchNo")
-  TransferBatch selectByBatchNo(@Param("appId") Integer appId, @Param("batchNo") String batchNo);
+  TransferBatch selectByBatchNo(@Param("appId") Integer appId, @Param("batchNo") String batchNo,
+      @Param("withAll") boolean withAll);
 
   @SelectProvider(type = Sql.class, method = "list")
   List<TransferBatch> list(@Param("channel") Channel channel, @Param("status") Status status, @Param("user") User user,

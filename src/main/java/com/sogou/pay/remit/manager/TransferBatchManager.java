@@ -55,12 +55,12 @@ public class TransferBatchManager {
   @Autowired
   private TransferDetailManager transferDetailManager;
 
-  public ApiResult<?> get(int appId, String batchNo) {
-    return get(appId, batchNo, false);
+  public ApiResult<?> get(int appId, String batchNo, boolean withAll) {
+    return get(appId, batchNo, false, withAll);
   }
 
-  public ApiResult<?> get(int appId, String batchNo, boolean withDetails) {
-    TransferBatch batch = transferBatchMapper.selectByBatchNo(appId, batchNo);
+  public ApiResult<?> get(int appId, String batchNo, boolean withDetails, boolean withAll) {
+    TransferBatch batch = transferBatchMapper.selectByBatchNo(appId, batchNo, withAll);
     if (Objects.isNull(batch)) {
       LOGGER.error("[get]{}:appId={},batchNo={}", Exceptions.ENTITY_NOT_FOUND, appId, batchNo);
       return ApiResult.notFound();
@@ -110,7 +110,7 @@ public class TransferBatchManager {
       LOGGER.error("[busiCheck]{},batch:{}", busiCheckResult.getMessage(), batch);
       return busiCheckResult;
     }
-    if (ApiResult.isOK(get(batch.getAppId(), batch.getBatchNo()))) {
+    if (ApiResult.isOK(get(batch.getAppId(), batch.getBatchNo(), false))) {
       LOGGER.error("[add]{}:appId={} batchNo={}", Exceptions.BATCHNO_INVALID, batch.getAppId(), batch.getBatchNo());
       return ApiResult.badRequest(Exceptions.BATCHNO_INVALID);
     }
@@ -159,7 +159,7 @@ public class TransferBatchManager {
 
   private ApiResult<?> update(int appId, String batchNo, User user, Status status, String errMsg, String opinion,
       String outTradeNo, Integer successCount, BigDecimal successAmount) {
-    ApiResult<?> result = get(appId, batchNo);
+    ApiResult<?> result = get(appId, batchNo, true);
     if (ApiResult.isNotOK(result)) return result;
     TransferBatch batch = (TransferBatch) result.getData();
     Status oldStatus = batch.getStatus();
@@ -195,7 +195,7 @@ public class TransferBatchManager {
   private void setAuditor(TransferBatch batch, User user) {
     if (Objects.isNull(user)) return;
     Integer id = user.getId();
-    for (int i = batch.getAuditTimes().size(); i-- > 0; id *= 100);
+    for (int i = user.getRole().getValue(); --i > 0; id *= 100);
     batch.setAuditor(Objects.isNull(batch.getAuditor()) ? id : batch.getAuditor() + id);
   }
 

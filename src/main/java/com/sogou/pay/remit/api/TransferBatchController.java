@@ -71,7 +71,7 @@ public class TransferBatchController {
   public ApiResult<?> get(
       @ApiQueryParam(name = "appId", description = "业务线") @RequestParam(name = "appId") Integer appId,
       @ApiQueryParam(name = "batchNo", description = "批次号") @RequestParam(name = "batchNo") String batchNo) {
-    return transferBatchManager.get(appId, batchNo, true);
+    return transferBatchManager.get(appId, batchNo, true, false);
   }
 
   @ApiMethod(description = "get transfer batch with status")
