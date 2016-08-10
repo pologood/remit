@@ -55,7 +55,6 @@ public class TransferDetail {
   private String bankCity;
 
   @ApiObjectField(description = "备注")
-  @JsonProperty(access = Access.WRITE_ONLY)
   private String memo;
 
   @JsonProperty(access = Access.READ_ONLY)
