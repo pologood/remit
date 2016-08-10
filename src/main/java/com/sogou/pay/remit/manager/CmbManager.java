@@ -81,7 +81,7 @@ public class CmbManager implements InitializingBean {
   }
 
   private String getEndDate(TransferBatch batch) {
-    return "20150928";
+    return "20151028";
   }
 
   private String getBeginDate(TransferBatch batch) {
