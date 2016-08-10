@@ -59,7 +59,7 @@ public interface TransferBatchMapper {
         sql.WHERE("status >= #{status}");
         User user = (User) map.get("user");
         int id = user.getId(), i = user.getRole().getValue();
-        for (; --i > 0; id *= 100);
+        for (; --i > 0; id <<= 8);
         sql.WHERE(String.format("auditor & %d = %d", id, id));
       } else sql.WHERE("status = #{status}");
       if (Objects.nonNull(beginTime = (LocalDateTime) map.get("beginTime"))
