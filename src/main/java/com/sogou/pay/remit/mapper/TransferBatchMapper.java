@@ -53,14 +53,15 @@ public interface TransferBatchMapper {
 
     public static String list(Map<String, Object> map) {
       LocalDateTime beginTime, endTime;
-      SQL sql = new SQL().SELECT("*").FROM(TABLE).WHERE("status = #{status}");
+      SQL sql = new SQL().SELECT("*").FROM(TABLE);
       if (Objects.nonNull(map.get("channel"))) sql.WHERE("channel = #{channel}");
       if (Objects.nonNull(map.get("user"))) {
+        sql.WHERE("status >= #{status}");
         User user = (User) map.get("user");
-        int id, i;
-        for (i = user.getRole().getValue(), id = user.getId(); --i > 0; id *= 100);
+        int id = user.getId(), i = user.getRole().getValue();
+        for (; --i > 0; id *= 100);
         sql.WHERE(String.format("auditor & %d = %d", id, id));
-      }
+      } else sql.WHERE("status = #{status}");
       if (Objects.nonNull(beginTime = (LocalDateTime) map.get("beginTime"))
           && Objects.nonNull(endTime = (LocalDateTime) map.get("endTime")) && beginTime.isBefore(endTime))
         sql.WHERE("createTime >= #{beginTime}").WHERE("createTime <= #{endTime}");
