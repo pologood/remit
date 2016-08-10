@@ -49,11 +49,9 @@ public class TransferDetail {
   private BigDecimal amount;
 
   @ApiObjectField(description = "他行名")
-  @JsonProperty(access = Access.WRITE_ONLY)
   private String bankName;
 
   @ApiObjectField(description = "他行地址")
-  @JsonProperty(access = Access.WRITE_ONLY)
   private String bankCity;
 
   @ApiObjectField(description = "备注")
