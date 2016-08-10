@@ -10,7 +10,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 import org.apache.commons.collections4.MapUtils;
 import org.jsondoc.core.annotation.Api;
@@ -22,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -46,9 +44,8 @@ public class UserController {
 
   @ApiMethod(description = "add user")
   @RequestMapping(value = "/user", method = RequestMethod.POST)
-  public ApiResult<?> add(@RequestAttribute(name = USER_ATTRIBUTE) User admin,
-      @ApiBodyObject(clazz = User.class) @ModelAttribute @Valid User rookie, BindingResult bindingResult)
-          throws Exception {
+  public ApiResult<?> add(@ApiBodyObject(clazz = User.class) @ModelAttribute @Valid User rookie,
+      BindingResult bindingResult) throws Exception {
     if (bindingResult.hasErrors()) {
       LOGGER.error("[add]bad request:rookie={}", rookie);
       return ApiResult.bindingResult(bindingResult);
@@ -59,7 +56,7 @@ public class UserController {
 
   @ApiMethod(description = "update user")
   @RequestMapping(value = "/user", method = RequestMethod.PUT)
-  public ApiResult<?> update(@RequestAttribute(name = USER_ATTRIBUTE) User admin,
+  public ApiResult<?> update(
       @ApiQueryParam(name = "uno", description = "工号", format = "\\d+") @RequestParam(name = "uno") Integer uno,
       @ApiQueryParam(name = "mobile", description = "手机号", required = false) @RequestParam(name = "mobile", required = false) Optional<String> mobile,
       @ApiQueryParam(name = "role", description = "角色", required = false) @RequestParam(name = "role", required = false) Role role)
@@ -69,7 +66,7 @@ public class UserController {
 
   @ApiMethod(description = "get users")
   @RequestMapping(value = "/user", method = RequestMethod.GET)
-  public ApiResult<?> get(@RequestAttribute(name = USER_ATTRIBUTE) User admin) throws Exception {
+  public ApiResult<?> get() throws Exception {
     return userManager.list();
   }
 
@@ -86,9 +83,8 @@ public class UserController {
 
   @ApiMethod(description = "delete user")
   @RequestMapping(value = "/user", method = RequestMethod.DELETE)
-  public ApiResult<?> delete(@RequestAttribute(name = USER_ATTRIBUTE) User admin,
-      @ApiQueryParam(name = "uno", description = "工号") @RequestParam(name = "uno") @NotNull Integer uno)
-          throws Exception {
+  public ApiResult<?> delete(@ApiQueryParam(name = "uno", description = "工号") @RequestParam(name = "uno") int uno)
+      throws Exception {
     return userManager.delete(uno);
   }
 
