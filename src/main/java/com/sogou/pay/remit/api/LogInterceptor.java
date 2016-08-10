@@ -39,7 +39,7 @@ public class LogInterceptor extends HandlerInterceptorAdapter {
 
   public static final int DEBUG_USER_UNO = 1;
 
-  public static final long TIME_INTERVAL = TimeUnit.MINUTES.toMillis(30000000);
+  public static final long TIME_INTERVAL = TimeUnit.MINUTES.toMillis(30);
 
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
