@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.common.collect.ImmutableMap;
 import com.sogou.pay.remit.entity.User;
 import com.sogou.pay.remit.job.TransferJob;
 import com.sogou.pay.remit.model.ApiResult;
@@ -69,13 +70,11 @@ public class JobController implements InitializingBean {
 
   @ApiMethod(description = "run job")
   @RequestMapping(value = "/job/{jobName}", method = RequestMethod.GET)
-  public ApiResult<?> run(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
-      @ApiPathParam(name = "jobName", clazz = JobName.class, description = "定时任务名") @PathVariable JobName jobName) {
+  public ApiResult<?> run(@ApiPathParam(name = "jobName", description = "定时任务名") @PathVariable JobName jobName) {
     try {
-      if (Objects.equals(JobName.pay, jobName)) transferJob.pay();
-      else if (Objects.equals(JobName.query, jobName)) transferJob.query();
-      else if (Objects.equals(JobName.callback, jobName)) transferJob.callback();
-      else return ApiResult.notImplemented();
+      Runnable job = JOB_NAME_MAP.get(jobName);
+      if (Objects.isNull(job)) return ApiResult.notImplemented();
+      job.run();
       return ApiResult.ok();
     } catch (Exception e) {
       LOGGER.error("run {} job error", jobName, e);
@@ -85,7 +84,7 @@ public class JobController implements InitializingBean {
 
   @ApiMethod(description = "stop job")
   @RequestMapping(value = "/job/{jobName}", method = RequestMethod.DELETE)
-  public ApiResult<?> stop(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
+  public ApiResult<?> stop(
       @ApiPathParam(clazz = JobName.class, name = "jobName", description = "定时任务名") @PathVariable("jobName") JobName jobName) {
     Tuple2<CronTriggerFactoryBean, TriggerKey> tuple = JOB_MAP.get(jobName);
     if (Objects.isNull(tuple)) return ApiResult.badRequest("invalid job");
@@ -183,4 +182,7 @@ public class JobController implements InitializingBean {
   public enum JobName {
     pay, query, callback;
   }
+
+  private Map<JobName, Runnable> JOB_NAME_MAP = ImmutableMap.of(JobName.pay, () -> transferJob.pay(), JobName.query,
+      () -> transferJob.query(), JobName.callback, () -> transferJob.callback());
 }
