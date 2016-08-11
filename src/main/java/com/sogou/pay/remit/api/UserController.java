@@ -44,8 +44,8 @@ public class UserController {
 
   @ApiMethod(description = "add user")
   @RequestMapping(value = "/user", method = RequestMethod.POST)
-  public ApiResult<?> add(@ApiBodyObject(clazz = User.class) @ModelAttribute @Valid User rookie,
-      BindingResult bindingResult) throws Exception {
+  public ApiResult<?> add(@ApiBodyObject @ModelAttribute @Valid User rookie, BindingResult bindingResult)
+      throws Exception {
     if (bindingResult.hasErrors()) {
       LOGGER.error("[add]bad request:rookie={}", rookie);
       return ApiResult.bindingResult(bindingResult);
@@ -57,11 +57,11 @@ public class UserController {
   @ApiMethod(description = "update user")
   @RequestMapping(value = "/user", method = RequestMethod.PUT)
   public ApiResult<?> update(
-      @ApiQueryParam(name = "uno", description = "工号", format = "\\d+") @RequestParam(name = "uno") Integer uno,
-      @ApiQueryParam(name = "mobile", description = "手机号", required = false) @RequestParam(name = "mobile", required = false) Optional<String> mobile,
-      @ApiQueryParam(name = "role", description = "角色", required = false) @RequestParam(name = "role", required = false) Role role)
+      @ApiQueryParam(name = "uno", description = "工号", format = "digit") @RequestParam Integer uno,
+      @ApiQueryParam(name = "mobile", description = "手机号", required = false) @RequestParam Optional<String> mobile,
+      @ApiQueryParam(name = "role", description = "角色", required = false) @RequestParam Optional<Role> role)
           throws Exception {
-    return userManager.update(uno, mobile.orElse(null), role);
+    return userManager.update(uno, mobile.orElse(null), role.orElse(null));
   }
 
   @ApiMethod(description = "get users")
@@ -72,8 +72,8 @@ public class UserController {
 
   @ApiMethod(description = "get user info")
   @RequestMapping(value = "/user/info", method = RequestMethod.GET)
-  public ApiResult<?> getInfo(
-      @ApiQueryParam(name = "token", description = "令牌") @RequestParam(name = "token") String token) throws Exception {
+  public ApiResult<?> getInfo(@ApiQueryParam(name = "token", description = "令牌") @RequestParam String token)
+      throws Exception {
     Map<String, Object> map = LogInterceptor.getPtokenDetail(token);
     if (Math.abs(System.currentTimeMillis() - MapUtils.getLongValue(map, "ts")) > LogInterceptor.TIME_INTERVAL)
       return ApiResult.unAuthorized();
@@ -83,8 +83,7 @@ public class UserController {
 
   @ApiMethod(description = "delete user")
   @RequestMapping(value = "/user", method = RequestMethod.DELETE)
-  public ApiResult<?> delete(@ApiQueryParam(name = "uno", description = "工号") @RequestParam(name = "uno") int uno)
-      throws Exception {
+  public ApiResult<?> delete(@ApiQueryParam(name = "uno", description = "工号") @RequestParam int uno) throws Exception {
     return userManager.delete(uno);
   }
 

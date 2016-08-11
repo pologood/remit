@@ -61,8 +61,8 @@ public class TransferBatchController {
 
   @ApiMethod(consumes = "application/json", description = "add transfer batch")
   @RequestMapping(value = "/transferBatch", method = RequestMethod.POST, consumes = "application/json")
-  public ApiResult<?> add(@ApiBodyObject(clazz = TransferBatch.class) @RequestBody @Valid TransferBatch batch,
-      BindingResult bindingResult) throws Exception {
+  public ApiResult<?> add(@ApiBodyObject @RequestBody @Valid TransferBatch batch, BindingResult bindingResult)
+      throws Exception {
     if (bindingResult.hasErrors()) {
       LOGGER.error("[add]bad request:batch={}", batch);
       return ApiResult.bindingResult(bindingResult);
@@ -72,44 +72,41 @@ public class TransferBatchController {
 
   @ApiMethod(description = "get transfer batch")
   @RequestMapping(value = "/transferBatch", method = RequestMethod.GET)
-  public ApiResult<?> get(
-      @ApiQueryParam(name = "appId", description = "业务线") @RequestParam(name = "appId") Integer appId,
-      @ApiQueryParam(name = "batchNo", description = "批次号") @RequestParam(name = "batchNo") String batchNo) {
+  public ApiResult<?> get(@ApiQueryParam(name = "appId", description = "业务线") @RequestParam int appId,
+      @ApiQueryParam(name = "batchNo", description = "批次号") @RequestParam String batchNo) {
     return transferBatchManager.get(appId, batchNo, true, false);
   }
 
   @ApiMethod(description = "get transfer batch with status")
   @RequestMapping(value = "/transferBatch/{channel}/{status}", method = RequestMethod.GET)
   public ApiResult<?> get(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
-      @ApiPathParam(clazz = Channel.class, name = "channel", description = "渠道") @PathVariable("channel") Channel channel,
-      @ApiPathParam(clazz = AuditStatus.class, name = "status", description = "审批状态") @PathVariable("status") AuditStatus status,
-      @ApiQueryParam(name = "beginTime", description = "起始时间", required = false, format = "yyyy-MM-dd HH:mm:ss") @RequestParam(name = "beginTime", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime beginTime,
-      @ApiQueryParam(name = "endTime", description = "结束时间", required = false, format = "yyyy-MM-dd HH:mm:ss") @RequestParam(name = "endTime", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
+      @ApiPathParam(name = "channel", description = "渠道") @PathVariable Channel channel,
+      @ApiPathParam(name = "status", description = "审批状态") @PathVariable AuditStatus status,
+      @ApiQueryParam(name = "beginTime", description = "起始时间", required = false) @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Optional<LocalDateTime> beginTime,
+      @ApiQueryParam(name = "endTime", description = "结束时间", required = false) @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Optional<LocalDateTime> endTime) {
     Tuple2<Status, Integer> tuple = STATUS_MAP.get(status).apply(user);
     ApiResult<?> result = transferBatchManager.list(channel, tuple.f,
-        Objects.equals(AuditStatus.INIT, status) ? null : user, beginTime, endTime, tuple.s);
+        Objects.equals(AuditStatus.INIT, status) ? null : user, beginTime.orElse(null), endTime.orElse(null), tuple.s);
     return Objects.equals(ErrorCode.NOT_FOUND.getCode(), result.getCode()) ? ApiResult.ok() : result;
   }
 
   @ApiMethod(description = "reject transfer batch")
   @RequestMapping(value = "/transferBatch/{appId}/{batchNo}", method = RequestMethod.PUT)
   public ApiResult<?> update(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
-      @ApiPathParam(name = "appId", description = "业务线") @PathVariable("appId") int appId,
-      @ApiPathParam(name = "batchNo", description = "批次号") @PathVariable("batchNo") String batchNo,
-      @ApiQueryParam(name = "opinion", description = "驳回意见") @RequestParam(name = "opinion") Optional<String> opinion) {
-    Status status = Status.getRejectedStatus(user.getRole());
-    if (Objects.isNull(status)) return ApiResult.unAuthorized();
-    return transferBatchManager.audit(appId, batchNo, user, status, opinion.orElse(null));
+      @ApiPathParam(name = "appId", description = "业务线") @PathVariable int appId,
+      @ApiPathParam(name = "batchNo", description = "批次号") @PathVariable String batchNo,
+      @ApiQueryParam(name = "opinion", description = "驳回意见", required = false) @RequestParam Optional<String> opinion) {
+    return transferBatchManager.audit(appId, batchNo, user, Status.getRejectedStatus(user.getRole()),
+        opinion.orElse(null));
   }
 
   @ApiMethod(description = "approve transfer batch")
   @RequestMapping(value = "/transferBatch/{appId}", method = RequestMethod.PUT)
   public ApiResult<?> update(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
-      @ApiPathParam(name = "appId", description = "业务线") @PathVariable("appId") Integer appId,
+      @ApiPathParam(name = "appId", description = "业务线") @PathVariable Integer appId,
       @ApiQueryParam(name = "batchNos", description = "批次号列表") @RequestParam(name = "batchNos[]") List<String> batchNos) {
-    Status status = Status.getApprovedStatus(user.getRole());
-    if (Objects.isNull(status)) return ApiResult.unAuthorized();
-    return transferBatchManager.batchUpdateTransferBatchStatus(user, appId, batchNos, status);
+    return transferBatchManager.batchUpdateTransferBatchStatus(user, appId, batchNos,
+        Status.getApprovedStatus(user.getRole()));
   }
 
   @ApiObject(name = "AuditStatus", description = "审批状态")
