@@ -59,9 +59,8 @@ public class UserController {
   public ApiResult<?> update(
       @ApiQueryParam(name = "uno", description = "工号", format = "digit") @RequestParam Integer uno,
       @ApiQueryParam(name = "mobile", description = "手机号", required = false) @RequestParam Optional<String> mobile,
-      @ApiQueryParam(name = "role", description = "角色", required = false) @RequestParam Optional<Role> role)
-          throws Exception {
-    return userManager.update(uno, mobile.orElse(null), role.orElse(null));
+      @ApiQueryParam(name = "role", description = "角色") @RequestParam Role role) throws Exception {
+    return userManager.update(uno, mobile.orElse(null), role);
   }
 
   @ApiMethod(description = "get users")
