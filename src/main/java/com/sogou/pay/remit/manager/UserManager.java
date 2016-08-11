@@ -43,6 +43,8 @@ public class UserManager implements InitializingBean {
   }
 
   public void init() {
+    UNO_MAP.clear();
+    ID_MAP.clear();
     ApiResult<?> result = list();
     if (ApiResult.isNotOK(result)) return;
     for (Object o : (List<?>) result.getData()) {
