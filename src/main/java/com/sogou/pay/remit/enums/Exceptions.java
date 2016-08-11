@@ -26,7 +26,11 @@ public enum Exceptions {
 
   BANKINFO_NOT_FOUND("100008", "BANKINFO_NOT_FOUND", "无对应账号信息"),
 
-  DETAIL_INVALID("100009", "DETAIL_INVALID", "无效的明细信息");
+  DETAIL_INVALID("100009", "DETAIL_INVALID", "无效的明细信息"),
+
+  JOB_INVALID("100010", "JOB_INVALID", "无效的定时任务"),
+  
+  CRON_INVALID("100011", "CRON_INVALID", "无效的定时表达式");
 
   private String errorCode;
 

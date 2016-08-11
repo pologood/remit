@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 
 import javax.validation.Valid;
 
@@ -84,7 +85,7 @@ public class TransferBatchController {
       @ApiPathParam(clazz = AuditStatus.class, name = "status", description = "审批状态") @PathVariable("status") AuditStatus status,
       @ApiQueryParam(name = "beginTime", description = "起始时间", required = false, format = "yyyy-MM-dd HH:mm:ss") @RequestParam(name = "beginTime", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime beginTime,
       @ApiQueryParam(name = "endTime", description = "结束时间", required = false, format = "yyyy-MM-dd HH:mm:ss") @RequestParam(name = "endTime", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
-    Tuple2<Status, Integer> tuple = STATUS_MAP.get(status).getStatus(user, status);
+    Tuple2<Status, Integer> tuple = STATUS_MAP.get(status).apply(user);
     ApiResult<?> result = transferBatchManager.list(channel, tuple.f,
         Objects.equals(AuditStatus.INIT, status) ? null : user, beginTime, endTime, tuple.s);
     return Objects.equals(ErrorCode.NOT_FOUND.getCode(), result.getCode()) ? ApiResult.ok() : result;
@@ -116,15 +117,9 @@ public class TransferBatchController {
     INIT, REJECTED, APPROVED;
   }
 
-  private static final Map<AuditStatus, StatusGetter> STATUS_MAP = ImmutableMap.of(AuditStatus.INIT,
-      (user, auditStatus) -> new Tuple2<>(Status.getToDoStatus(user.getRole()), Role.getLimit(user.getRole())),
-      AuditStatus.REJECTED, (user, auditStatus) -> new Tuple2<>(Status.getRejectedStatus(user.getRole()), null),
-      AuditStatus.APPROVED, (user, auditStatus) -> new Tuple2<>(Status.getApprovedStatus(user.getRole()), null));
-
-  @FunctionalInterface
-  public interface StatusGetter {
-
-    public Tuple2<Status, Integer> getStatus(User user, AuditStatus auditStatus);
-  }
+  private static final Map<AuditStatus, Function<User, Tuple2<Status, Integer>>> STATUS_MAP = ImmutableMap.of(
+      AuditStatus.INIT, user -> new Tuple2<>(Status.getToDoStatus(user.getRole()), Role.getLimit(user.getRole())),
+      AuditStatus.REJECTED, user -> new Tuple2<>(Status.getRejectedStatus(user.getRole()), null), AuditStatus.APPROVED,
+      user -> new Tuple2<>(Status.getApprovedStatus(user.getRole()), null));
 
 }

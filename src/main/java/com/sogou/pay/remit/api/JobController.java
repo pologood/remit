@@ -25,14 +25,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.common.collect.ImmutableMap;
-import com.sogou.pay.remit.entity.User;
+import com.sogou.pay.remit.enums.Exceptions;
 import com.sogou.pay.remit.job.TransferJob;
 import com.sogou.pay.remit.model.ApiResult;
 
@@ -73,7 +72,7 @@ public class JobController implements InitializingBean {
   public ApiResult<?> run(@ApiPathParam(name = "jobName", description = "定时任务名") @PathVariable JobName jobName) {
     try {
       Runnable job = JOB_NAME_MAP.get(jobName);
-      if (Objects.isNull(job)) return ApiResult.notImplemented();
+      if (Objects.isNull(job)) return ApiResult.badRequest(Exceptions.JOB_INVALID);
       job.run();
       return ApiResult.ok();
     } catch (Exception e) {
@@ -84,10 +83,9 @@ public class JobController implements InitializingBean {
 
   @ApiMethod(description = "stop job")
   @RequestMapping(value = "/job/{jobName}", method = RequestMethod.DELETE)
-  public ApiResult<?> stop(
-      @ApiPathParam(clazz = JobName.class, name = "jobName", description = "定时任务名") @PathVariable("jobName") JobName jobName) {
+  public ApiResult<?> stop(@ApiPathParam(name = "jobName", description = "定时任务名") @PathVariable JobName jobName) {
     Tuple2<CronTriggerFactoryBean, TriggerKey> tuple = JOB_MAP.get(jobName);
-    if (Objects.isNull(tuple)) return ApiResult.badRequest("invalid job");
+    if (Objects.isNull(tuple)) return ApiResult.badRequest(Exceptions.JOB_INVALID);
     try {
       if (!factory.isRunning()) return ApiResult.ok();
       Scheduler scheduler = factory.getScheduler();
@@ -101,10 +99,9 @@ public class JobController implements InitializingBean {
 
   @ApiMethod(description = "start job")
   @RequestMapping(value = "/job/{jobName}", method = RequestMethod.POST)
-  public ApiResult<?> start(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
-      @ApiPathParam(clazz = JobName.class, name = "jobName", description = "定时任务名") @PathVariable("jobName") JobName jobName) {
+  public ApiResult<?> start(@ApiPathParam(name = "jobName", description = "定时任务名") @PathVariable JobName jobName) {
     Tuple2<CronTriggerFactoryBean, TriggerKey> tuple = JOB_MAP.get(jobName);
-    if (Objects.isNull(tuple)) return ApiResult.badRequest("invalid job");
+    if (Objects.isNull(tuple)) return ApiResult.badRequest(Exceptions.JOB_INVALID);
     try {
       if (!factory.isRunning()) factory.start();
       Scheduler scheduler = factory.getScheduler();
@@ -119,16 +116,15 @@ public class JobController implements InitializingBean {
 
   @ApiMethod(description = "update cron")
   @RequestMapping(value = "/job/{jobName}", method = RequestMethod.PUT)
-  public ApiResult<?> update(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
-      @ApiPathParam(clazz = JobName.class, name = "jobName", description = "定时任务名") @PathVariable("jobName") JobName jobName,
-      @ApiQueryParam(name = "cron", description = "cron expression") @RequestParam(name = "cron") String cron) {
+  public ApiResult<?> update(@ApiPathParam(name = "jobName", description = "定时任务名") @PathVariable JobName jobName,
+      @ApiQueryParam(name = "cron", description = "定时表达式") @RequestParam(name = "cron") String cron) {
     Tuple2<CronTriggerFactoryBean, TriggerKey> tuple = JOB_MAP.get(jobName);
-    if (Objects.isNull(tuple)) return ApiResult.badRequest("invalid job");
+    if (Objects.isNull(tuple)) return ApiResult.badRequest(Exceptions.JOB_INVALID);
     return reschedule(tuple.f, tuple.s, cron);
   }
 
   public ApiResult<?> reschedule(CronTriggerFactoryBean trigger, TriggerKey key, String cron) {
-    if (!CronExpression.isValidExpression(cron)) return ApiResult.badRequest("illegal expression");
+    if (!CronExpression.isValidExpression(cron)) return ApiResult.badRequest(Exceptions.CRON_INVALID);
     try {
       trigger.setCronExpression(cron);
       trigger.afterPropertiesSet();
@@ -142,7 +138,7 @@ public class JobController implements InitializingBean {
 
   @ApiMethod(description = "stop all job")
   @RequestMapping(value = "/job", method = RequestMethod.DELETE)
-  public ApiResult<?> delete(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user) {
+  public ApiResult<?> stop() {
     try {
       if (factory.isRunning()) factory.stop();
       return ApiResult.ok();
@@ -150,12 +146,11 @@ public class JobController implements InitializingBean {
       LOGGER.error("stop all job error", e);
       return ApiResult.internalError(e);
     }
-
   }
 
   @ApiMethod(description = "start all job")
   @RequestMapping(value = "/job", method = RequestMethod.GET)
-  public ApiResult<?> init(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user) {
+  public ApiResult<?> start() {
     try {
       if (!factory.isRunning()) factory.start();
       Scheduler scheduler = factory.getScheduler();
