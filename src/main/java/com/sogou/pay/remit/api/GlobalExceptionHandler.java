@@ -1,5 +1,16 @@
 package com.sogou.pay.remit.api;
 
+import java.util.List;
+
+import org.springframework.beans.TypeMismatchException;
+import org.springframework.dao.DataAccessException;
+import org.springframework.web.bind.ServletRequestBindingException;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ResponseBody;
+
 import com.google.common.base.Throwables;
 import com.sogou.pay.remit.config.ProjectInfo;
 import com.sogou.pay.remit.model.ApiResult;
@@ -9,18 +20,6 @@ import com.sogou.pay.remit.model.InternalErrorException;
 
 import commons.utils.EnumConverter;
 import commons.utils.ReflectUtil;
-
-import org.springframework.web.bind.ServletRequestBindingException;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-import java.util.List;
-
-import org.springframework.beans.TypeMismatchException;
-import org.springframework.dao.DataAccessException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {

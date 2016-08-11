@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 public class JsonHelper {
 
@@ -26,7 +27,8 @@ public class JsonHelper {
       .serializerByType(Enum.class, new EnumJsonSerializer())
       .serializerByType(LocalDate.class, new LocalDateJsonSerializer())
       .serializerByType(LocalDateTime.class, new LocalDateTimeJsonSerializer()).build()
-      .setSerializationInclusion(Include.NON_NULL).setSerializationInclusion(Include.NON_EMPTY);
+      .setSerializationInclusion(Include.NON_NULL).setSerializationInclusion(Include.NON_EMPTY)
+      .registerModule(new Jdk8Module());
 
   public static final TypeReference<Map<String, Object>> TYPE_OF_MAP = new TypeReference<Map<String, Object>>() {};
 
