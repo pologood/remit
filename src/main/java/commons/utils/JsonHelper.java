@@ -14,6 +14,7 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.SerializableString;
 import com.fasterxml.jackson.core.io.CharacterEscapes;
+import com.fasterxml.jackson.core.io.SerializedString;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -106,13 +107,16 @@ public class JsonHelper {
 
     private static final int[] ESC = CharacterEscapes.standardAsciiEscapesForJSON();
 
+    private static final Map<Character, Character> MAP = new HashMap<>();
+
     static {
-      ESC['<'] = '＜';
-      ESC['>'] = '＞';
-      ESC['"'] = '＂';
-      ESC['\''] = '＇';
-      ESC['('] = '（';
-      ESC[')'] = '）';
+      MAP.put('(', '（');
+      MAP.put(')', '）');
+      MAP.put('<', '＜');
+      MAP.put('>', '＞');
+      MAP.put('\'', '＇');
+      MAP.put('"', '＂');
+      MAP.keySet().forEach(c -> ESC[c] = ESCAPE_CUSTOM);
     }
 
     @Override
@@ -122,7 +126,8 @@ public class JsonHelper {
 
     @Override
     public SerializableString getEscapeSequence(int ch) {
-      return null;
+      if (ch > 127 || !MAP.containsKey((char) ch)) return null;
+      return new SerializedString(Character.toString(MAP.get((char) ch)));
     }
   }
 }

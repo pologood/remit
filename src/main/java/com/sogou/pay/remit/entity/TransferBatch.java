@@ -23,6 +23,8 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.jsondoc.core.annotation.ApiObject;
@@ -35,8 +37,6 @@ import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.sogou.pay.remit.entity.User.Role;
-
-import commons.utils.JsonHelper;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
@@ -54,6 +54,7 @@ public class TransferBatch {
 
   @ApiObjectField(description = "渠道", required = true)
   @NotNull(message = "channel is required")
+  @JsonProperty(access = Access.WRITE_ONLY)
   private Channel channel;
 
   @ApiObjectField(description = "业务线Id", required = true)
@@ -402,7 +403,7 @@ public class TransferBatch {
 
   @Override
   public String toString() {
-    return JsonHelper.toJson(this);
+    return ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE);
   }
 
   public enum NotifyFlag {
