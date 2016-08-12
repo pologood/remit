@@ -70,5 +70,4 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     r.setOrder(0);
     return r;
   }
-
 }
