@@ -8,7 +8,6 @@ package com.sogou.pay.remit.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,19 +37,12 @@ import com.google.common.collect.Sets;
 import com.sogou.pay.remit.entity.User.Role;
 
 import commons.utils.JsonHelper;
-import commons.utils.XssHelper;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
 //-------------------------------------------------------
 @ApiObject(name = "TransferBatch", description = "批次单", group = "TransferBatch")
 public class TransferBatch {
-
-  public TransferBatch makeXssSafe() {
-    memo = XssHelper.escape(memo);
-    outAccountName = XssHelper.escape(outAccountName);
-    return this;
-  }
 
   @JsonIgnore
   private Long id;
@@ -96,6 +88,7 @@ public class TransferBatch {
   private String reserve;
 
   //audit
+  @JsonProperty(access = Access.READ_ONLY)
   private Long auditor;
 
   @JsonProperty(access = Access.READ_ONLY)
@@ -432,12 +425,6 @@ public class TransferBatch {
 
     private int value;
 
-    private static final Map<Integer, SignType> MAP = new HashMap<>();
-
-    static {
-      Arrays.stream(SignType.values()).forEach(signType -> MAP.put(signType.getValue(), signType));
-    }
-
     private SignType(int value) {
       this.value = value;
     }
@@ -447,24 +434,35 @@ public class TransferBatch {
     }
 
     public static SignType getSignType(Integer value) {
-      return Objects.isNull(value) ? null : MAP.get(value);
+      return Objects.isNull(value) || value < 0 || value > 1 ? null : SignType.values()[value];
     }
   }
 
   @ApiObject(name = "Batch.Status", description = "批次状态", group = "TransferBatch")
   public enum Status {
+    INIT(0),
 
-    INIT(0), //
-    JUNIOR_REJECTED(1), //
-    JUNIOR_APPROVED(2), //
-    SENIOR_REJECTED(3), //
-    SENIOR_APPROVED(4), //
-    FINAL_REJECTED(5), //
-    FINAL_APPROVED(6), //
-    PROCESSING(7), //
-    SUCCESS(8), //
-    FAILED(9), //
-    BACK(10), PART(11);
+    JUNIOR_REJECTED(1),
+
+    JUNIOR_APPROVED(2),
+
+    SENIOR_REJECTED(3),
+
+    SENIOR_APPROVED(4),
+
+    FINAL_REJECTED(5),
+
+    FINAL_APPROVED(6),
+
+    PROCESSING(7),
+
+    SUCCESS(8),
+
+    FAILED(9),
+
+    BACK(10),
+
+    PART(11);
 
     private int value;
 
@@ -518,13 +516,17 @@ public class TransferBatch {
 
   @ApiObject(name = "BusiMode", description = "业务模式", group = "TransferBatch")
   public enum BusiMode {
-    DIRECT_PAYROLL("00001"), //直接代发工资
-    CLIENT_PAYROLL("00002"); //客户端代发工资
+    DIRECT_PAYROLL("00001", "直接代发工资"), CLIENT_PAYROLL("00002", "客户端代发工资");
 
-    private String value;
+    private String value, description;
 
-    private BusiMode(String value) {
+    private BusiMode(String value, String description) {
       this.value = value;
+      this.description = description;
+    }
+
+    public String getDescription() {
+      return description;
     }
 
     public String getValue() {
@@ -568,17 +570,23 @@ public class TransferBatch {
 
   @ApiObject(name = "Channel", description = "渠道", group = "TransferBatch")
   public enum Channel {
-    PAY(0), //支付
-    AGENCY(1); //代发代扣
+    PAY(0, "支付"), AGENCY(1, "代发代扣");
 
     private int value;
 
-    private Channel(int value) {
+    private String description;
+
+    private Channel(int value, String description) {
       this.value = value;
+      this.description = description;
     }
 
     public int getValue() {
       return value;
+    }
+
+    public String getDescription() {
+      return description;
     }
   }
 

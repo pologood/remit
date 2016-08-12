@@ -8,10 +8,13 @@ package com.sogou.pay.remit.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotNull;
 
+import org.hibernate.validator.constraints.NotBlank;
 import org.jsondoc.core.annotation.ApiObject;
 import org.jsondoc.core.annotation.ApiObjectField;
+import org.springframework.format.annotation.NumberFormat;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -33,19 +36,21 @@ public class TransferDetail {
   private String batchNo;
 
   @ApiObjectField(description = "转账流水号", required = true)
-  @NotNull(message = "transferId is required")
+  @NotBlank(message = "transferId is required")
   private String transferId;
 
   @ApiObjectField(description = "入款账号", required = true)
-  @NotNull(message = "inAccountId is required")
+  @NotBlank(message = "inAccountId is required")
   private String inAccountId;
 
   @ApiObjectField(description = "入款账户名", required = true)
-  @NotNull(message = "inAccountName is required")
+  @NotBlank(message = "inAccountName is required")
   private String inAccountName;
 
   @ApiObjectField(description = "金额", required = true)
   @NotNull(message = "amount is required")
+  @DecimalMin(value = "0.01", message = "amount at least be 0.01")
+  @NumberFormat(pattern = "0.00")
   private BigDecimal amount;
 
   @ApiObjectField(description = "他行名")

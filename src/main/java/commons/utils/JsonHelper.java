@@ -12,6 +12,8 @@ import java.util.Objects;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.SerializableString;
+import com.fasterxml.jackson.core.io.CharacterEscapes;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,6 +31,10 @@ public class JsonHelper {
       .serializerByType(LocalDateTime.class, new LocalDateTimeJsonSerializer()).build()
       .setSerializationInclusion(Include.NON_NULL).setSerializationInclusion(Include.NON_EMPTY)
       .registerModule(new Jdk8Module());
+
+  static {
+    MAPPER.getFactory().setCharacterEscapes(new XssEscapes());
+  }
 
   public static final TypeReference<Map<String, Object>> TYPE_OF_MAP = new TypeReference<Map<String, Object>>() {};
 
@@ -96,4 +102,27 @@ public class JsonHelper {
     }
   }
 
+  public static class XssEscapes extends CharacterEscapes {
+
+    private static final int[] ESC = CharacterEscapes.standardAsciiEscapesForJSON();
+
+    static {
+      ESC['<'] = '＜';
+      ESC['>'] = '＞';
+      ESC['"'] = '＂';
+      ESC['\''] = '＇';
+      ESC['('] = '（';
+      ESC[')'] = '）';
+    }
+
+    @Override
+    public int[] getEscapeCodesForAscii() {
+      return ESC;
+    }
+
+    @Override
+    public SerializableString getEscapeSequence(int ch) {
+      return null;
+    }
+  }
 }
