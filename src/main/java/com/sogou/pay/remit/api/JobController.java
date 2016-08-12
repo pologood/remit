@@ -117,7 +117,7 @@ public class JobController implements InitializingBean {
   @ApiMethod(description = "update cron")
   @RequestMapping(value = "/job/{jobName}", method = RequestMethod.PUT)
   public ApiResult<?> update(@ApiPathParam(name = "jobName", description = "定时任务名") @PathVariable JobName jobName,
-      @ApiQueryParam(name = "cron", description = "定时表达式") @RequestParam(name = "cron") String cron) {
+      @ApiQueryParam(name = "cron", description = "定时表达式") @RequestParam String cron) {
     Tuple2<CronTriggerFactoryBean, TriggerKey> tuple = JOB_MAP.get(jobName);
     if (Objects.isNull(tuple)) return ApiResult.badRequest(Exceptions.JOB_INVALID);
     return reschedule(tuple.f, tuple.s, cron);

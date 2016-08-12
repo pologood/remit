@@ -82,8 +82,8 @@ public class TransferBatchController {
   public ApiResult<?> get(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
       @ApiPathParam(name = "channel", description = "渠道") @PathVariable Channel channel,
       @ApiPathParam(name = "status", description = "审批状态") @PathVariable AuditStatus status,
-      @ApiQueryParam(name = "beginTime", description = "起始时间", required = false) @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Optional<LocalDateTime> beginTime,
-      @ApiQueryParam(name = "endTime", description = "结束时间", required = false) @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Optional<LocalDateTime> endTime) {
+      @ApiQueryParam(name = "beginTime", description = "起始时间", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Optional<LocalDateTime> beginTime,
+      @ApiQueryParam(name = "endTime", description = "结束时间", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Optional<LocalDateTime> endTime) {
     Tuple2<Status, Integer> tuple = STATUS_MAP.get(status).apply(user);
     ApiResult<?> result = transferBatchManager.list(channel, tuple.f,
         Objects.equals(AuditStatus.INIT, status) ? null : user, beginTime.orElse(null), endTime.orElse(null), tuple.s);
