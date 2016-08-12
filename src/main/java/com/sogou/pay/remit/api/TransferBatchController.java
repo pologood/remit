@@ -67,7 +67,7 @@ public class TransferBatchController {
       LOGGER.error("[add]bad request:batch={}", batch);
       return ApiResult.bindingResult(bindingResult);
     }
-    return transferBatchManager.add(batch.makeXssSafe());
+    return transferBatchManager.add(batch);
   }
 
   @ApiMethod(description = "get transfer batch")
