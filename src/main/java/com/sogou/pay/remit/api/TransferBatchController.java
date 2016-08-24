@@ -105,6 +105,7 @@ public class TransferBatchController {
   public ApiResult<?> update(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
       @ApiPathParam(name = "appId", description = "业务线") @PathVariable Integer appId,
       @ApiQueryParam(name = "batchNos", description = "批次号列表") @RequestParam(name = "batchNos[]") List<String> batchNos) {
+    LOGGER.info("user {} approves {}", user, batchNos);
     return transferBatchManager.batchUpdateTransferBatchStatus(user, appId, batchNos,
         Status.getApprovedStatus(user.getRole()));
   }
