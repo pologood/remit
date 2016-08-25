@@ -5,6 +5,7 @@
  */
 package com.sogou.pay.remit.api;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -104,7 +105,8 @@ public class TransferBatchController {
   @RequestMapping(value = "/transferBatch/{appId}", method = RequestMethod.PUT)
   public ApiResult<?> update(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
       @ApiPathParam(name = "appId", description = "业务线") @PathVariable Integer appId,
-      @ApiQueryParam(name = "batchNos", description = "批次号列表") @RequestParam(name = "batchNos[]") List<String> batchNos) {
+      @ApiQueryParam(name = "batchNos", description = "批次号列表") @RequestParam(name = "batchNos[]") List<String> batchNos,
+      @ApiQueryParam(name = "amount", description = "审批通过总金额") @RequestParam(name = "amount") BigDecimal amount) {
     LOGGER.info("user {} approves {}", user, batchNos);
     return transferBatchManager.batchUpdateTransferBatchStatus(user, appId, batchNos,
         Status.getApprovedStatus(user.getRole()));
