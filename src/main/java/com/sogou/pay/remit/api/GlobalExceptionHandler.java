@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -30,13 +29,6 @@ public class GlobalExceptionHandler {
   public ApiResult<?> internalServerError(Exception e) {
     e.printStackTrace();
     return new ApiResult<>(ErrorCode.INTERNAL_ERROR, Throwables.getStackTraceAsString(e));
-  }
-
-  @ExceptionHandler(DuplicateKeyException.class)
-  @ResponseBody
-  public ApiResult<?> duplicateKeyException(Exception e) {
-    e.printStackTrace();
-    return new ApiResult<>(ErrorCode.BAD_REQUEST, "duplicate unique key");
   }
 
   @ExceptionHandler(DataAccessException.class)
