@@ -70,22 +70,27 @@ public class TransferBatchManager {
     return new ApiResult<>(batch);
   }
 
-  public ApiResult<List<TransferBatch>> list(Channel channel, Status status) {
+  public ApiResult<List<TransferBatch>> list(Channel channel, Integer status) {
     return list(channel, status, null);
   }
 
-  public ApiResult<List<TransferBatch>> list(Channel channel, Status status, User user) {
+  public ApiResult<List<TransferBatch>> list(Channel channel, Integer status, User user) {
     return list(channel, status, user, null, null);
   }
 
-  public ApiResult<List<TransferBatch>> list(Channel channel, Status status, User user, LocalDateTime beginTime,
+  public ApiResult<List<TransferBatch>> list(Channel channel, Integer status, User user, LocalDateTime beginTime,
       LocalDateTime endTime) {
     return list(channel, status, user, beginTime, endTime, null);
   }
 
-  public ApiResult<List<TransferBatch>> list(Channel channel, Status status, User user, LocalDateTime beginTime,
+  public ApiResult<List<TransferBatch>> list(Channel channel, Integer status, User user, LocalDateTime beginTime,
       LocalDateTime endTime, Integer min) {
-    List<TransferBatch> batchs = transferBatchMapper.list(channel, status, user, beginTime, endTime, min);
+    return list(channel, status, user, beginTime, endTime, min, true);
+  }
+
+  public ApiResult<List<TransferBatch>> list(Channel channel, Integer status, User user, LocalDateTime beginTime,
+      LocalDateTime endTime, Integer min, boolean isCreateTime) {
+    List<TransferBatch> batchs = transferBatchMapper.list(channel, status, user, beginTime, endTime, min, isCreateTime);
     if (Objects.equals(channel, Channel.PAY)) batchs.forEach(
         batch -> batch.setDetails(transferDetailManager.selectByBatchNo(batch.getAppId(), batch.getBatchNo())));
     return CollectionUtils.isEmpty(batchs) ? new ApiResult<>(ErrorCode.NOT_FOUND) : new ApiResult<>(batchs);
