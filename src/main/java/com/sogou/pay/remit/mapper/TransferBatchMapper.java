@@ -58,15 +58,16 @@ public interface TransferBatchMapper {
       SQL sql = new SQL().SELECT("*").FROM(TABLE);
       if (Objects.nonNull(map.get("channel"))) sql.WHERE("channel = #{channel}");
       if (Objects.nonNull(user)) {
-        if (Objects.nonNull(status))
-          sql.WHERE(String.format("status %s #{status}", (status.getValue() & 1) == 0 ? ">=" : "="));
         int id = user.getId(), i = user.getRole().getValue();
         for (; --i > 0; id <<= 8);
         sql.WHERE(String.format("auditor & %d = %d", id, id));
-      } else if (Objects.nonNull(status)) sql.WHERE("status = #{status}");
+      }
+      if (Objects.nonNull(status)) sql.WHERE("status & #{status}");
       if (Objects.nonNull(beginTime = (LocalDateTime) map.get("beginTime"))
-          && Objects.nonNull(endTime = (LocalDateTime) map.get("endTime")) && beginTime.isBefore(endTime))
-        sql.WHERE("createTime >= #{beginTime}").WHERE("createTime <= #{endTime}");
+          && Objects.nonNull(endTime = (LocalDateTime) map.get("endTime")) && beginTime.isBefore(endTime)) {
+        String time = MapUtils.getBooleanValue(map, "isCreateTime") ? "createTime" : "updateTime";
+        sql.WHERE(String.format("%s >= #{beginTime}", time)).WHERE(String.format("%s <= #{endTime}", time));
+      }
       if (Objects.nonNull(map.get("min"))) sql.WHERE("transferAmount >= #{min}");
       return sql.ORDER_BY("id DESC").toString();
     }
@@ -135,8 +136,9 @@ public interface TransferBatchMapper {
       @Param("withAll") boolean withAll);
 
   @SelectProvider(type = Sql.class, method = "list")
-  List<TransferBatch> list(@Param("channel") Channel channel, @Param("status") Status status, @Param("user") User user,
-      @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("min") Integer min);
+  List<TransferBatch> list(@Param("channel") Channel channel, @Param("status") Integer status, @Param("user") User user,
+      @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("min") Integer min,
+      @Param("isCreateTime") boolean isCreateTime);
 
   @UpdateProvider(type = Sql.class, method = "update")
   int update(TransferBatch batch);
