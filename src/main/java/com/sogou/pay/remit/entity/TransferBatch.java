@@ -441,29 +441,29 @@ public class TransferBatch {
 
   @ApiObject(name = "Batch.Status", description = "批次状态", group = "TransferBatch")
   public enum Status {
-    INIT(0),
+    INIT(1),
 
-    JUNIOR_REJECTED(1),
+    JUNIOR_REJECTED(2),
 
-    JUNIOR_APPROVED(2),
+    JUNIOR_APPROVED(4),
 
-    SENIOR_REJECTED(3),
+    SENIOR_REJECTED(8),
 
-    SENIOR_APPROVED(4),
+    SENIOR_APPROVED(16),
 
-    FINAL_REJECTED(5),
+    FINAL_REJECTED(32),
 
-    FINAL_APPROVED(6),
+    FINAL_APPROVED(64),
 
-    PROCESSING(7),
+    PROCESSING(128),
 
-    SUCCESS(8),
+    SUCCESS(256),
 
-    FAILED(9),
+    FAILED(512),
 
-    BACK(10),
+    BACK(1024),
 
-    PART(11);
+    PART(2048);
 
     private int value;
 
