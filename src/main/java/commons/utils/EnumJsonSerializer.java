@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.sogou.pay.remit.entity.TransferBatch.Channel;
+import com.sogou.pay.remit.entity.TransferBatch.Status;
 
 import commons.mybatis.EnumValueTypeHandler;
 
@@ -35,10 +36,23 @@ public class EnumJsonSerializer extends JsonSerializer<Enum<?>> {
       if (Channel.class.isAssignableFrom(value.getClass())) throw new Exception();
       Method method = value.getClass().getMethod(EnumValueTypeHandler.METHOD_NAME);
       Object object = method.invoke(value);
-      if (object instanceof Integer) gen.writeNumber((Integer) object);
-      else gen.writeString(String.valueOf(object));
+      if (object instanceof Integer) {
+        Integer i = (Integer) object;
+        if (Status.class.isAssignableFrom(value.getClass())) i = log2(i);
+        gen.writeNumber(i);
+      } else gen.writeString(String.valueOf(object));
     } catch (Exception e) {
       gen.writeString(value.name());
     }
+  }
+
+  private static int log2(int i) {
+    if (i < 1 || Integer.bitCount(i) != 1) throw new RuntimeException(String.format("%d is not a 2 power", i));
+    int value = 1, count = 0;
+    while (value != i) {
+      value <<= 1;
+      count++;
+    }
+    return count;
   }
 }

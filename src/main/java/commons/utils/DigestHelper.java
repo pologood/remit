@@ -1,6 +1,7 @@
 package commons.utils;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -8,7 +9,7 @@ import org.apache.commons.codec.binary.Hex;
 
 public class DigestHelper {
 
-  private static final Charset charset = Charset.forName("UTF-8");
+  private static final Charset charset = StandardCharsets.UTF_8;
 
   public static String sha1(byte[] input) {
     try {
