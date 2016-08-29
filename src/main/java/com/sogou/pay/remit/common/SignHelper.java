@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015 Sogou.com. All Rights Reserved.
  */
-package commons.utils;
+package com.sogou.pay.remit.common;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -16,6 +16,8 @@ import org.slf4j.LoggerFactory;
 
 import com.sogou.pay.remit.entity.TransferBatch.SignType;
 import com.sogou.pay.remit.manager.AppManager;
+
+import commons.utils.MapHelper;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月12日;

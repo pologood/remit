@@ -21,12 +21,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import com.google.common.collect.ImmutableMap;
+import com.sogou.pay.remit.common.JsonHelper;
 import com.sogou.pay.remit.entity.User;
 import com.sogou.pay.remit.manager.PandoraManager;
 import com.sogou.pay.remit.manager.UserManager;
 import com.sogou.pay.remit.model.ApiResult;
-
-import commons.utils.JsonHelper;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月20日;
