@@ -53,7 +53,7 @@ public interface TransferBatchMapper {
 
     public static String list(Map<String, Object> map) {
       LocalDateTime beginTime, endTime;
-      Status status = (Status) map.get("status");
+      Integer status = MapUtils.getInteger(map, "status");
       User user = (User) map.get("user");
       SQL sql = new SQL().SELECT("*").FROM(TABLE);
       if (Objects.nonNull(map.get("channel"))) sql.WHERE("channel = #{channel}");
@@ -126,8 +126,7 @@ public interface TransferBatchMapper {
     }
 
     public static String logNotify() {
-      return new SQL().UPDATE(TABLE).SET(String.format("notifyFlag = %d", NotifyFlag.SUCCESS.getValue()))
-          .WHERE("appId = #{appId}").WHERE("batchNo = #{batchNo}").toString();
+      return "update `transfer_batch` set notifyFlag = 1 where appId = #{appId} and batchNo = #{batchNo}";
     }
   }
 
