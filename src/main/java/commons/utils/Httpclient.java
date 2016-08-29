@@ -7,8 +7,10 @@ package commons.utils;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Objects;
 
+import org.apache.commons.collections4.MapUtils;
 import org.apache.http.HttpEntity;
 
 import org.apache.http.HttpStatus;
@@ -47,10 +49,19 @@ public class Httpclient {
       .build();
 
   public static ApiResult<String> post(String url, String data) {
-    return post(url, data, CHARSET);
+    return post(url, data, CHARSET, false);
   }
 
-  public static ApiResult<String> post(String url, String data, Charset charset) {
+  public static ApiResult<String> post(String url, String data, boolean isJson) {
+    return post(url, data, CHARSET, isJson);
+  }
+
+  public static ApiResult<String> post(String url, String data, Charset charset, boolean isJson) {
+    return post(url, data, charset, isJson, null);
+  }
+
+  public static ApiResult<String> post(String url, String data, Charset charset, boolean isJson,
+      Map<String, String> headers) {
     if (Objects.isNull(charset)) charset = StandardCharsets.UTF_8;
     long time = System.currentTimeMillis();
 
@@ -59,6 +70,8 @@ public class Httpclient {
     HttpPost post = new HttpPost(url);
     HttpEntity entity = new StringEntity(data, charset);
     post.setEntity(entity);
+    if (MapUtils.isNotEmpty(headers)) headers.entrySet().forEach(e -> post.setHeader(e.getKey(), e.getValue()));
+    if (isJson) post.setHeader("Content-type", "application/json");
     CloseableHttpResponse response = null;
 
     try {

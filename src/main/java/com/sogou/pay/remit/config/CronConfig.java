@@ -59,9 +59,27 @@ public class CronConfig {
   }
 
   @Bean
+  public MethodInvokingJobDetailFactoryBean callbackJob() {
+    MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
+    bean.setTargetBeanName("transferJob");
+    bean.setTargetMethod("callback");
+    bean.setConcurrent(false);
+    return bean;
+  }
+
+  @Bean(name = "callbackTrigger")
+  public CronTriggerFactoryBean callbackTrigger() {
+    CronTriggerFactoryBean bean = new CronTriggerFactoryBean();
+    bean.setJobDetail(callbackJob().getObject());
+    bean.setCronExpression(env.getProperty("remit.callback.cron"));
+    bean.setName("callbackTrigger");
+    return bean;
+  }
+
+  @Bean
   public SchedulerFactoryBean schedulerFactoryBean() {
     SchedulerFactoryBean bean = new SchedulerFactoryBean();
-    bean.setTriggers(payTrigger().getObject(), queryTrigger().getObject());
+    bean.setTriggers(payTrigger().getObject(), queryTrigger().getObject(), callbackTrigger().getObject());
     bean.setAutoStartup(true);
     return bean;
   }

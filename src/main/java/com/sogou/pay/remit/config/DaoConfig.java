@@ -50,7 +50,7 @@ public class DaoConfig {
     SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
     sqlSessionFactoryBean.setDataSource(dataSource());
 
-    TypeHandler<?>[] handlers = new TypeHandler[] { new LocalDateTimeTypeHandler(), };
+    TypeHandler<?>[] handlers = new TypeHandler[] { new LocalDateTimeTypeHandler() };
     sqlSessionFactoryBean.setTypeHandlers(handlers);
 
     SqlSessionFactory sqlSessionFactory = (SqlSessionFactory) sqlSessionFactoryBean.getObject();

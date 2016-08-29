@@ -6,15 +6,19 @@ import com.qcloud.PicCloud;
 import com.qcloud.UploadResult;
 
 public class QCloudImageService extends ImageService {
+
   private String bucket;
-  private int    appid;
+
+  private int appid;
+
   private String secretId;
+
   private String secretKey;
-  
+
   public QCloudImageService(String bucket, int appid, String secretId, String secretKey) {
-    this.bucket    = bucket;
-    this.appid     = appid;
-    this.secretId  = secretId;
+    this.bucket = bucket;
+    this.appid = appid;
+    this.secretId = secretId;
     this.secretKey = secretKey;
   }
 
@@ -29,7 +33,6 @@ public class QCloudImageService extends ImageService {
     } catch (Exception e) {
       throw new ImageException(e);
     }
-    
 
     Image image = new Image();
     image.setId(result.fileId);

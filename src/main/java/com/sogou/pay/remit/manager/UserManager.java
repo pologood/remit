@@ -13,7 +13,7 @@ import java.util.Objects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.sogou.pay.remit.entity.User;
 import com.sogou.pay.remit.entity.User.Role;
@@ -24,7 +24,7 @@ import com.sogou.pay.remit.model.ApiResult;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月25日;
 //-------------------------------------------------------
-@Component
+@Service
 public class UserManager implements InitializingBean {
 
   @Autowired
@@ -35,15 +35,16 @@ public class UserManager implements InitializingBean {
   private static final Map<Integer, User> ID_MAP = new HashMap<>();
 
   public static User getUserByUno(Integer uno) {
-    return UNO_MAP.get(uno);
+    return Objects.isNull(uno) ? null : UNO_MAP.get(uno);
   }
 
   public static User getUserById(Integer id) {
-    return ID_MAP.get(id);
+    return Objects.isNull(id) ? null : ID_MAP.get(id);
   }
 
-  @Override
-  public void afterPropertiesSet() throws Exception {
+  public void init() {
+    UNO_MAP.clear();
+    ID_MAP.clear();
     ApiResult<?> result = list();
     if (ApiResult.isNotOK(result)) return;
     for (Object o : (List<?>) result.getData()) {
@@ -53,14 +54,17 @@ public class UserManager implements InitializingBean {
     }
   }
 
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    init();
+  }
+
   public ApiResult<?> add(User user) {
-    return userMapper.add(user) > 0 ? ApiResult.ok()
-        : ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg());
+    return userMapper.add(user) > 0 ? ApiResult.ok() : ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED);
   }
 
   public ApiResult<?> delete(Integer uno) {
-    return userMapper.delete(uno) > 0 ? ApiResult.ok()
-        : ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg());
+    return userMapper.delete(uno) > 0 ? ApiResult.ok() : ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED);
   }
 
   public ApiResult<?> list() {
@@ -70,7 +74,7 @@ public class UserManager implements InitializingBean {
 
   public ApiResult<?> update(Integer uno, String mobile, Role role) {
     return (Objects.isNull(mobile) && Objects.isNull(role)) || userMapper.update(uno, mobile, role) > 0 ? ApiResult.ok()
-        : ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg());
+        : ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED);
   }
 
 }

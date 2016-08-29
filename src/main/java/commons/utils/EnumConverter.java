@@ -7,6 +7,7 @@ package commons.utils;
 
 import java.beans.PropertyEditorSupport;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -25,16 +26,13 @@ public class EnumConverter extends PropertyEditorSupport {
   private final Map<String, Enum<?>> NAME_MAP = new HashMap<>();
 
   public EnumConverter(Class<? extends Enum<?>> type) {
+    Arrays.stream(type.getEnumConstants()).forEach(e -> NAME_MAP.put(e.name(), e));
     try {
       this.type = type;
       Method method = type.getMethod(METHOD_NAME);
-      for (Enum<?> e : type.getEnumConstants()) {
+      for (Enum<?> e : type.getEnumConstants())
         VALUE_MAP.put(String.valueOf(method.invoke(e)), e);
-        NAME_MAP.put(e.name(), e);
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    } catch (Exception e) {}
   }
 
   @Override

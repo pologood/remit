@@ -41,6 +41,10 @@ public class SignHelper {
     }
   }
 
+  public static String sign(String context, String key) {
+    return sign(context, key, CHARSET, true, SignType.SHA);
+  }
+
   public static String sign(String context, String key, SignType signType) {
     return sign(context, key, CHARSET, true, signType);
   }

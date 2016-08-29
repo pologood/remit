@@ -4,11 +4,13 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Jedis;
 
 public abstract class SmsService {
+
   public static final String CODE_PREFIX = "SmsService_";
+
   public static final String CODE_SEND_PREFIX = "SmsServiceSend_";
-  
+
   private JedisPool jedisPool;
-  
+
   public SmsService(JedisPool jedisPool) {
     this.jedisPool = jedisPool;
   }
@@ -19,7 +21,7 @@ public abstract class SmsService {
     sendInternal(phone, msg);
     return true;
   }
-  
+
   public boolean send(String phone, String code, String msg) throws SmsException {
     String sendedCode;
     try (Jedis c = jedisPool.getResource()) {
@@ -42,7 +44,7 @@ public abstract class SmsService {
     try (Jedis c = jedisPool.getResource()) {
       code = c.get(key);
       if (regcode != null && regcode.equals(code)) {
-        c.del(key);         // sms code is one-off
+        c.del(key); // sms code is one-off
       }
     }
     return code;

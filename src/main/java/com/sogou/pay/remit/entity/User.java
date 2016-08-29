@@ -5,37 +5,45 @@
  */
 package com.sogou.pay.remit.entity;
 
+import java.util.Map;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.hibernate.validator.constraints.NotBlank;
+import org.jsondoc.core.annotation.ApiObject;
 import org.jsondoc.core.annotation.ApiObjectField;
+
+import com.google.common.collect.ImmutableMap;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月20日;
 //-------------------------------------------------------
+@ApiObject(name = "User", description = "用户", group = "User")
 public class User {
 
   private Integer id;
-  
-  @ApiObjectField(description = "工号")
+
+  @ApiObjectField(description = "工号", required = true)
   @NotNull(message = "uno is required")
   private Integer uno;
 
-  @ApiObjectField(description = "姓名")
+  @ApiObjectField(description = "姓名", required = true)
   @NotBlank(message = "name is required")
   private String name;
-  
-  @ApiObjectField(description = "邮箱")
+
+  @ApiObjectField(description = "邮箱", required = true)
   @NotBlank(message = "email is required")
   private String email;
 
-  @ApiObjectField(description = "手机")
+  @ApiObjectField(description = "手机", required = true)
   @NotBlank(message = "mobile is required")
-  @Pattern(regexp="^[0-9]{11}$")
+  @Pattern(regexp = "^[0-9]{11}$")
   private String mobile;
 
-  @ApiObjectField(description = "角色")
+  @ApiObjectField(description = "角色", required = true)
   @NotNull(message = "role is required")
   private Role role;
 
@@ -87,8 +95,9 @@ public class User {
     this.role = role;
   }
 
+  @ApiObject(name = "Role", description = "角色", group = "User")
   public enum Role {
-    ADMIN(0), JUNIOR(1), SENIOR(2), FINAL(3);
+    ADMIN(0), JUNIOR(1), SENIOR(2), FINAL(3), DEBUG(4);
 
     private int value;
 
@@ -99,6 +108,20 @@ public class User {
     public int getValue() {
       return value;
     }
+
+    public static final int JUNIOR_AUDIT_LIMIT = 30_0000, SENIOR_AUDIT_LIMIT = 50_0000;
+
+    private static final Map<Role, Integer> LIMIT_MAP = ImmutableMap.of(SENIOR, JUNIOR_AUDIT_LIMIT, FINAL,
+        SENIOR_AUDIT_LIMIT);
+
+    public static Integer getLimit(Role role) {
+      return LIMIT_MAP.get(role);
+    }
+  }
+
+  @Override
+  public String toString() {
+    return ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE);
   }
 
 }

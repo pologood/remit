@@ -8,59 +8,71 @@ package com.sogou.pay.remit.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotNull;
 
+import org.hibernate.validator.constraints.NotBlank;
+import org.jsondoc.core.annotation.ApiObject;
 import org.jsondoc.core.annotation.ApiObjectField;
+import org.springframework.format.annotation.NumberFormat;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 import commons.utils.JsonHelper;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
 //-------------------------------------------------------
+@ApiObject(name = "TransferDetail", description = "明细单", group = "TransferDetail")
 public class TransferDetail {
 
   @JsonIgnore
   private Long id;
 
-  @JsonIgnore
   private Integer appId;
 
-  @JsonIgnore
   private String batchNo;
 
-  @ApiObjectField(description = "转账流水号")
-  @NotNull(message = "transferId is required")
+  @ApiObjectField(description = "转账流水号", required = true)
+  @NotBlank(message = "transferId is required")
   private String transferId;
 
-  @ApiObjectField(description = "入款账户名")
-  @NotNull(message = "inAccountName is required")
-  private String inAccountName;
-
-  @ApiObjectField(description = "入款账号")
-  @NotNull(message = "inAccountId is required")
+  @ApiObjectField(description = "入款账号", required = true)
+  @NotBlank(message = "inAccountId is required")
   private String inAccountId;
 
-  @ApiObjectField(description = "金额")
+  @ApiObjectField(description = "入款账户名", required = true)
+  @NotBlank(message = "inAccountName is required")
+  private String inAccountName;
+
+  @ApiObjectField(description = "金额", required = true)
   @NotNull(message = "amount is required")
+  @DecimalMin(value = "0.01", message = "amount at least be 0.01")
+  @NumberFormat(pattern = "0.00")
   private BigDecimal amount;
 
+  @ApiObjectField(description = "他行名")
   private String bankName;
 
+  @ApiObjectField(description = "他行地址")
   private String bankCity;
 
+  @ApiObjectField(description = "备注")
   private String memo;
 
-  //
+  @JsonProperty(access = Access.READ_ONLY)
   private Status status;
 
+  @JsonProperty(access = Access.READ_ONLY)
   private String outErrMsg;
 
   //time stamp
   @JsonIgnore
   private LocalDateTime updateTime;
 
+  @ApiObject(name = "Detail.Status", description = "明细状态", group = "TransferDetail")
   public enum Status {
 
     INIT(0), OUT_INIT(1), SUCCESS(2), FAILED(3), CANCELED(4);

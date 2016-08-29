@@ -8,7 +8,6 @@ package com.sogou.pay.remit.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +23,11 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.hibernate.validator.constraints.NotBlank;
+import org.hibernate.validator.constraints.NotEmpty;
+import org.jsondoc.core.annotation.ApiObject;
 import org.jsondoc.core.annotation.ApiObjectField;
 import org.springframework.format.annotation.NumberFormat;
 
@@ -35,61 +38,49 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.sogou.pay.remit.entity.User.Role;
 
-import commons.utils.JsonHelper;
-import commons.utils.XssHelper;
-
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
 //-------------------------------------------------------
+@ApiObject(name = "TransferBatch", description = "批次单", group = "TransferBatch")
 public class TransferBatch {
-
-  public TransferBatch makeXssSafe() {
-    memo = XssHelper.escape(memo);
-    outAccountName = XssHelper.escape(outAccountName);
-    return this;
-  }
 
   @JsonIgnore
   private Long id;
 
-  @ApiObjectField(description = "版本号")
+  @ApiObjectField(description = "版本号", required = true)
   @NotBlank(message = "version is required")
   @Pattern(regexp = "^[a-zA-Z0-9\\.]+$")
   private String version;
 
-  @ApiObjectField(description = "渠道")
+  @ApiObjectField(description = "渠道", required = true)
   @NotNull(message = "channel is required")
+  @JsonProperty(access = Access.WRITE_ONLY)
   private Channel channel;
 
-  @ApiObjectField(description = "签名")
-  @NotBlank(message = "sign is required")
-  @Pattern(regexp = "^[0-9a-f]{40}$")
-  private String sign;
-
-  @ApiObjectField(description = "签名方式")
-  private SignType signType;
-
-  @ApiObjectField(description = "业务线Id")
+  @ApiObjectField(description = "业务线Id", required = true)
   @NotNull(message = "appId is required")
   @Min(value = 1, message = "appId at least be 1")
   @Max(value = 9999, message = "appId at most be 9999")
   private Integer appId;
 
-  @ApiObjectField(description = "批次号")
+  @ApiObjectField(description = "批次号", required = true)
   @NotBlank(message = "batchNo is required")
   @Size(max = 26, message = "limit of size of batchNo is 26")
   @Pattern(regexp = "^[a-zA-Z0-9]+$")
   private String batchNo;
 
-  @ApiObjectField(description = "付款笔数")
+  @ApiObjectField(description = "付款笔数", required = true)
+  @NotNull
+  @Min(value = 1, message = "transferCount at least be 1")
   private Integer transferCount;
 
-  @ApiObjectField(description = "金额")
+  @ApiObjectField(description = "金额", required = true)
   @DecimalMin(value = "0.01", message = "amount at least be 0.01")
   @NumberFormat(pattern = "0.00")
+  @NotNull
   private BigDecimal transferAmount;
 
-  @ApiObjectField(description = "备注")
+  @ApiObjectField(description = "备注", required = true)
   @NotBlank(message = "memo is required")
   private String memo;
 
@@ -98,21 +89,25 @@ public class TransferBatch {
   private String reserve;
 
   //audit
+  @JsonProperty(access = Access.READ_ONLY)
   private Long auditor;
 
+  @JsonProperty(access = Access.READ_ONLY)
   private List<String> auditTimes = new ArrayList<>();
 
+  @JsonProperty(access = Access.READ_ONLY)
   private List<String> auditOpinions = new ArrayList<>();
 
+  @JsonProperty(access = Access.READ_ONLY)
   private Status status;
 
   //bank
-  @ApiObjectField(description = "出款账号")
+  @ApiObjectField(description = "出款账号", required = true)
   @NotBlank(message = "outAccountId is required")
   @Pattern(regexp = "^[a-zA-Z0-9]+$")
   private String outAccountId;
 
-  @ApiObjectField(description = "出款账户名")
+  @ApiObjectField(description = "出款账户名", required = true)
   private String outAccountName;
 
   @ApiObjectField(description = "登录用户名")
@@ -131,8 +126,6 @@ public class TransferBatch {
   @ApiObjectField(description = "交易类型")
   private TransType transType;
 
-  //since version 1 only supports ￥ so ignore it
-  @JsonIgnore
   @ApiObjectField(description = "币种")
   private Currency currency;
 
@@ -140,12 +133,13 @@ public class TransferBatch {
   private SettleChannel settleChannel;
 
   //notify
-
   @JsonIgnore
   private String outTradeNo;
 
+  @JsonProperty(access = Access.READ_ONLY)
   private Integer successCount;
 
+  @JsonProperty(access = Access.READ_ONLY)
   private BigDecimal successAmount;
 
   @JsonProperty(access = Access.READ_ONLY)
@@ -160,10 +154,12 @@ public class TransferBatch {
 
   //details
   @Valid
-  @ApiObjectField(description = "转账明细")
-  @NotNull
-  @Size(min = 1, message = "details can not be empty")
+  @ApiObjectField(description = "转账明细", required = true)
+  @NotEmpty
   private List<TransferDetail> details;
+
+  @JsonIgnore
+  private NotifyFlag notifyFlag;
 
   public Long getId() {
     return id;
@@ -187,22 +183,6 @@ public class TransferBatch {
 
   public void setChannel(Channel channel) {
     this.channel = channel;
-  }
-
-  public String getSign() {
-    return sign;
-  }
-
-  public void setSign(String sign) {
-    this.sign = sign;
-  }
-
-  public SignType getSignType() {
-    return signType;
-  }
-
-  public void setSignType(SignType signType) {
-    this.signType = signType;
   }
 
   public Integer getAppId() {
@@ -413,21 +393,38 @@ public class TransferBatch {
     this.details = details;
   }
 
-  @Override
-  public String toString() {
-    return JsonHelper.toJson(this);
+  public NotifyFlag getNotifyFlag() {
+    return notifyFlag;
   }
 
+  public void setNotifyFlag(NotifyFlag notifyFlag) {
+    this.notifyFlag = notifyFlag;
+  }
+
+  @Override
+  public String toString() {
+    return ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE);
+  }
+
+  public enum NotifyFlag {
+    NEVER(0), SUCCESS(1);
+
+    private int value;
+
+    private NotifyFlag(int value) {
+      this.value = value;
+    }
+
+    public int getValue() {
+      return value;
+    }
+  }
+
+  @ApiObject(name = "SignType", description = "签名方式")
   public enum SignType {
     MD5(0), SHA(1);
 
     private int value;
-
-    private static final Map<Integer, SignType> MAP = new HashMap<>();
-
-    static {
-      Arrays.stream(SignType.values()).forEach(signType -> MAP.put(signType.getValue(), signType));
-    }
 
     private SignType(int value) {
       this.value = value;
@@ -438,23 +435,35 @@ public class TransferBatch {
     }
 
     public static SignType getSignType(Integer value) {
-      return Objects.isNull(value) ? null : MAP.get(value);
+      return Objects.isNull(value) || value < 0 || value > 1 ? null : SignType.values()[value];
     }
   }
 
+  @ApiObject(name = "Batch.Status", description = "批次状态", group = "TransferBatch")
   public enum Status {
+    INIT(1),
 
-    INIT(0), //
-    JUNIOR_REJECTED(1), //
-    JUNIOR_APPROVED(2), //
-    SENIOR_REJECTED(3), //
-    SENIOR_APPROVED(4), //
-    FINAL_REJECTED(5), //
-    FINAL_APPROVED(6), //
-    PROCESSING(7), //
-    SUCCESS(8), //
-    FAILED(9), //
-    BACK(10), PART(11);
+    JUNIOR_REJECTED(2),
+
+    JUNIOR_APPROVED(4),
+
+    SENIOR_REJECTED(8),
+
+    SENIOR_APPROVED(16),
+
+    FINAL_REJECTED(32),
+
+    FINAL_APPROVED(64),
+
+    PROCESSING(128),
+
+    SUCCESS(256),
+
+    FAILED(512),
+
+    BACK(1024),
+
+    PART(2048);
 
     private int value;
 
@@ -466,13 +475,16 @@ public class TransferBatch {
       return this.value;
     }
 
+    public static final Set<Status> AUDIT_STATUS = Sets.newHashSet(JUNIOR_APPROVED, JUNIOR_REJECTED, SENIOR_APPROVED,
+        SENIOR_REJECTED, FINAL_APPROVED, FINAL_REJECTED);
+
     public static final Map<Status, Set<Status>> NEXT_MAP = new HashMap<>();
 
     static {
       NEXT_MAP.put(INIT, Sets.newHashSet(JUNIOR_APPROVED, JUNIOR_REJECTED));
-      NEXT_MAP.put(JUNIOR_APPROVED, Sets.newHashSet(SENIOR_APPROVED, SENIOR_REJECTED, PROCESSING));
-      NEXT_MAP.put(SENIOR_APPROVED, Sets.newHashSet(FINAL_APPROVED, FINAL_REJECTED, PROCESSING));
-      NEXT_MAP.put(FINAL_APPROVED, Sets.newHashSet(PROCESSING));
+      NEXT_MAP.put(JUNIOR_APPROVED, Sets.newHashSet(SENIOR_APPROVED, SENIOR_REJECTED, PROCESSING, FAILED));
+      NEXT_MAP.put(SENIOR_APPROVED, Sets.newHashSet(FINAL_APPROVED, FINAL_REJECTED, PROCESSING, FAILED));
+      NEXT_MAP.put(FINAL_APPROVED, Sets.newHashSet(PROCESSING, FAILED));
       NEXT_MAP.put(PROCESSING, Sets.newHashSet(SUCCESS, FAILED, BACK, PART));
     }
 
@@ -487,8 +499,15 @@ public class TransferBatch {
     private static final Map<Role, Status> APPROVED_MAP = ImmutableMap.of(Role.JUNIOR, JUNIOR_APPROVED, Role.SENIOR,
         SENIOR_APPROVED, Role.FINAL, FINAL_APPROVED);
 
+    private static final Map<Role, Status> TODO_MAP = ImmutableMap.of(Role.JUNIOR, INIT, Role.SENIOR, JUNIOR_APPROVED,
+        Role.FINAL, SENIOR_APPROVED);
+
     public static Status getRejectedStatus(Role role) {
       return REJECTED_MAP.get(role);
+    }
+
+    public static Status getToDoStatus(Role role) {
+      return TODO_MAP.get(role);
     }
 
     public static Status getApprovedStatus(Role role) {
@@ -496,14 +515,19 @@ public class TransferBatch {
     }
   }
 
+  @ApiObject(name = "BusiMode", description = "业务模式", group = "TransferBatch")
   public enum BusiMode {
-    DIRECT_PAYROLL("00001"), //直接代发工资
-    CLIENT_PAYROLL("00002"); //客户端代发工资
+    DIRECT_PAYROLL("00001", "直接代发工资"), CLIENT_PAYROLL("00002", "客户端代发工资");
 
-    private String value;
+    private String value, description;
 
-    private BusiMode(String value) {
+    private BusiMode(String value, String description) {
       this.value = value;
+      this.description = description;
+    }
+
+    public String getDescription() {
+      return description;
     }
 
     public String getValue() {
@@ -511,119 +535,195 @@ public class TransferBatch {
     }
   }
 
+  @ApiObject(name = "BusiCode", description = "业务类型", group = "TransferBatch")
   public enum BusiCode {
     /*支付*/
-    PAY("N02030"), //支付
-    DIRECT_PAY("N02031"), //直接支付
-    GROUP_PAY("N02040"), //集团支付
-    DIRECT_GROUP_PAY("N02041"), //直接集团支付
+    PAY("N02030", "支付"),
+
+    DIRECT_PAY("N02031", "直接支付"),
+
+    GROUP_PAY("N02040", "集团支付"),
+
+    DIRECT_GROUP_PAY("N02041", "直接集团支付"),
 
     /*代发代扣 */
-    PAYROLL("N03010"), //代发工资
-    AGENT_PAY("N03020"), //代发
-    WITHHOLD("N03030");//代扣
+    PAYROLL("N03010", "代发工资"),
 
-    private String value;
+    AGENT_PAY("N03020", "代发"),
 
-    private BusiCode(String value) {
+    WITHHOLD("N03030", "代扣");
+
+    private String value, description;
+
+    private BusiCode(String value, String description) {
       this.value = value;
+      this.description = description;
     }
 
     public String getValue() {
       return value;
     }
+
+    public String getDescription() {
+      return description;
+    }
   }
 
+  @ApiObject(name = "Channel", description = "渠道", group = "TransferBatch")
   public enum Channel {
-    PAY(0), //支付
-    AGENCY(1); //代发代扣
+    PAY(0, "支付"), AGENCY(1, "代发代扣");
 
     private int value;
 
-    private Channel(int value) {
+    private String description;
+
+    private Channel(int value, String description) {
       this.value = value;
+      this.description = description;
     }
 
     public int getValue() {
       return value;
     }
+
+    public String getDescription() {
+      return description;
+    }
   }
 
+  @ApiObject(name = "SettleChannel", description = "结算方式", group = "TransferBatch")
   public enum SettleChannel {
-    ORDINARY("N"), FAST("F");
+    ORDINARY("N", "普通"), FAST("F", "快速");
 
-    private String value;
+    private String value, description;
 
-    private SettleChannel(String value) {
+    private SettleChannel(String value, String description) {
       this.value = value;
+      this.description = description;
     }
 
     public String getValue() {
       return this.value;
     }
+
+    public String getDescription() {
+      return description;
+    }
   }
 
+  @ApiObject(name = "BranchCode", description = "分行号", group = "TransferBatch")
   public enum BranchCode {
-    Root("01"), //
-    RootAccounting("03"), //
-    Beijing("10"), //
-    OffshoreBranch("12"), //
-    RootOffshoreCenter("13"), //
-    Guangzhou("20"), //
-    Shanghai("21"), //
-    Tianjin("22"), //
-    Chongqing("23"), //
-    Shenyang("24"), //
-    Nanjing("25"), //
-    Wuhan("27"), //
-    Chengdu("28"), //
-    Xian("29"), //
-    Taiyuan("35"), //
-    Zhengzhou("37"), //
-    Shijiazhuang("38"), //
-    Tangshan("39"), //
-    Dalian("41"), //
-    Changchun("43"), //
-    Harbin("45"), //
-    Huhehaote("47"), //
-    Yinchuan("51"), //
-    Suzhou("52"), //
-    Qingdao("53"), //
-    Ningbo("54"), //
-    Hefei("55"), //
-    Jinan("56"), //
-    Hangzhou("57"), //
-    Wenzhou("58"), //
-    Fuzhou("59"), //
-    Quanzhou("60"), //
-    Wuxi("62"), //
-    Dongguan("69"), //
-    Nanning("71"), //
-    Xining("72"), //
-    Changsha("73"), //
-    Shenzhen("75"), //
-    Foshan("77"), //
-    Nanchang("79"), //
-    Guiyang("85"), //
-    Kunming("87"), //
-    Haikou("89"), //
-    Urumqi("91"), //
-    Xiamen("92"), //
-    Lanzhou("93"), //
-    Hongkong("97");
+    Root("01", "总行"),
 
-    private String value;
+    RootAccounting("03", "总行会计部"),
 
-    private BranchCode(String value) {
+    Beijing("10", "北京"),
+
+    OffshoreBranch("12", "离岸分行"),
+
+    RootOffshoreCenter("13", "总行离岸中心"),
+
+    Guangzhou("20", "广州"),
+
+    Shanghai("21", "上海"),
+
+    Tianjin("22", "天津"),
+
+    Chongqing("23", "重庆"),
+
+    Shenyang("24", "沈阳"),
+
+    Nanjing("25", "南京"),
+
+    Wuhan("27", "武汉"),
+
+    Chengdu("28", "成都"),
+
+    Xian("29", "西安"),
+
+    Taiyuan("35", "太原"),
+
+    Zhengzhou("37", "郑州"),
+
+    Shijiazhuang("38", "石家庄"),
+
+    Tangshan("39", "唐山"),
+
+    Dalian("41", "大连"),
+
+    Changchun("43", "长春"),
+
+    Harbin("45", "哈尔滨"),
+
+    Huhehaote("47", "呼和浩特"),
+
+    Yinchuan("51", "银川"),
+
+    Suzhou("52", "苏州"),
+
+    Qingdao("53", "青岛"),
+
+    Ningbo("54", "宁波"),
+
+    Hefei("55", "合肥"),
+
+    Jinan("56", "济南"),
+
+    Hangzhou("57", "杭州"),
+
+    Wenzhou("58", "温州"),
+
+    Fuzhou("59", "福州"),
+
+    Quanzhou("60", "泉州"),
+
+    Wuxi("62", "无锡"),
+
+    Dongguan("69", "东莞"),
+
+    Nanning("71", "南宁"),
+
+    Xining("72", "西宁"),
+
+    Changsha("73", "长沙"),
+
+    Shenzhen("75", "深圳"),
+
+    Foshan("77", "佛山"),
+
+    Nanchang("79", "南昌"),
+
+    Guiyang("85", "贵阳"),
+
+    Kunming("87", "昆明"),
+
+    Haikou("89", "海口"),
+
+    Urumqi("91", "乌鲁木齐"),
+
+    Xiamen("92", "厦门"),
+
+    Lanzhou("93", "兰州"),
+
+    Hongkong("97", "香港");
+
+    private String value, description;
+
+    private BranchCode(String value, String description) {
       this.value = value;
+      this.description = description;
     }
 
     public String getValue() {
       return this.value;
     }
 
+    public String getDescription() {
+      return description;
+    }
   }
 
+  @ApiObject(name = "TransType", description = "交易类型", group = "TransferBatch")
   public enum TransType {
     //pay
     ORDINARY("100001", "普通汇兑"),
@@ -737,33 +837,39 @@ public class TransferBatch {
 
     WITHHOLD_BATCH_DEDUCTIONS("AYBT", "代扣批量扣费");
 
-    private String value, message;
+    private String value, description;
 
-    private TransType(String value, String message) {
+    private TransType(String value, String description) {
       this.value = value;
-      this.message = message;
+      this.description = description;
     }
 
     public String getValue() {
       return value;
     }
 
-    public String getMessage() {
-      return message;
+    public String getDescription() {
+      return description;
     }
   }
 
+  @ApiObject(name = "Currency", description = "币种", group = "TransferBatch")
   public enum Currency {
-    RMB("10");
+    RMB("10", "人民币");
 
-    private String value;
+    private String value, description;
 
-    private Currency(String value) {
+    private Currency(String value, String description) {
       this.value = value;
+      this.description = description;
     }
 
     public String getValue() {
       return value;
+    }
+
+    public String getDescription() {
+      return description;
     }
   }
 

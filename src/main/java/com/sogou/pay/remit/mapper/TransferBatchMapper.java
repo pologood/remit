@@ -6,11 +6,13 @@
 package com.sogou.pay.remit.mapper;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.Options;
@@ -22,7 +24,10 @@ import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.ImmutableList;
 import com.sogou.pay.remit.entity.TransferBatch;
+import com.sogou.pay.remit.entity.TransferBatch.Channel;
+import com.sogou.pay.remit.entity.TransferBatch.NotifyFlag;
 import com.sogou.pay.remit.entity.TransferBatch.Status;
+import com.sogou.pay.remit.entity.User;
 
 import commons.utils.Tuple2;
 
@@ -36,17 +41,35 @@ public interface TransferBatchMapper {
 
     private final static String TABLE = "`transfer_batch`";
 
-    private final static List<String> ITEMS_SELECTED_BY_BATCHNO = ImmutableList.of("appId", "batchNo", "status",
-        "outErrMsg", "transferCount", "transferAmount", "successCount", "successAmount");
+    private final static List<String> ITEMS_SELECTED_BY_BATCHNO = ImmutableList.of("appId", "batchNo", "channel",
+        "status", "outErrMsg", "transferCount", "transferAmount", "successCount", "successAmount");
 
     public static String selectByBatchNo(Map<String, Object> param) {
       SQL sql = new SQL();
-      ITEMS_SELECTED_BY_BATCHNO.forEach(columns -> sql.SELECT(columns));
+      if (MapUtils.getBooleanValue(param, "withAll")) sql.SELECT("*");
+      else ITEMS_SELECTED_BY_BATCHNO.forEach(columns -> sql.SELECT(columns));
       return sql.FROM(TABLE).WHERE("appId = #{appId}").WHERE("batchNo = #{batchNo}").toString();
     }
 
     public static String list(Map<String, Object> map) {
-      return new SQL().SELECT("*").FROM(TABLE).WHERE("status = #{status}").toString();
+      LocalDateTime beginTime, endTime;
+      Status status = (Status) map.get("status");
+      User user = (User) map.get("user");
+      SQL sql = new SQL().SELECT("*").FROM(TABLE);
+      if (Objects.nonNull(map.get("channel"))) sql.WHERE("channel = #{channel}");
+      if (Objects.nonNull(user)) {
+        int id = user.getId(), i = user.getRole().getValue();
+        for (; --i > 0; id <<= 8);
+        sql.WHERE(String.format("auditor & %d = %d", id, id));
+      }
+      if (Objects.nonNull(status)) sql.WHERE("status & #{status}");
+      if (Objects.nonNull(beginTime = (LocalDateTime) map.get("beginTime"))
+          && Objects.nonNull(endTime = (LocalDateTime) map.get("endTime")) && beginTime.isBefore(endTime)) {
+        String time = MapUtils.getBooleanValue(map, "isCreateTime") ? "createTime" : "updateTime";
+        sql.WHERE(String.format("%s >= #{beginTime}", time)).WHERE(String.format("%s <= #{endTime}", time));
+      }
+      if (Objects.nonNull(map.get("min"))) sql.WHERE("transferAmount >= #{min}");
+      return sql.ORDER_BY("id DESC").toString();
     }
 
     public static String update(TransferBatch batch) {
@@ -57,6 +80,7 @@ public interface TransferBatchMapper {
       if (StringUtils.isNotBlank(batch.getOutTradeNo())) sql.SET("outTradeNo = #{outTradeNo}");
       if (Objects.nonNull(batch.getSuccessAmount())) sql.SET("successAmount = #{successAmount}");
       if (Objects.nonNull(batch.getSuccessCount())) sql.SET("successCount = #{successCount}");
+      if (Objects.nonNull(batch.getAuditor())) sql.SET("auditor = #{auditor}");
       return sql.SET("status = #{status}").WHERE("appId = #{appId}").WHERE("batchNo = #{batchNo}").toString();
     }
 
@@ -93,13 +117,28 @@ public interface TransferBatchMapper {
       }
       return sql.toString();
     }
+
+    public static String listNotify() {
+      SQL sql = new SQL();
+      ITEMS_SELECTED_BY_BATCHNO.forEach(columns -> sql.SELECT(columns));
+      return sql.FROM(TABLE).WHERE(String.format("status > %d", Status.PROCESSING.getValue()))
+          .WHERE(String.format("notifyFlag != %d", NotifyFlag.SUCCESS.getValue())).toString();
+    }
+
+    public static String logNotify() {
+      return new SQL().UPDATE(TABLE).SET(String.format("notifyFlag = %d", NotifyFlag.SUCCESS.getValue()))
+          .WHERE("appId = #{appId}").WHERE("batchNo = #{batchNo}").toString();
+    }
   }
 
   @SelectProvider(type = Sql.class, method = "selectByBatchNo")
-  TransferBatch selectByBatchNo(@Param("appId") Integer appId, @Param("batchNo") String batchNo);
+  TransferBatch selectByBatchNo(@Param("appId") Integer appId, @Param("batchNo") String batchNo,
+      @Param("withAll") boolean withAll);
 
   @SelectProvider(type = Sql.class, method = "list")
-  List<TransferBatch> list(@Param("status") int status);
+  List<TransferBatch> list(@Param("channel") Channel channel, @Param("status") Integer status, @Param("user") User user,
+      @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("min") Integer min,
+      @Param("isCreateTime") boolean isCreateTime);
 
   @UpdateProvider(type = Sql.class, method = "update")
   int update(TransferBatch batch);
@@ -111,4 +150,9 @@ public interface TransferBatchMapper {
   @SelectProvider(type = Sql.class, method = "listWithStatusAndAmount")
   List<TransferBatch> listWithStatusAndAmount(@Param("conditions") List<Tuple2<Status, BigDecimal>> conditions);
 
+  @SelectProvider(type = Sql.class, method = "listNotify")
+  List<TransferBatch> listNotify();
+
+  @UpdateProvider(type = Sql.class, method = "logNotify")
+  int logNotify(TransferBatch batch);
 }

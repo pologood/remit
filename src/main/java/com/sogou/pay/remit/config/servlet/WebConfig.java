@@ -1,5 +1,7 @@
 package com.sogou.pay.remit.config.servlet;
 
+import com.sogou.pay.remit.api.AdminInterceptor;
+import com.sogou.pay.remit.api.FinalInterceptor;
 import com.sogou.pay.remit.api.LogInterceptor;
 import com.sogou.pay.remit.api.SignInterceptor;
 import com.sogou.pay.remit.config.ProjectInfo;
@@ -7,9 +9,9 @@ import com.sogou.pay.remit.config.ProjectInfo;
 import commons.utils.JsonHelper;
 
 import java.io.IOException;
-
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -28,15 +30,17 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 @ComponentScan({ ProjectInfo.API_PKG })
 public class WebConfig extends WebMvcConfigurerAdapter {
 
-  @Bean
-  public MappedInterceptor signInterceptor() {
-    return new MappedInterceptor(new String[] { "/api/transferBatch" }, new SignInterceptor());
-  }
+  @Autowired
+  SignInterceptor signInterceptor;
 
-  @Bean
-  public MappedInterceptor logInterceptor() {
-    return new MappedInterceptor(new String[] { "/api/transferDetail", "/api/transferBatch/*" }, new LogInterceptor());
-  }
+  @Autowired
+  LogInterceptor logInterceptor;
+
+  @Autowired
+  FinalInterceptor finalInterceptor;
+
+  @Autowired
+  AdminInterceptor adminInterceptor;
 
   @Override
   public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
@@ -54,7 +58,16 @@ public class WebConfig extends WebMvcConfigurerAdapter {
   @Bean
   public RequestMappingHandlerMapping requestMappingHandlerMapping() {
     RequestMappingHandlerMapping r = new RequestMappingHandlerMapping();
+    r.setUseTrailingSlashMatch(false);
+    r.setUseSuffixPatternMatch(false);
     r.setRemoveSemicolonContent(false);
+    r.setInterceptors(
+        new Object[] { new MappedInterceptor(new String[] { "/api/transferBatch" }, signInterceptor),
+            new MappedInterceptor(new String[] { "/api/transferDetail", "/api/transferBatch/**", "/api/job/**",
+                "/api/user", "/api/refresh" }, new String[] { "/api/transferBatch" }, logInterceptor),
+        new MappedInterceptor(new String[] { "/api/user" }, finalInterceptor),
+        new MappedInterceptor(new String[] { "/api/job/**", "/api/refresh" }, adminInterceptor) });
+    r.setOrder(0);
     return r;
   }
 }

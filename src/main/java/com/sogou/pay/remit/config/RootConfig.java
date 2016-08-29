@@ -18,6 +18,7 @@ import redis.clients.jedis.JedisPool;
 import commons.saas.RestNameService;
 import commons.spring.LoggerFilter;
 import commons.spring.LooseGsonHttpMessageConverter;
+import commons.spring.MultiReadableFilter;
 import commons.spring.RestTemplateFilter;
 import commons.spring.XssFilter;
 
@@ -53,6 +54,11 @@ public class RootConfig {
   @Bean
   public XssFilter xssFilter() {
     return new XssFilter(env);
+  }
+
+  @Bean
+  public MultiReadableFilter multiReadableFilter() {
+    return new MultiReadableFilter();
   }
 
   @Bean

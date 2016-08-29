@@ -11,7 +11,7 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sogou.pay.remit.entity.TransferDetail;
@@ -23,7 +23,7 @@ import com.sogou.pay.remit.model.InternalErrorException;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月22日;
 //-------------------------------------------------------
-@Component
+@Service
 public class TransferDetailManager {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TransferBatchManager.class);
@@ -38,12 +38,12 @@ public class TransferDetailManager {
     if (Objects.isNull(detailInDB)) return ApiResult.notFound();
     if (!Objects.equals(detail.getAmount(), detailInDB.getAmount())
         || !Objects.equals(detail.getInAccountId(), detailInDB.getInAccountId())) {
-      LOGGER.error("{}:detail:{} detail in db:{}", Exceptions.DETAIL_INVALID.getErrMsg(), detail, detailInDB);
-      return ApiResult.notAcceptable(Exceptions.DETAIL_INVALID.getErrMsg());
+      LOGGER.error("{}:detail:{} detail in db:{}", Exceptions.DETAIL_INVALID, detail, detailInDB);
+      return ApiResult.notAcceptable(Exceptions.DETAIL_INVALID);
     }
     if (transferDetailMapper.update(detail) < 1) {
-      LOGGER.error("{} detail:{}", Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg(), detail);
-      return ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED.getErrMsg());
+      LOGGER.error("{} detail:{}", Exceptions.DATA_PERSISTENCE_FAILED, detail);
+      return ApiResult.internalError(Exceptions.DATA_PERSISTENCE_FAILED);
     }
     return ApiResult.ok();
   }

@@ -1,0 +1,29 @@
+#!/bin/bash
+
+test -d .lib || mkdir .lib
+test -f deps.txt || exit
+cd .lib
+
+for JAR in `cat ../deps.txt`; do
+  groupId=$(echo $JAR | rev | cut -d'-' -f2- | cut -d'.' -f2- | rev)
+  artifactId=$(echo $JAR | rev | cut -d'-' -f2- | cut -d'.' -f1 | rev)
+  version=$(echo $JAR | rev | cut -d'-' -f1 | cut -d'.' -f2- | rev)
+  packaging=$(echo $JAR | rev | cut -d'.' -f1 | rev)
+
+  echo curl http://github.sogou-op.org/qiyun/extlib/raw/master/$JAR -o $JAR | bash -x
+
+  pomFileArg=""
+  if [[ "$packaging" == "jar" ]]; then
+    rm -rf META-INF
+    unzip -qq $JAR
+    pomFile=$(find META-INF -name pom.xml | grep $artifactId)
+    if [[ "$pomFile" != "" ]]; then
+      pomFileArg="-DpomFile=$pomFile"
+    fi
+  fi
+    
+  echo mvn install:install-file -Dfile=$JAR -DgroupId=$groupId -DartifactId=$artifactId -Dversion=$version -Dpackaging=$packaging $pomFileArg | bash -x
+done
+
+cd ..
+rm -rf .lib

@@ -17,12 +17,12 @@ import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
   static final String s401 = "{`code`: 401, `message`: `Unauthorized`}".replace('`', '"');
-  
+
   @Override
-  public void commence(
-    HttpServletRequest request, HttpServletResponse response,
-    AuthenticationException authException) throws IOException {
+  public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
+      throws IOException {
 
     response.setContentType("application/json");
     response.getOutputStream().print(s401);
@@ -30,8 +30,10 @@ class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 }
 
 public class SecurityConfigWithRedisRememberMeService extends WebSecurityConfigurerAdapter {
+
   private RememberMeServices rms;
-  private Environment        env;
+
+  private Environment env;
 
   public void init(RememberMeServices rms, Environment env) {
     this.rms = rms;
@@ -45,7 +47,7 @@ public class SecurityConfigWithRedisRememberMeService extends WebSecurityConfigu
   boolean configUrlPermit(HttpSecurity http, boolean whiteList) throws Exception {
     String config = whiteList ? "url.permit." : "url.deny.";
     boolean hasConfig = false;
-    
+
     for (int i = 1; i < 101; ++i) {
       String request = env.getProperty(config + String.valueOf(i));
       if (request == null) continue;
@@ -99,12 +101,9 @@ public class SecurityConfigWithRedisRememberMeService extends WebSecurityConfigu
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-    http.csrf().disable()
-      .sessionManagement()
-      .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    http.csrf().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-    http.exceptionHandling()
-      .authenticationEntryPoint(new RestAuthenticationEntryPoint());
+    http.exceptionHandling().authenticationEntryPoint(new RestAuthenticationEntryPoint());
 
     if (!configUrlPermit(http, true)) {
       if (!configUrlPermit(http, false)) {

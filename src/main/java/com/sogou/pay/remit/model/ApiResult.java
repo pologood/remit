@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.jsondoc.core.annotation.ApiObject;
 import org.jsondoc.core.annotation.ApiObjectField;
@@ -56,7 +56,7 @@ public class ApiResult<Data> {
 
   void setErrorHint() {
     RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-    if (Objects.isNull(requestAttributes)) return;
+    if (Objects.isNull(requestAttributes) || Objects.isNull(message)) return;
     HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
     HttpServletResponse response = (HttpServletResponse) request.getAttribute(RESPONSE);
     String error = String.format("%s:%s", code, message.substring(0, Math.min(100, message.length())));
@@ -92,8 +92,20 @@ public class ApiResult<Data> {
     return new ApiResult<>(ErrorCode.NOT_ACCEPTABLE, msg);
   }
 
+  public static ApiResult<?> notAcceptable(Exceptions e) {
+    return notAcceptable(e.getErrMsg());
+  }
+
   public static ApiResult<?> internalError(String msg) {
     return new ApiResult<>(ErrorCode.INTERNAL_ERROR, msg);
+  }
+
+  public static ApiResult<?> internalError(Exceptions e) {
+    return internalError(e.getErrMsg());
+  }
+
+  public static ApiResult<?> internalError(Exception e) {
+    return internalError(e.getMessage());
   }
 
   public static ApiResult<?> notImplemented() {
@@ -148,7 +160,7 @@ public class ApiResult<Data> {
 
   @Override
   public String toString() {
-    return ReflectionToStringBuilder.toString(this, ToStringStyle.JSON_STYLE);
+    return ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE);
   }
 
 }
