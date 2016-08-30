@@ -6,6 +6,7 @@
 package com.sogou.pay.remit.job;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,6 +28,8 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableMap;
 import com.sogou.pay.remit.api.SignInterceptor;
+import com.sogou.pay.remit.common.Httpclient;
+import com.sogou.pay.remit.common.JsonHelper;
 import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.Channel;
 import com.sogou.pay.remit.entity.TransferBatch.Status;
@@ -37,8 +40,6 @@ import com.sogou.pay.remit.manager.TransferBatchManager;
 import com.sogou.pay.remit.manager.TransferDetailManager;
 import com.sogou.pay.remit.model.ApiResult;
 
-import commons.utils.Httpclient;
-import commons.utils.JsonHelper;
 import commons.utils.Tuple2;
 
 //--------------------- Change Logs----------------------
@@ -46,6 +47,59 @@ import commons.utils.Tuple2;
 //-------------------------------------------------------
 @Service
 public class TransferJob implements InitializingBean {
+
+  public void email() {
+    Map<String, String> data = getEmail();
+    if (MapUtils.isNotEmpty(data)) Httpclient.post(emailUrl, data);
+  }
+
+  private Map<String, String> getEmail() {
+    LocalDate today = LocalDate.now(), yesterday = today.minusDays(1);
+    List<TransferBatch> list = transferBatchManager.list(null, Integer.parseInt("111110000000", 2), null,
+        yesterday.atStartOfDay(), today.atStartOfDay(), null, false).getData();
+    if (CollectionUtils.isEmpty(list)) return null;
+    Map<String, String> map = new HashMap<>();
+    map.put("uid", "pay@sogou-inc.com");
+    map.put("fr_name", "Sogou Pay");
+    map.put("fr_addr", "pay@sogou-inc.com");
+    map.put("mode", "text");
+    map.put("title", String.format("银企直联统计%s", yesterday));
+    map.put("maillist", emailList);
+    map.put("attname", String.format("%s.csv", yesterday));
+    map.put("attbody", getAttBody(list));
+    map.put("body", getBody(list));
+    return map;
+  }
+
+  private String getAttBody(List<TransferBatch> list) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(
+        "channel,batchNo,transferCount,transferAmount,memo,outAccountId,status,successAmount,successCount,outErrMsg\n");
+    TransferBatch batch = list.get(0);
+    list.forEach(batch1 -> sb.append(String.join(",",
+        Arrays
+            .stream(new Object[] { batch.getChannel(), batch.getBatchNo(), batch.getTransferCount(),
+                batch.getTransferAmount(), batch.getMemo(), batch.getOutAccountId(), batch.getStatus(),
+                batch.getSuccessAmount(), batch.getSuccessCount(), batch.getOutErrMsg() })
+        .map(o -> Objects.toString(o, null)).collect(Collectors.toList()))).append("\n"));
+    return sb.toString();
+  }
+
+  private String getBody(List<TransferBatch> list) {
+    BigDecimal transferAmountSum = BigDecimal.ZERO, successAmountSum = BigDecimal.ZERO;
+    Integer transferCountSum = 0, successCountSum = 0;
+    for (TransferBatch batch : list) {
+      transferAmountSum = transferAmountSum.add(batch.getTransferAmount());
+      successAmountSum = successAmountSum.add(
+          Objects.equals(Status.SUCCESS, batch.getStatus()) ? batch.getTransferAmount() : batch.getSuccessAmount());
+      transferCountSum += batch.getTransferCount();
+      successCountSum += Objects.isNull(batch.getSuccessCount())
+          ? Objects.equals(Status.SUCCESS, batch.getStatus()) ? 1 : 0 : batch.getSuccessCount();
+    }
+    StringBuilder sb = new StringBuilder("付款金额:").append(transferAmountSum).append("\n付款笔数:").append(transferCountSum)
+        .append("\n成功金额:").append(successAmountSum).append("\n成功笔数:").append(successCountSum);
+    return sb.toString();
+  }
 
   public void pay() {
     ApiResult<List<TransferBatch>> result = transferBatchManager.listApproved();
@@ -94,7 +148,7 @@ public class TransferJob implements InitializingBean {
   }
 
   public void query() {
-    ApiResult<List<TransferBatch>> result = transferBatchManager.list(null, Status.PROCESSING);
+    ApiResult<List<TransferBatch>> result = transferBatchManager.list(null, Status.PROCESSING.getValue());
     if (ApiResult.isNotOK(result)) return;
     List<TransferBatch> list = result.getData(), direct = new ArrayList<>(), agency = new ArrayList<>();
     for (TransferBatch batch : list) {
@@ -213,11 +267,13 @@ public class TransferJob implements InitializingBean {
   @Autowired
   private Environment env;
 
-  private String callBackUrl;
+  private String callBackUrl, emailUrl, emailList;
 
   @Override
   public void afterPropertiesSet() throws Exception {
     callBackUrl = env.getRequiredProperty("pandora.callback.url");
+    emailUrl = env.getRequiredProperty("email.url");
+    emailList = env.getRequiredProperty("email.list");
   }
 
   public static class AgencyDetailResultDto {
