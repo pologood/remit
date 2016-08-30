@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import com.sogou.pay.remit.common.Httpclient;
 import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.Currency;
 import com.sogou.pay.remit.job.TransferJob.AgencyBatchResultDto;
@@ -28,7 +29,6 @@ import com.sogou.pay.remit.job.TransferJob.AgencyDetailResultDto.Status;
 import com.sogou.pay.remit.entity.TransferDetail;
 import com.sogou.pay.remit.model.ApiResult;
 
-import commons.utils.Httpclient;
 import commons.utils.Tuple2;
 import commons.utils.cmb.XmlPacket;
 

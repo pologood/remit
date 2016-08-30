@@ -19,11 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableSet;
+import com.sogou.pay.remit.common.SignHelper;
 import com.sogou.pay.remit.entity.App;
 import com.sogou.pay.remit.mapper.AppMapper;
 
 import commons.utils.MapHelper;
-import commons.utils.SignHelper;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月12日;
