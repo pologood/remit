@@ -1,9 +1,11 @@
 package commons.saas;
 
 import java.util.Map;
+
+import com.sogou.pay.remit.common.JsonHelper;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import commons.utils.JsonHelper;
 
 public abstract class LoginService {
 
