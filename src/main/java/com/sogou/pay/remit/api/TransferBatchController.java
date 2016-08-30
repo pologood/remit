@@ -40,6 +40,7 @@ import com.sogou.pay.remit.entity.TransferBatch.Channel;
 import com.sogou.pay.remit.entity.TransferBatch.Status;
 import com.sogou.pay.remit.entity.User;
 import com.sogou.pay.remit.entity.User.Role;
+import com.sogou.pay.remit.manager.PandoraManager;
 import com.sogou.pay.remit.manager.TransferBatchManager;
 import com.sogou.pay.remit.model.ApiResult;
 import com.sogou.pay.remit.model.ErrorCode;
@@ -59,6 +60,9 @@ public class TransferBatchController {
 
   @Autowired
   private TransferBatchManager transferBatchManager;
+
+  @Autowired
+  private PandoraManager pandoraManager;
 
   @ApiMethod(consumes = "application/json", description = "add transfer batch")
   @RequestMapping(value = "/transferBatch", method = RequestMethod.POST, consumes = "application/json")
@@ -85,7 +89,7 @@ public class TransferBatchController {
       @ApiPathParam(name = "status", description = "审批状态") @PathVariable AuditStatus status,
       @ApiQueryParam(name = "beginTime", description = "起始时间", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Optional<LocalDateTime> beginTime,
       @ApiQueryParam(name = "endTime", description = "结束时间", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Optional<LocalDateTime> endTime) {
-    Tuple2<Status, Integer> tuple = STATUS_MAP.get(status).apply(user);
+    Tuple2<Integer, Integer> tuple = STATUS_MAP.get(status).apply(user);
     ApiResult<?> result = transferBatchManager.list(channel, tuple.f,
         Objects.equals(AuditStatus.INIT, status) ? null : user, beginTime.orElse(null), endTime.orElse(null), tuple.s);
     return Objects.equals(ErrorCode.NOT_FOUND.getCode(), result.getCode()) ? ApiResult.ok() : result;
@@ -107,7 +111,11 @@ public class TransferBatchController {
       @ApiPathParam(name = "appId", description = "业务线") @PathVariable Integer appId,
       @ApiQueryParam(name = "batchNos", description = "批次号列表") @RequestParam(name = "batchNos[]") List<String> batchNos,
       @ApiQueryParam(name = "amount", description = "审批通过总金额") @RequestParam(name = "amount") BigDecimal amount) {
-    LOGGER.info("user {} approves {}", user, batchNos);
+    LOGGER.info("user {} approves amount {} batchNos {}", user, amount, batchNos);
+    String message;
+    if (Objects.nonNull(message = pandoraManager.push(
+        String.format("%s于%s审核通过%d单 金额%s", user.getName(), LocalDateTime.now().toString(), batchNos.size(), amount))))
+      LOGGER.error("push message error:{}", message);;
     return transferBatchManager.batchUpdateTransferBatchStatus(user, appId, batchNos,
         Status.getApprovedStatus(user.getRole()));
   }
@@ -117,9 +125,13 @@ public class TransferBatchController {
     INIT, REJECTED, APPROVED;
   }
 
-  private static final Map<AuditStatus, Function<User, Tuple2<Status, Integer>>> STATUS_MAP = ImmutableMap.of(
-      AuditStatus.INIT, user -> new Tuple2<>(Status.getToDoStatus(user.getRole()), Role.getLimit(user.getRole())),
-      AuditStatus.REJECTED, user -> new Tuple2<>(Status.getRejectedStatus(user.getRole()), null), AuditStatus.APPROVED,
-      user -> new Tuple2<>(Status.getApprovedStatus(user.getRole()), null));
+  private static final Map<Status, Integer> APPROVAL_MAP = ImmutableMap.of(Status.JUNIOR_APPROVED,
+      Integer.parseInt("111111111100", 2), Status.SENIOR_APPROVED, Integer.parseInt("111111110000", 2),
+      Status.FINAL_APPROVED, Integer.parseInt("111111000000", 2));
 
+  private static final Map<AuditStatus, Function<User, Tuple2<Integer, Integer>>> STATUS_MAP = ImmutableMap.of(
+      AuditStatus.INIT,
+      user -> new Tuple2<>(Status.getToDoStatus(user.getRole()).getValue(), Role.getLimit(user.getRole())),
+      AuditStatus.REJECTED, user -> new Tuple2<>(Status.getRejectedStatus(user.getRole()).getValue(), null),
+      AuditStatus.APPROVED, user -> new Tuple2<>(APPROVAL_MAP.get(Status.getApprovedStatus(user.getRole())), null));
 }
