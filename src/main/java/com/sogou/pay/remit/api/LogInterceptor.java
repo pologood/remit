@@ -61,8 +61,7 @@ public class LogInterceptor extends HandlerInterceptorAdapter {
   public static Map<String, Object> getPtokenDetail(String ptoken) throws Exception {
     if (DEBUG_USER_TOKEN.equalsIgnoreCase(ptoken))
       return ImmutableMap.of("uno", DEBUG_USER_UNO, "ts", System.currentTimeMillis());
-    ptoken = URLDecoder.decode(ptoken, DEFAULT_CHARSET);
-    ptoken = PandoraManager.decryptPandora(Base64.getDecoder().decode(ptoken.replace(' ', '+')));
+    ptoken = PandoraManager.decryptPandora(Base64.getDecoder().decode(ptoken));
     return JsonHelper.toMap(ptoken);
   }
 
