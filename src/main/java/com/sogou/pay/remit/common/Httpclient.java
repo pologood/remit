@@ -19,6 +19,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.ContentType;
@@ -105,6 +106,34 @@ public class Httpclient {
     } catch (Exception e) {
       LOGGER.error("post error!", e);
       if (Objects.nonNull(post)) post.abort();
+      throw new RuntimeException(e);
+    } finally {
+      HttpClientUtils.closeQuietly(response);
+    }
+  }
+
+  public static ApiResult<String> get(String url) {
+    long time = System.currentTimeMillis();
+    LOGGER.info("get {} url:{} ", time, url);
+    HttpGet get = new HttpGet(url);
+    CloseableHttpResponse response = null;
+
+    try {
+      response = client.execute(get);
+
+      Integer responseCode = response.getStatusLine().getStatusCode();
+      HttpEntity responseEntity = response.getEntity();
+      Charset responseCharset = ContentType.getOrDefault(responseEntity).getCharset();
+      if (Objects.isNull(responseCharset)) responseCharset = StandardCharsets.UTF_8;
+      String responseData = EntityUtils.toString(responseEntity, responseCharset);
+
+      LOGGER.info("get {} responseCode:{} responseData:{}", time, responseCode, responseData);
+
+      return Objects.equals(HttpStatus.SC_OK, responseCode) ? new ApiResult<>(responseData)
+          : new ApiResult<>(ErrorCode.INTERNAL_ERROR, responseData);
+    } catch (Exception e) {
+      LOGGER.error("get error!", e);
+      if (Objects.nonNull(get)) get.abort();
       throw new RuntimeException(e);
     } finally {
       HttpClientUtils.closeQuietly(response);
