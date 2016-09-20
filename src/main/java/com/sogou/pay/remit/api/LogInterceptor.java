@@ -5,7 +5,6 @@
  */
 package com.sogou.pay.remit.api;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Objects;
@@ -32,8 +31,7 @@ import com.sogou.pay.remit.model.ApiResult;
 @Component
 public class LogInterceptor extends HandlerInterceptorAdapter {
 
-  public static final String DEFAULT_CHARSET = StandardCharsets.UTF_8.name(), PTOKEN = "ptoken",
-      DEBUG_USER_TOKEN = "debug";
+  public static final String PTOKEN = "ptoken", DEBUG_USER_TOKEN = "debug";
 
   public static final int DEBUG_USER_UNO = 1;
 
