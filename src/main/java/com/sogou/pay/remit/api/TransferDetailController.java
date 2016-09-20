@@ -23,7 +23,6 @@ import com.sogou.pay.remit.model.ApiResult;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月19日;
 //-------------------------------------------------------
-
 @Api(name = "transfer detail API", description = "Read/Write/Update/ the transfer detail")
 @RestController
 @RequestMapping("/api")

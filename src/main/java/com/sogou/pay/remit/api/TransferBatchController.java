@@ -50,7 +50,6 @@ import commons.utils.Tuple2;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月6日;
 //-------------------------------------------------------
-
 @Api(name = "transfer batch API", description = "Read/Write/Update/ the transfer batch")
 @RestController
 @RequestMapping("/api")
