@@ -27,7 +27,7 @@ import commons.spring.XssFilter;
 @ComponentScan({ ProjectInfo.PKG_PREFIX + ".api", ProjectInfo.PKG_PREFIX + ".manager",
     ProjectInfo.PKG_PREFIX + ".job" })
 @PropertySource(value = "classpath:application-dev.properties", ignoreResourceNotFound = true)
-@PropertySource("classpath:application-${spring.profiles.active}.properties")
+@PropertySource(value = "classpath:application-${spring.profiles.active}.properties", ignoreResourceNotFound = true)
 public class RootConfig {
 
   @Autowired
