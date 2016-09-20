@@ -11,11 +11,14 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.sogou.pay.remit.api.SmsController.Status;
+import com.sogou.pay.remit.common.Httpclient;
+import com.sogou.pay.remit.common.JsonHelper;
 import com.sogou.pay.remit.model.ApiResult;
 
 import commons.utils.Tuple2;
@@ -28,7 +31,7 @@ public class SmsManager {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SmsManager.class);
 
-  private static final Map<String, Tuple2<String, Long>> CODE_MAP = new ConcurrentHashMap<>();
+  public static final Map<String, Tuple2<String, Long>> CODE_MAP = new ConcurrentHashMap<>();
 
   private static long INTERVAL = TimeUnit.MINUTES.toMillis(5);
 
@@ -51,10 +54,20 @@ public class SmsManager {
   }
 
   private ApiResult<?> send(String mobile, String code) {
-    return ApiResult.ok();
+    ApiResult<String> response = Httpclient.get(String.format(SMS_URL, mobile, getContext(code)));
+    if (ApiResult.isNotOK(response)) return response;
+    Map<String, Object> map = JsonHelper.toMap(response.getData());
+    return Objects.equals(0, MapUtils.getInteger(map, "code")) ? ApiResult.ok()
+        : ApiResult.internalError(response.getData());
+  }
+
+  private String getContext(String code) {
+    return String.format(TEXT_PATTERN, code);
   }
 
   private static final int CODE_LEN = 6, LEN = (int) Math.pow(10, CODE_LEN);
 
-  private static final String CODE_PATTERN = String.format("%%0%sd", CODE_LEN);
+  private static final String CODE_PATTERN = String.format("%%0%sd", CODE_LEN),
+      SMS_URL = "http://sms.sogou/portal/mobile/smsproxy.php?number=%s&desc=%s&appid=sogoupassport&type=json",
+      TEXT_PATTERN = "银企审核验证码%s,5分钟内有效";
 }
