@@ -39,7 +39,7 @@ public class FinalInterceptor extends HandlerInterceptorAdapter {
     return false;
   }
 
-  private static final Set<Role> ROLES = Sets.newHashSet(Role.FINAL, Role.DEBUG);
+  private static final Set<Role> ROLES = Sets.newHashSet(Role.FINAL);
 
   @Override
   public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,

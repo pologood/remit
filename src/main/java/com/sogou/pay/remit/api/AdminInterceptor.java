@@ -33,6 +33,6 @@ public class AdminInterceptor extends HandlerInterceptorAdapter {
     return false;
   }
 
-  private static final Set<Role> ROLES = Sets.newHashSet(Role.ADMIN, Role.DEBUG);
+  private static final Set<Role> ROLES = Sets.newHashSet(Role.ADMIN);
 
 }
