@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.MapUtils;
@@ -45,7 +46,7 @@ public class Httpclient {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Httpclient.class);
 
-  private static final int DEFAULT_CONNECTION_TIMEOUT = 8000;
+  private static final int DEFAULT_CONNECTION_TIMEOUT = (int) TimeUnit.SECONDS.toMillis(60);
 
   private static final CloseableHttpClient client = HttpClients.custom()
       .setDefaultRequestConfig(
