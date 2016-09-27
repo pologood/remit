@@ -5,6 +5,10 @@
  */
 package com.sogou.pay.remit.api;
 
+import java.util.concurrent.TimeUnit;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.Pattern;
 
 import org.jsondoc.core.annotation.Api;
@@ -35,6 +39,10 @@ public class SmsController {
     success, failed, expired;
   }
 
+  public static final String COOKIE_NAME = "REMITCOOKIE", DOMAIN = "remit.pay.sogou", PATH = "/api";
+
+  public static final int EXPIRY = (int) TimeUnit.MINUTES.toSeconds(30);
+
   @Autowired
   private SmsManager smsManager;
 
@@ -47,7 +55,19 @@ public class SmsController {
   @ApiMethod(description = "validate code")
   @RequestMapping(value = "/message/{code}", method = RequestMethod.GET)
   public ApiResult<Status> validate(@RequestAttribute(name = UserController.USER_ATTRIBUTE) User user,
-      @ApiPathParam(name = "code", description = "验证码") @PathVariable @Pattern(regexp = "^\\d{6}$") String code) {
-    return new ApiResult<>(SmsManager.validate(user.getMobile(), code));
+      @ApiPathParam(name = "code", description = "验证码") @PathVariable @Pattern(regexp = "^\\d{6}$") String code,
+      HttpServletResponse response) {
+    Status status = SmsManager.validate(user.getMobile(), code);
+    response.addCookie(getCookie(user));
+    return new ApiResult<>(status);
+  }
+
+  private Cookie getCookie(User user) {
+    Cookie cookie = new Cookie(COOKIE_NAME, user.getUno().toString());
+    cookie.setDomain(DOMAIN);
+    cookie.setHttpOnly(true);
+    cookie.setMaxAge(EXPIRY);
+    cookie.setPath(PATH);
+    return cookie;
   }
 }
