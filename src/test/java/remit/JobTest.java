@@ -30,5 +30,10 @@ public class JobTest {
   public void emailTest() {
     transferJob.email();
   }
+  
+  @Test
+  public void queryTest(){
+    transferJob.query();
+  }
 
 }

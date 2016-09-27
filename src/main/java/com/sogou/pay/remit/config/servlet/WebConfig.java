@@ -1,9 +1,9 @@
 package com.sogou.pay.remit.config.servlet;
 
-import com.sogou.pay.remit.api.AdminInterceptor;
 import com.sogou.pay.remit.api.FinalInterceptor;
 import com.sogou.pay.remit.api.LogInterceptor;
 import com.sogou.pay.remit.api.SignInterceptor;
+import com.sogou.pay.remit.api.SmsInterceptor;
 import com.sogou.pay.remit.common.JsonHelper;
 import com.sogou.pay.remit.config.ProjectInfo;
 
@@ -39,7 +39,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
   FinalInterceptor finalInterceptor;
 
   @Autowired
-  AdminInterceptor adminInterceptor;
+  SmsInterceptor smsInterceptor;
 
   @Override
   public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
@@ -61,10 +61,12 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     r.setUseSuffixPatternMatch(false);
     r.setRemoveSemicolonContent(false);
     r.setInterceptors(new Object[] { new MappedInterceptor(new String[] { "/api/transferBatch" }, signInterceptor),
-        new MappedInterceptor(new String[] { "/api/transferDetail", "/api/transferBatch/**", "/api/job/**", "/api/user",
-            "/api/refresh", "/api/message/**" }, new String[] { "/api/transferBatch" }, logInterceptor),
+        new MappedInterceptor(
+            new String[] { "/api/transferDetail", "/api/transferBatch/**", "/api/user", "/api/message/**" },
+            new String[] { "/api/transferBatch" }, logInterceptor),
         new MappedInterceptor(new String[] { "/api/user" }, finalInterceptor),
-        new MappedInterceptor(new String[] { "/api/job/**", "/api/refresh" }, adminInterceptor) });
+        new MappedInterceptor(new String[] { "/api/transferDetail", "/api/transferBatch/**", "/api/user" },
+            new String[] { "/api/transferBatch" }, smsInterceptor) });
     r.setOrder(0);
     return r;
   }
