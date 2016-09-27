@@ -14,7 +14,7 @@ import java.io.ByteArrayInputStream;
 
 import org.xml.sax.SAXException;
 
-import commons.utils.Httpclient;
+import com.sogou.pay.remit.common.Httpclient;
 
 public class XmlPacket {
 

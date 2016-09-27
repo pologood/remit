@@ -4,9 +4,8 @@ import com.sogou.pay.remit.api.AdminInterceptor;
 import com.sogou.pay.remit.api.FinalInterceptor;
 import com.sogou.pay.remit.api.LogInterceptor;
 import com.sogou.pay.remit.api.SignInterceptor;
+import com.sogou.pay.remit.common.JsonHelper;
 import com.sogou.pay.remit.config.ProjectInfo;
-
-import commons.utils.JsonHelper;
 
 import java.io.IOException;
 import java.util.List;
@@ -61,10 +60,9 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     r.setUseTrailingSlashMatch(false);
     r.setUseSuffixPatternMatch(false);
     r.setRemoveSemicolonContent(false);
-    r.setInterceptors(
-        new Object[] { new MappedInterceptor(new String[] { "/api/transferBatch" }, signInterceptor),
-            new MappedInterceptor(new String[] { "/api/transferDetail", "/api/transferBatch/**", "/api/job/**",
-                "/api/user", "/api/refresh" }, new String[] { "/api/transferBatch" }, logInterceptor),
+    r.setInterceptors(new Object[] { new MappedInterceptor(new String[] { "/api/transferBatch" }, signInterceptor),
+        new MappedInterceptor(new String[] { "/api/transferDetail", "/api/transferBatch/**", "/api/job/**", "/api/user",
+            "/api/refresh", "/api/message/**" }, new String[] { "/api/transferBatch" }, logInterceptor),
         new MappedInterceptor(new String[] { "/api/user" }, finalInterceptor),
         new MappedInterceptor(new String[] { "/api/job/**", "/api/refresh" }, adminInterceptor) });
     r.setOrder(0);

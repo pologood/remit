@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015 Sogou.com. All Rights Reserved.
  */
-package commons.utils;
+package com.sogou.pay.remit.common;
 
 import java.io.IOException;
 import java.lang.reflect.Method;

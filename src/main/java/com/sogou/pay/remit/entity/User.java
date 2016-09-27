@@ -97,7 +97,7 @@ public class User {
 
   @ApiObject(name = "Role", description = "角色", group = "User")
   public enum Role {
-    ADMIN(0), JUNIOR(1), SENIOR(2), FINAL(3), DEBUG(4);
+    ADMIN(0), JUNIOR(1), SENIOR(2), FINAL(3);
 
     private int value;
 

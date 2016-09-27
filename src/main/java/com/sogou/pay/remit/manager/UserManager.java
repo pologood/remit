@@ -42,7 +42,7 @@ public class UserManager implements InitializingBean {
     return Objects.isNull(id) ? null : ID_MAP.get(id);
   }
 
-  public void init() {
+  public synchronized void init() {
     UNO_MAP.clear();
     ID_MAP.clear();
     ApiResult<?> result = list();

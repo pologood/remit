@@ -22,7 +22,6 @@ import org.apache.ibatis.annotations.UpdateProvider;
 import org.apache.ibatis.jdbc.SQL;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.ImmutableList;
 import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.Channel;
 import com.sogou.pay.remit.entity.TransferBatch.NotifyFlag;
@@ -41,25 +40,24 @@ public interface TransferBatchMapper {
 
     private final static String TABLE = "`transfer_batch`";
 
-    private final static List<String> ITEMS_SELECTED_BY_BATCHNO = ImmutableList.of("appId", "batchNo", "channel",
-        "status", "outErrMsg", "transferCount", "transferAmount", "successCount", "successAmount");
+    private final static String ITEMS_SELECTED_BY_BATCHNO = "appId,batchNo,channel,status,outErrMsg,transferCount,transferAmount,successCount,successAmount";
 
     public static String selectByBatchNo(Map<String, Object> param) {
       SQL sql = new SQL();
       if (MapUtils.getBooleanValue(param, "withAll")) sql.SELECT("*");
-      else ITEMS_SELECTED_BY_BATCHNO.forEach(columns -> sql.SELECT(columns));
+      else sql.SELECT(ITEMS_SELECTED_BY_BATCHNO);
       return sql.FROM(TABLE).WHERE("appId = #{appId}").WHERE("batchNo = #{batchNo}").toString();
     }
 
     public static String list(Map<String, Object> map) {
       LocalDateTime beginTime, endTime;
-      Status status = (Status) map.get("status");
+      Integer status = MapUtils.getInteger(map, "status");
       User user = (User) map.get("user");
       SQL sql = new SQL().SELECT("*").FROM(TABLE);
       if (Objects.nonNull(map.get("channel"))) sql.WHERE("channel = #{channel}");
       if (Objects.nonNull(user)) {
         int id = user.getId(), i = user.getRole().getValue();
-        for (; --i > 0; id <<= 8);
+        for (; --i > 0; id <<= 8);//every byte represents a auditor id
         sql.WHERE(String.format("auditor & %d = %d", id, id));
       }
       if (Objects.nonNull(status)) sql.WHERE("status & #{status}");
@@ -119,15 +117,13 @@ public interface TransferBatchMapper {
     }
 
     public static String listNotify() {
-      SQL sql = new SQL();
-      ITEMS_SELECTED_BY_BATCHNO.forEach(columns -> sql.SELECT(columns));
+      SQL sql = new SQL().SELECT(ITEMS_SELECTED_BY_BATCHNO);
       return sql.FROM(TABLE).WHERE(String.format("status > %d", Status.PROCESSING.getValue()))
           .WHERE(String.format("notifyFlag != %d", NotifyFlag.SUCCESS.getValue())).toString();
     }
 
     public static String logNotify() {
-      return new SQL().UPDATE(TABLE).SET(String.format("notifyFlag = %d", NotifyFlag.SUCCESS.getValue()))
-          .WHERE("appId = #{appId}").WHERE("batchNo = #{batchNo}").toString();
+      return "update `transfer_batch` set notifyFlag = 1 where appId = #{appId} and batchNo = #{batchNo}";
     }
   }
 

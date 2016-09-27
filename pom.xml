@@ -30,7 +30,7 @@
 		<druid.version>1.0.23</druid.version>
 		<!-- alibaba end -->
 		<!-- spring start -->
-		<spring.version>4.3.1.RELEASE</spring.version>
+		<spring.version>4.3.2.RELEASE</spring.version>
 		<spring-security.version>4.1.0.RELEASE</spring-security.version>
 		<!-- spring end -->
 		<!-- apache start -->
@@ -96,6 +96,11 @@
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-web</artifactId>
 			<version>${spring-security.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${spring.version}</version>
 		</dependency>
 		<!-- spring end -->
 

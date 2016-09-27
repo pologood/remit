@@ -77,9 +77,28 @@ public class CronConfig {
   }
 
   @Bean
+  public MethodInvokingJobDetailFactoryBean emailJob() {
+    MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
+    bean.setTargetBeanName("transferJob");
+    bean.setTargetMethod("email");
+    bean.setConcurrent(false);
+    return bean;
+  }
+
+  @Bean(name = "payTrigger")
+  public CronTriggerFactoryBean emailTrigger() {
+    CronTriggerFactoryBean bean = new CronTriggerFactoryBean();
+    bean.setJobDetail(emailJob().getObject());
+    bean.setCronExpression(env.getProperty("remit.email.cron"));
+    bean.setName("emailTrigger");
+    return bean;
+  }
+
+  @Bean
   public SchedulerFactoryBean schedulerFactoryBean() {
     SchedulerFactoryBean bean = new SchedulerFactoryBean();
-    bean.setTriggers(payTrigger().getObject(), queryTrigger().getObject(), callbackTrigger().getObject());
+    bean.setTriggers(payTrigger().getObject(), queryTrigger().getObject(), callbackTrigger().getObject(),
+        emailTrigger().getObject());
     bean.setAutoStartup(true);
     return bean;
   }
