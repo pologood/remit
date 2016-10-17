@@ -22,7 +22,7 @@ CREATE TABLE `transfer_batch` (
   `settleChannel` varchar(8) DEFAULT NULL COMMENT '结算方式',
   
   `auditor` INT(10) DEFAULT NULL COMMENT '审批员id',
-  `status` TINYINT(4) DEFAULT 0 COMMENT '状态',
+  `status` TINYINT(4) DEFAULT 1 COMMENT '状态',
   `auditTimes` varchar(32) DEFAULT NULL COMMENT '审批时间',
   `auditOpinions` varchar(64) DEFAULT NULL COMMENT '审批意见',
   
