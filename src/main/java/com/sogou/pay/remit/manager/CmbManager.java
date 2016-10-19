@@ -6,6 +6,8 @@
 package com.sogou.pay.remit.manager;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -81,11 +83,11 @@ public class CmbManager implements InitializingBean {
   }
 
   private String getEndDate(TransferBatch batch) {
-    return "20151028";
+    return LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
   }
 
   private String getBeginDate(TransferBatch batch) {
-    return "20150910";
+    return LocalDate.now().minusDays(1).format(DateTimeFormatter.BASIC_ISO_DATE);
   }
 
   public ApiResult<?> directPay(TransferBatch batch) {
