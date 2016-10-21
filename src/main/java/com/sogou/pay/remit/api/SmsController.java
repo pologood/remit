@@ -5,7 +5,10 @@
  */
 package com.sogou.pay.remit.api;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.Cookie;
@@ -62,11 +65,29 @@ public class SmsController {
   }
 
   private Cookie getCookie() {
-    Cookie cookie = new Cookie(COOKIE_NAME, Long.toString(System.currentTimeMillis()));
+    Cookie cookie = new Cookie(COOKIE_NAME, getRandom(16));
     cookie.setDomain(DOMAIN);
     cookie.setHttpOnly(true);
     cookie.setPath(PATH);
     cookie.setMaxAge((int) (TimeUnit.HOURS.toSeconds(8) + TimeUnit.MINUTES.toSeconds(30)));//8 time zone and 30 minute expire
     return cookie;
   }
+
+  private String getRandom(int len) {
+    Random random = new Random();
+    StringBuilder sb = new StringBuilder();
+    while (len-- > 0)
+      sb.append(getRandom(random));
+    String s = sb.toString();
+    cookieMap.put(s, System.currentTimeMillis());
+    return s;
+  }
+
+  private char getRandom(Random random) {
+    int i = random.nextInt(36);
+    return (char) (i < 10 ? '0' + i : 'A' + i - 10);
+  }
+
+  public static Map<String, Long> cookieMap = new HashMap<>();
+
 }
