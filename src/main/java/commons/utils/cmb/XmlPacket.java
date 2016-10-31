@@ -14,8 +14,6 @@ import java.io.ByteArrayInputStream;
 
 import org.xml.sax.SAXException;
 
-import com.sogou.pay.remit.common.Httpclient;
-
 public class XmlPacket {
 
   protected String FUNNAM;
@@ -190,7 +188,7 @@ public class XmlPacket {
   }
 
   public static XmlPacket valueOf(String message) {
-    return valueOf(message, Httpclient.CHARSET);
+    return valueOf(message, Charset.forName("GBK"));
   }
 
   /**

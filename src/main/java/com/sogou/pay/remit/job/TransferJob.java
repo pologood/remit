@@ -24,12 +24,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
-import com.google.common.collect.ImmutableMap;
 import com.sogou.pay.remit.api.SignInterceptor;
-import com.sogou.pay.remit.common.Httpclient;
-import com.sogou.pay.remit.common.JsonHelper;
 import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.Channel;
 import com.sogou.pay.remit.entity.TransferBatch.Status;
@@ -48,26 +51,29 @@ import commons.utils.Tuple2;
 @Service
 public class TransferJob implements InitializingBean {
 
+  @Autowired
+  private RestTemplate restTemplate;
+
   public void email() {
-    Map<String, String> data = getEmail();
-    if (MapUtils.isNotEmpty(data)) Httpclient.post(emailUrl, data);
+    MultiValueMap<String, String> data = getEmail();
+    if (MapUtils.isNotEmpty(data)) restTemplate.postForObject(emailUrl, data, Map.class);
   }
 
-  private Map<String, String> getEmail() {
+  private MultiValueMap<String, String> getEmail() {
     LocalDate today = LocalDate.now(), yesterday = today.minusDays(1);
     List<TransferBatch> list = transferBatchManager.list(null, Integer.parseInt("111110000000", 2), null,
         yesterday.atStartOfDay(), today.atStartOfDay(), null, false).getData();
     if (CollectionUtils.isEmpty(list)) return null;
-    Map<String, String> map = new HashMap<>();
-    map.put("uid", "pay@sogou-inc.com");
-    map.put("fr_name", "Sogou Pay");
-    map.put("fr_addr", "pay@sogou-inc.com");
-    map.put("mode", "text");
-    map.put("title", String.format("银企直联统计%s", yesterday));
-    map.put("maillist", emailList);
-    map.put("attname", String.format("%s.csv", yesterday));
-    map.put("attbody", getAttBody(list));
-    map.put("body", getBody(list));
+    MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+    map.add("uid", "pay@sogou-inc.com");
+    map.add("fr_name", "Sogou Pay");
+    map.add("fr_addr", "pay@sogou-inc.com");
+    map.add("mode", "text");
+    map.add("title", String.format("银企直联统计%s", yesterday));
+    map.add("maillist", emailList);
+    map.add("attname", String.format("%s.csv", yesterday));
+    map.add("attbody", getAttBody(list));
+    map.add("body", getBody(list));
     return map;
   }
 
@@ -244,13 +250,15 @@ public class TransferJob implements InitializingBean {
   }
 
   private ApiResult<?> callback(TransferBatch batch) throws Exception {
-    Map<String, Object> map = new HashMap<>();
     String context = batch.toString();
-    ApiResult<String> response = Httpclient.post(callBackUrl, context, null, true,
-        ImmutableMap.of(SignInterceptor.PANDORA_SIGN, SignInterceptor.sign(context)));
-    return (ApiResult.isOK(response) && MapUtils.isNotEmpty(map = JsonHelper.toMap(response.getData()))
-        && Objects.equals(0, MapUtils.getInteger(map, "ret_code"))) ? ApiResult.ok()
-            : ApiResult.notAcceptable(response.getData());
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+    headers.add(SignInterceptor.PANDORA_SIGN, SignInterceptor.sign(context));
+    HttpEntity<String> entity = new HttpEntity<String>(context, headers);
+    @SuppressWarnings("unchecked")
+    Map<String, Object> map = restTemplate.postForObject(callBackUrl, entity, Map.class);
+    return Objects.equals(0, MapUtils.getInteger(map, "ret_code")) ? ApiResult.ok()
+        : ApiResult.notAcceptable(String.valueOf(map));
   }
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TransferJob.class);

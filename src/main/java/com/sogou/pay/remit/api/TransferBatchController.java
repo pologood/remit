@@ -40,6 +40,7 @@ import com.sogou.pay.remit.entity.TransferBatch.Channel;
 import com.sogou.pay.remit.entity.TransferBatch.Status;
 import com.sogou.pay.remit.entity.User;
 import com.sogou.pay.remit.entity.User.Role;
+import com.sogou.pay.remit.job.TransferJob;
 import com.sogou.pay.remit.manager.PandoraManager;
 import com.sogou.pay.remit.manager.TransferBatchManager;
 import com.sogou.pay.remit.model.ApiResult;
@@ -62,6 +63,9 @@ public class TransferBatchController {
 
   @Autowired
   private PandoraManager pandoraManager;
+
+  @Autowired
+  private TransferJob job;
 
   @ApiMethod(consumes = "application/json", description = "add transfer batch")
   @RequestMapping(value = "/transferBatch", method = RequestMethod.POST, consumes = "application/json")
@@ -133,4 +137,15 @@ public class TransferBatchController {
       user -> new Tuple2<>(Status.getToDoStatus(user.getRole()).getValue(), Role.getLimit(user.getRole())),
       AuditStatus.REJECTED, user -> new Tuple2<>(Status.getRejectedStatus(user.getRole()).getValue(), null),
       AuditStatus.APPROVED, user -> new Tuple2<>(APPROVAL_MAP.get(Status.getApprovedStatus(user.getRole())), null));
+
+  @RequestMapping(value = "/job/pay", method = RequestMethod.GET)
+  public ApiResult<?> pay() {
+    try {
+      job.pay();
+      return ApiResult.ok();
+    } catch (Exception e) {
+      LOGGER.error("pay job {}", e);
+      return ApiResult.internalError(e);
+    }
+  }
 }

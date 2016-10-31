@@ -14,11 +14,11 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.sogou.pay.remit.api.SmsController.Status;
-import com.sogou.pay.remit.common.Httpclient;
-import com.sogou.pay.remit.common.JsonHelper;
 import com.sogou.pay.remit.model.ApiResult;
 
 import commons.utils.Tuple2;
@@ -37,6 +37,9 @@ public class SmsManager {
 
   private static final Random RANDOM = new Random();
 
+  @Autowired
+  private RestTemplate restTemplate;
+
   public static Status validate(String mobile, String code) {
     LOGGER.info("{} validate code {}", mobile, code);
     Tuple2<String, Long> tuple = CODE_MAP.get(mobile);
@@ -54,11 +57,10 @@ public class SmsManager {
   }
 
   private ApiResult<?> send(String mobile, String code) {
-    ApiResult<String> response = Httpclient.get(String.format(SMS_URL, mobile, getContext(code)));
-    if (ApiResult.isNotOK(response)) return response;
-    Map<String, Object> map = JsonHelper.toMap(response.getData());
+    @SuppressWarnings("unchecked")
+    Map<String, Object> map = restTemplate.getForObject(String.format(SMS_URL, mobile, getContext(code)), Map.class);
     return Objects.equals(0, MapUtils.getInteger(map, "code")) ? ApiResult.ok()
-        : ApiResult.internalError(response.getData());
+        : ApiResult.internalError(String.valueOf(map));
   }
 
   private String getContext(String code) {
