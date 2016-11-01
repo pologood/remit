@@ -13,7 +13,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.sogou.pay.remit.api.SmsController.Status;
-import com.sogou.pay.remit.config.CronConfig;
 import com.sogou.pay.remit.config.DaoConfig;
 import com.sogou.pay.remit.config.RootConfig;
 import com.sogou.pay.remit.manager.SmsManager;
@@ -21,7 +20,7 @@ import com.sogou.pay.remit.manager.SmsManager;
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年9月9日;
 //-------------------------------------------------------
-@ContextConfiguration(classes = { RootConfig.class, DaoConfig.class, CronConfig.class })
+@ContextConfiguration(classes = { RootConfig.class, DaoConfig.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class SmsTest {
 
