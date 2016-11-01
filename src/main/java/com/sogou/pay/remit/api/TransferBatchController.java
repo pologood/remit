@@ -140,12 +140,26 @@ public class TransferBatchController {
 
   @RequestMapping(value = "/job/pay", method = RequestMethod.GET)
   public ApiResult<?> pay() {
-    try {
-      job.pay();
-      return ApiResult.ok();
-    } catch (Exception e) {
-      LOGGER.error("pay job {}", e);
-      return ApiResult.internalError(e);
-    }
+    job.pay();
+    return ApiResult.ok();
+
+  }
+
+  @RequestMapping(value = "/job/query", method = RequestMethod.GET)
+  public ApiResult<?> query() {
+    job.query();
+    return ApiResult.ok();
+  }
+
+  @RequestMapping(value = "/job/callback", method = RequestMethod.GET)
+  public ApiResult<?> callback() {
+    job.callback();
+    return ApiResult.ok();
+  }
+
+  @RequestMapping(value = "/job/email", method = RequestMethod.GET)
+  public ApiResult<?> email() {
+    job.email();
+    return ApiResult.ok();
   }
 }
