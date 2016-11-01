@@ -6,15 +6,15 @@
 package com.sogou.pay.remit.manager;
 
 import java.math.BigDecimal;
-import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import javax.annotation.Resource;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -22,9 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -36,7 +33,6 @@ import com.sogou.pay.remit.job.TransferJob.AgencyDetailResultDto.Status;
 import com.sogou.pay.remit.entity.TransferDetail;
 import com.sogou.pay.remit.model.ApiResult;
 
-import commons.spring.RestTemplateFilter;
 import commons.utils.Tuple2;
 import commons.utils.cmb.XmlPacket;
 
@@ -51,6 +47,7 @@ public class CmbManager implements InitializingBean {
 
   private String URL;
 
+  @Resource(name = "restTemplateGBK")
   private RestTemplate restTemplate;
 
   /**
@@ -318,21 +315,6 @@ public class CmbManager implements InitializingBean {
   @Override
   public void afterPropertiesSet() throws Exception {
     URL = env.getRequiredProperty("cmb.url");
-
-    HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-    factory.setConnectTimeout(Integer.parseInt(env.getProperty("rest.timeout.connect", "1000")));
-    factory.setReadTimeout(Integer.parseInt(env.getProperty("rest.timeout.read", "10000")));
-
-    restTemplate = new RestTemplate(factory);
-    restTemplate.setInterceptors(Arrays.asList(new RestTemplateFilter()));
-
-    MappingJackson2HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter();
-    Charset DEFAULT_CHARSET = Charset.forName("GBK");
-    List<MediaType> types = Arrays.asList(new MediaType("text", "plain", DEFAULT_CHARSET),
-        new MediaType("application", "json", DEFAULT_CHARSET), new MediaType("application", "*+json", DEFAULT_CHARSET),
-        new MediaType("application", "octet-stream", DEFAULT_CHARSET));
-    jacksonConverter.setSupportedMediaTypes(types);
-    restTemplate.getMessageConverters().add(jacksonConverter);
   }
 
   public enum ResponseCode {
