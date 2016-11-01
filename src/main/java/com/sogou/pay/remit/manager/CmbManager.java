@@ -327,7 +327,7 @@ public class CmbManager implements InitializingBean {
     restTemplate.setInterceptors(Arrays.asList(new RestTemplateFilter()));
 
     MappingJackson2HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter();
-    Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
+    Charset DEFAULT_CHARSET = Charset.forName("GBK");
     List<MediaType> types = Arrays.asList(new MediaType("text", "plain", DEFAULT_CHARSET),
         new MediaType("application", "json", DEFAULT_CHARSET), new MediaType("application", "*+json", DEFAULT_CHARSET),
         new MediaType("application", "octet-stream", DEFAULT_CHARSET));
