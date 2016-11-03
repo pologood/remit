@@ -53,7 +53,6 @@ public class TransferBatch {
 
   @ApiObjectField(description = "渠道", required = true)
   @NotNull(message = "channel is required")
-  @JsonProperty(access = Access.WRITE_ONLY)
   private Channel channel;
 
   @ApiObjectField(description = "业务线Id", required = true)
@@ -402,11 +401,7 @@ public class TransferBatch {
 
   @Override
   public String toString() {
-    try {
-      return JsonHelper.toJson(JsonHelper.toMap(this));
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    return JsonHelper.toJson(this);
   }
 
   public enum NotifyFlag {
@@ -578,7 +573,7 @@ public class TransferBatch {
 
     private int value;
 
-    private String description;
+    public String description;
 
     private Channel(int value, String description) {
       this.value = value;
@@ -589,9 +584,6 @@ public class TransferBatch {
       return value;
     }
 
-    public String getDescription() {
-      return description;
-    }
   }
 
   @ApiObject(name = "SettleChannel", description = "结算方式", group = "TransferBatch")
