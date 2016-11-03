@@ -28,7 +28,6 @@ import commons.utils.LocalDateTimeJsonSerializer;
 public class JsonHelper {
 
   public static final ObjectMapper MAPPER = new Jackson2ObjectMapperBuilder()
-      .featuresToDisable(SerializationFeature.FAIL_ON_UNWRAPPED_TYPE_IDENTIFIERS)
       .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
       .featuresToDisable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
       .serializerByType(BigDecimal.class, new DecimalJsonSerializer())

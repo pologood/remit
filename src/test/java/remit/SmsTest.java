@@ -31,7 +31,7 @@ public class SmsTest {
   public void test() {
     String mobile = "18310165277";
     smsManager.send(mobile);
-    Assert.assertEquals(Status.success, SmsManager.validate(mobile, SmsManager.CODE_MAP.get(mobile).f));;
+    Assert.assertEquals(Status.success, SmsManager.validate(mobile, SmsManager.CODE_MAP.get(mobile).f));
   }
 
 }
