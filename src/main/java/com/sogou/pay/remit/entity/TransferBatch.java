@@ -53,7 +53,6 @@ public class TransferBatch {
 
   @ApiObjectField(description = "渠道", required = true)
   @NotNull(message = "channel is required")
-  @JsonProperty(access = Access.WRITE_ONLY)
   private Channel channel;
 
   @ApiObjectField(description = "业务线Id", required = true)
