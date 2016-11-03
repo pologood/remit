@@ -79,8 +79,7 @@ public interface TransferBatchMapper {
       if (Objects.nonNull(batch.getSuccessAmount())) sql.SET("successAmount = #{successAmount}");
       if (Objects.nonNull(batch.getSuccessCount())) sql.SET("successCount = #{successCount}");
       if (Objects.nonNull(batch.getAuditor())) sql.SET("auditor = #{auditor}");
-      return sql.SET(String.format("status = %d", batch.getStatus().getValue())).WHERE("appId = #{appId}")
-          .WHERE("batchNo = #{batchNo}").toString();
+      return sql.SET("status = #{status}").WHERE("appId = #{appId}").WHERE("batchNo = #{batchNo}").toString();
     }
 
     public static String add(TransferBatch batch) {
