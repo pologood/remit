@@ -154,7 +154,8 @@ public class TransferJob implements InitializingBean {
   }
 
   public void query() {
-    ApiResult<List<TransferBatch>> result = transferBatchManager.list(null, Status.PROCESSING.getValue());
+    ApiResult<List<TransferBatch>> result = transferBatchManager.list(null, (Status.PROCESSING.getValue()
+        | Status.JUNIOR_APPROVED.getValue() | Status.SENIOR_APPROVED.getValue() | Status.FINAL_APPROVED.getValue()));
     if (ApiResult.isNotOK(result)) return;
     List<TransferBatch> list = result.getData(), direct = new ArrayList<>(), agency = new ArrayList<>();
     for (TransferBatch batch : list) {
