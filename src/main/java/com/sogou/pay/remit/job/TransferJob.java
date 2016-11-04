@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import javax.annotation.Resource;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -54,9 +56,12 @@ public class TransferJob implements InitializingBean {
   @Autowired
   private RestTemplate restTemplate;
 
+  @Resource(name = "restTemplateGBK")
+  private RestTemplate restTemplateGBK;
+
   public void email() {
     MultiValueMap<String, String> data = getEmail();
-    if (MapUtils.isNotEmpty(data)) restTemplate.postForObject(emailUrl, data, Map.class);
+    if (MapUtils.isNotEmpty(data)) restTemplateGBK.postForObject(emailUrl, data, Map.class);
   }
 
   private MultiValueMap<String, String> getEmail() {
