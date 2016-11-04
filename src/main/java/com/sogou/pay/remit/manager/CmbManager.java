@@ -6,11 +6,15 @@
 package com.sogou.pay.remit.manager;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import javax.annotation.Resource;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -19,8 +23,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
-import com.sogou.pay.remit.common.Httpclient;
 import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.Currency;
 import com.sogou.pay.remit.job.TransferJob.AgencyBatchResultDto;
@@ -43,13 +47,17 @@ public class CmbManager implements InitializingBean {
 
   private String URL;
 
+  @Resource(name = "restTemplateGBK")
+  private RestTemplate restTemplate;
+
   /**
    * @return Tuple2 BusiResultState, String first for result, second for message
    */
   public ApiResult<?> queryDirectPay(TransferBatch batch) {
     XmlPacket packet = new XmlPacket(QUERY_DIRECT_PAY_FUNCTION_NAME, batch.getLoginName());
-    ApiResult<String> result = Httpclient.post(URL, getQueryDirectPayRequest(batch, packet).toXmlString());
-    return ApiResult.isOK(result) ? getQueryDirectPayResult(result.getData()) : result;
+    String result = restTemplate.postForObject(URL, getQueryDirectPayRequest(batch, packet).toXmlString(),
+        String.class);
+    return getQueryDirectPayResult(result);
   }
 
   private ApiResult<?> getQueryDirectPayResult(String data) {
@@ -81,17 +89,17 @@ public class CmbManager implements InitializingBean {
   }
 
   private String getEndDate(TransferBatch batch) {
-    return "20151028";
+    return LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
   }
 
   private String getBeginDate(TransferBatch batch) {
-    return "20150910";
+    return LocalDate.now().minusDays(1).format(DateTimeFormatter.BASIC_ISO_DATE);
   }
 
   public ApiResult<?> directPay(TransferBatch batch) {
     XmlPacket packet = new XmlPacket(DIRECT_PAY_FUNCTION_NAME, batch.getLoginName());
-    ApiResult<String> result = Httpclient.post(URL, getDirectPayRequest(batch, packet).toXmlString());
-    return ApiResult.isOK(result) ? getDirectPayResult(result.getData()) : result;
+    String result = restTemplate.postForObject(URL, getDirectPayRequest(batch, packet).toXmlString(), String.class);
+    return getDirectPayResult(result);
   }
 
   private ApiResult<?> getDirectPayResult(String data) {
@@ -152,8 +160,9 @@ public class CmbManager implements InitializingBean {
    */
   public ApiResult<?> queryAgencyPayDetail(TransferBatch batch) {
     XmlPacket packet = new XmlPacket(QUERY_AGENCY_PAY_DETAIL_FUNCTION_NAME, batch.getLoginName());
-    ApiResult<String> result = Httpclient.post(URL, getQueryAgencyPayDetailRequest(batch, packet).toXmlString());
-    return ApiResult.isOK(result) ? getQueryAgencyDetailResult(result.getData()) : result;
+    String result = restTemplate.postForObject(URL, getQueryAgencyPayDetailRequest(batch, packet).toXmlString(),
+        String.class);
+    return getQueryAgencyDetailResult(result);
   }
 
   private ApiResult<?> getQueryAgencyDetailResult(String data) {
@@ -185,8 +194,9 @@ public class CmbManager implements InitializingBean {
 
   public ApiResult<?> queryAgencyPayResult(TransferBatch batch) {
     XmlPacket packet = new XmlPacket(QUERY_AGENCY_PAY_RESULT_FUNCTION_NAME, batch.getLoginName());
-    ApiResult<String> result = Httpclient.post(URL, getQueryAgencyPayResultRequest(batch, packet).toXmlString());
-    return ApiResult.isOK(result) ? getQueryAgencyResult(result.getData(), batch) : result;
+    String result = restTemplate.postForObject(URL, getQueryAgencyPayResultRequest(batch, packet).toXmlString(),
+        String.class);
+    return getQueryAgencyResult(result, batch);
   }
 
   private ApiResult<?> getQueryAgencyResult(String data, TransferBatch batch) {
@@ -227,8 +237,8 @@ public class CmbManager implements InitializingBean {
 
   public ApiResult<?> agencyPay(TransferBatch batch) {
     XmlPacket packet = new XmlPacket(AGENCY_PAY_FUNCTION_NAME, batch.getLoginName());
-    ApiResult<String> result = Httpclient.post(URL, getAgencyPayRequest(batch, packet).toXmlString());
-    return ApiResult.isOK(result) ? getAgencyPayResult(result.getData()) : result;
+    String result = restTemplate.postForObject(URL, getAgencyPayRequest(batch, packet).toXmlString(), String.class);
+    return getAgencyPayResult(result);
   }
 
   private ApiResult<?> getAgencyPayResult(String data) {

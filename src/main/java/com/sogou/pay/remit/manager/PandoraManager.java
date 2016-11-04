@@ -14,6 +14,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Resource;
 import javax.crypto.Cipher;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -41,7 +42,7 @@ public class PandoraManager implements InitializingBean {
   @Autowired
   private Environment env;
 
-  @Autowired
+  @Resource(name = "restTemplate")
   private RestTemplate restTemplate;
 
   public static Key loadPublicKey(InputStream inputStream) throws Exception {

@@ -1,6 +1,9 @@
 package com.sogou.pay.remit.config;
 
+import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -10,6 +13,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.core.env.Environment;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.FormHttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.jmx.export.annotation.AnnotationMBeanExporter;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
@@ -79,16 +84,34 @@ public class RootConfig {
     return new RestNameService(env);
   }
 
+  private String timeOut = Long.toString(TimeUnit.SECONDS.toMillis(60));
+
+  @Bean
+  public HttpComponentsClientHttpRequestFactory httpComponentsClientHttpRequestFactory() {
+    HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+    factory.setConnectTimeout(Integer.parseInt(env.getProperty("rest.timeout.connect", timeOut)));
+    factory.setReadTimeout(Integer.parseInt(env.getProperty("rest.timeout.read", timeOut)));
+    return factory;
+  }
+
   @Bean
   public RestTemplate restTemplate() {
-    HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-    factory.setConnectTimeout(Integer.parseInt(env.getProperty("rest.timeout.connect", "1000")));
-    factory.setReadTimeout(Integer.parseInt(env.getProperty("rest.timeout.read", "10000")));
-
-    RestTemplate rest = new RestTemplate(factory);
+    RestTemplate rest = new RestTemplate(httpComponentsClientHttpRequestFactory());
     rest.setInterceptors(Arrays.asList(new RestTemplateFilter()));
     rest.getMessageConverters().add(new LooseGsonHttpMessageConverter());
+    return rest;
+  }
 
+  @Bean
+  public RestTemplate restTemplateGBK() {
+    Charset gbk = Charset.forName("GBK");
+    RestTemplate rest = new RestTemplate(httpComponentsClientHttpRequestFactory());
+    rest.setInterceptors(Arrays.asList(new RestTemplateFilter(gbk)));
+    FormHttpMessageConverter formHttpMessageConverter = new FormHttpMessageConverter();
+    formHttpMessageConverter.setCharset(gbk);
+    rest.getMessageConverters().add(0, formHttpMessageConverter);
+    rest.getMessageConverters().add(1, new StringHttpMessageConverter(gbk));
+    rest.getMessageConverters().add(2, new LooseGsonHttpMessageConverter(gbk));
     return rest;
   }
 
