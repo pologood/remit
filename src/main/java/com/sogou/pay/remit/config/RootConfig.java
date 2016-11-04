@@ -107,11 +107,11 @@ public class RootConfig {
     Charset gbk = Charset.forName("GBK");
     RestTemplate rest = new RestTemplate(httpComponentsClientHttpRequestFactory());
     rest.setInterceptors(Arrays.asList(new RestTemplateFilter(gbk)));
-    rest.getMessageConverters().add(0, new StringHttpMessageConverter(gbk));
-    rest.getMessageConverters().add(1, new LooseGsonHttpMessageConverter(gbk));
     FormHttpMessageConverter formHttpMessageConverter = new FormHttpMessageConverter();
     formHttpMessageConverter.setCharset(gbk);
-    rest.getMessageConverters().add(2, formHttpMessageConverter);
+    rest.getMessageConverters().add(0, formHttpMessageConverter);
+    rest.getMessageConverters().add(1, new StringHttpMessageConverter(gbk));
+    rest.getMessageConverters().add(2, new LooseGsonHttpMessageConverter(gbk));
     return rest;
   }
 
