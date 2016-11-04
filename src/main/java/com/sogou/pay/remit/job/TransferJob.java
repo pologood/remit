@@ -53,21 +53,20 @@ import commons.utils.Tuple2;
 @Service
 public class TransferJob implements InitializingBean {
 
-  @Autowired
+  @Resource(name = "restTemplate")
   private RestTemplate restTemplate;
-
-  @Resource(name = "restTemplateGBK")
-  private RestTemplate restTemplateGBK;
 
   public void email() {
     MultiValueMap<String, String> data = getEmail();
-    if (MapUtils.isNotEmpty(data)) restTemplateGBK.postForObject(emailUrl, data, Map.class);
+    if (MapUtils.isNotEmpty(data)) restTemplate.postForObject(emailUrl, data, Map.class);
   }
 
   private MultiValueMap<String, String> getEmail() {
     LocalDate today = LocalDate.now(), yesterday = today.minusDays(1);
-    List<TransferBatch> list = transferBatchManager.list(null, Integer.parseInt("111110000000", 2), null,
-        yesterday.atStartOfDay(), today.atStartOfDay(), null, false).getData();
+    List<TransferBatch> list = transferBatchManager.list(
+        null, (Status.PROCESSING.getValue() | Status.SUCCESS.getValue() | Status.FAILED.getValue()
+            | Status.BACK.getValue() | Status.PART.getValue()),
+        null, yesterday.atStartOfDay(), today.atStartOfDay(), null, false).getData();
     if (CollectionUtils.isEmpty(list)) return null;
     MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
     map.add("uid", "pay@sogou-inc.com");

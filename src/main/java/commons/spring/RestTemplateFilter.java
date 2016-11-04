@@ -64,7 +64,8 @@ public class RestTemplateFilter implements ClientHttpRequestInterceptor {
     String input = (body == null || body.length == 0) ? "-" : new String(body, charset);
     String output = (bytes == null || bytes.length == 0) ? "-" : new String(bytes, charset);
 
-    logger.debug("{} {} {} {} {}", request.getMethod(), request.getURI(), input, response.getRawStatusCode(), output);
+    logger.debug("{} {} {} {} {} {}", charset.name(), request.getMethod(), request.getURI(), input,
+        response.getRawStatusCode(), output);
     return proxy;
   }
 }

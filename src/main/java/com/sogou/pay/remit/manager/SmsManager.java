@@ -11,10 +11,11 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Resource;
+
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -37,7 +38,7 @@ public class SmsManager {
 
   private static final Random RANDOM = new Random();
 
-  @Autowired
+  @Resource(name = "restTemplate")
   private RestTemplate restTemplate;
 
   public static Status validate(String mobile, String code) {
