@@ -56,9 +56,12 @@ public class TransferJob implements InitializingBean {
   @Resource(name = "restTemplate")
   private RestTemplate restTemplate;
 
+  @Resource(name = "restTemplateGBK")
+  private RestTemplate restTemplateGBK;
+
   public void email() {
     MultiValueMap<String, String> data = getEmail();
-    if (MapUtils.isNotEmpty(data)) restTemplate.postForObject(emailUrl, data, Map.class);
+    if (MapUtils.isNotEmpty(data)) restTemplateGBK.postForObject(emailUrl, data, Map.class);
   }
 
   private MultiValueMap<String, String> getEmail() {

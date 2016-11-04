@@ -13,6 +13,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.core.env.Environment;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.jmx.export.annotation.AnnotationMBeanExporter;
@@ -108,6 +109,9 @@ public class RootConfig {
     rest.setInterceptors(Arrays.asList(new RestTemplateFilter(gbk)));
     rest.getMessageConverters().add(0, new StringHttpMessageConverter(gbk));
     rest.getMessageConverters().add(1, new LooseGsonHttpMessageConverter(gbk));
+    FormHttpMessageConverter formHttpMessageConverter = new FormHttpMessageConverter();
+    formHttpMessageConverter.setCharset(gbk);
+    rest.getMessageConverters().add(2, formHttpMessageConverter);
     return rest;
   }
 
