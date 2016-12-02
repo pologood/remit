@@ -6,7 +6,6 @@
 package com.sogou.pay.remit.manager;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -89,11 +88,11 @@ public class CmbManager implements InitializingBean {
   }
 
   private String getEndDate(TransferBatch batch) {
-    return LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+    return batch.getUpDateTime().toLocalDate().format(DateTimeFormatter.BASIC_ISO_DATE);
   }
 
   private String getBeginDate(TransferBatch batch) {
-    return LocalDate.now().minusDays(1).format(DateTimeFormatter.BASIC_ISO_DATE);
+    return batch.getUpDateTime().toLocalDate().minusDays(1).format(DateTimeFormatter.BASIC_ISO_DATE);
   }
 
   public ApiResult<?> directPay(TransferBatch batch) {
@@ -255,21 +254,22 @@ public class CmbManager implements InitializingBean {
   }
 
   private XmlPacket getAgencyPayDetailMap(TransferBatch batch, XmlPacket xmlPacket) {
-    if (Objects.nonNull(batch) && CollectionUtils.isNotEmpty(batch.getDetails()))
+    if (Objects.nonNull(batch) && CollectionUtils.isNotEmpty(batch.getDetails())) {
       for (TransferDetail detail : batch.getDetails()) {
-      Map<String, String> map = new HashMap<>();
+        Map<String, String> map = new HashMap<>();
 
-      map.put(IN_ACCOUNT_ID, detail.getInAccountId());
-      map.put(IN_ACCOUNT_NAME, detail.getInAccountName());
-      map.put(DETAIL_AMOUNT, detail.getAmount().toString());
-      if (StringUtils.isNoneBlank(detail.getBankCity(), detail.getBankName())) {
-        map.put(BANK_FLAG, "N");
-        map.put(BANK_NAME, detail.getBankName());
-        map.put(BANK_CITY, detail.getBankCity());
+        map.put(IN_ACCOUNT_ID, detail.getInAccountId());
+        map.put(IN_ACCOUNT_NAME, detail.getInAccountName());
+        map.put(DETAIL_AMOUNT, detail.getAmount().toString());
+        if (StringUtils.isNoneBlank(detail.getBankCity(), detail.getBankName())) {
+          map.put(BANK_FLAG, "N");
+          map.put(BANK_NAME, detail.getBankName());
+          map.put(BANK_CITY, detail.getBankCity());
+        }
+        map.put(TRANSFER_ID, detail.getTransferId());
+
+        xmlPacket.putProperty(AGENCY_PAY_DETAIL_MAP_NAME, map);
       }
-      map.put(TRANSFER_ID, detail.getTransferId());
-
-      xmlPacket.putProperty(AGENCY_PAY_DETAIL_MAP_NAME, map);
     }
     return xmlPacket;
   }
@@ -309,8 +309,6 @@ public class CmbManager implements InitializingBean {
       IN_ACCOUNT_ID = "ACCNBR", IN_ACCOUNT_NAME = "CLTNAM", DETAIL_AMOUNT = "TRSAMT", BANK_FLAG = "BNKFLG",
       BANK_NAME = "EACBNK", BANK_CITY = "EACCTY", BEGIN_DATE = "BGNDAT", END_DATE = "ENDDAT", SUCCESS_AMOUNT = "SUCAMT",
       SUCCESS_COUNT = "SUCNUM", OUT_TRADE_NO = "REQNBR", CURRENCY = "CCYNBR";
-
-  //private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
   @Override
   public void afterPropertiesSet() throws Exception {
