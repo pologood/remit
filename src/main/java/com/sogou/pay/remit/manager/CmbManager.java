@@ -6,12 +6,14 @@
 package com.sogou.pay.remit.manager;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Vector;
 
 import javax.annotation.Resource;
 
@@ -44,38 +46,17 @@ public class CmbManager implements InitializingBean {
   @Autowired
   private Environment env;
 
-  private String URL;
+  private String CMB;
 
   @Resource(name = "restTemplateGBK")
   private RestTemplate restTemplate;
 
-  /**
-   * @return Tuple2 BusiResultState, String first for result, second for message
-   */
   public ApiResult<?> queryDirectPay(TransferBatch batch) {
+    return getQueryDirectPayResult(restTemplate.postForObject(CMB, getQueryDirectPayRequest(batch), String.class));
+  }
+
+  private String getQueryDirectPayRequest(TransferBatch batch) {
     XmlPacket packet = new XmlPacket(QUERY_DIRECT_PAY_FUNCTION_NAME, batch.getLoginName());
-    String result = restTemplate.postForObject(URL, getQueryDirectPayRequest(batch, packet).toXmlString(),
-        String.class);
-    return getQueryDirectPayResult(result);
-  }
-
-  private ApiResult<?> getQueryDirectPayResult(String data) {
-    XmlPacket packet = XmlPacket.valueOf(data);
-    if (Objects.isNull(packet) || !Objects.equals(packet.getRETCOD(), ResponseCode.SUCCESS.getValue())
-        || CollectionUtils.isEmpty(packet.getProperty(QUERY_PAY_RESULT_MAP)))
-      return ApiResult.notAcceptable(ResponseCode.DATA_FORMAT_INVALID.name());
-    Map<String, String> map = packet.getProperty(QUERY_PAY_RESULT_MAP).stream()
-        .max((map1, map2) -> map1.get(OUT_TRADE_NO).compareTo(map2.get(OUT_TRADE_NO))).get();
-    if (Objects.equals(BusiRequestState.FINISHED.getValue(), map.get(REQUEST_STATE))) {
-      if (Objects.equals(BusiResultState.SUCCESS.getValue(), map.get(RESULT_STATE)))
-        return new ApiResult<>(new Tuple2<>(BusiResultState.SUCCESS, null));
-      if (Objects.equals(BusiResultState.BACK.getValue(), map.get(RESULT_STATE)))
-        return new ApiResult<>(new Tuple2<>(BusiResultState.BACK, map.get(PAY_QUERY_ERROR_MESSAGE)));
-      else return new ApiResult<>(new Tuple2<>(BusiResultState.FAILED, map.get(PAY_QUERY_ERROR_MESSAGE)));
-    } else return new ApiResult<>(BusiRequestState.BANK_PROCESSING);
-  }
-
-  private XmlPacket getQueryDirectPayRequest(TransferBatch batch, XmlPacket xmlPacket) {
     Map<String, String> map = new HashMap<>();
 
     map.put(BUSICODE, batch.getBusiCode().getValue());
@@ -83,54 +64,67 @@ public class CmbManager implements InitializingBean {
     map.put(BEGIN_DATE, getBeginDate(batch));
     map.put(END_DATE, getEndDate(batch));
 
-    xmlPacket.putProperty(PAY_QUERY_MAP_NAME, map);
-    return xmlPacket;
-  }
-
-  private String getEndDate(TransferBatch batch) {
-    return batch.getUpDateTime().toLocalDate().format(DateTimeFormatter.BASIC_ISO_DATE);
+    packet.putProperty(PAY_QUERY_MAP_NAME, map);
+    return packet.toXmlString();
   }
 
   private String getBeginDate(TransferBatch batch) {
-    return batch.getUpDateTime().toLocalDate().minusDays(1).format(DateTimeFormatter.BASIC_ISO_DATE);
+    return format(batch.getUpDateTime().toLocalDate().minusDays(1));
+  }
+
+  private String format(LocalDate date) {
+    return date.format(DateTimeFormatter.BASIC_ISO_DATE);
+  }
+
+  private String getEndDate(TransferBatch batch) {
+    return format(batch.getUpDateTime().toLocalDate().plusDays(1));
+  }
+
+  private ApiResult<?> getQueryDirectPayResult(String data) {
+    XmlPacket packet = XmlPacket.valueOf(data);
+    Vector<Map<String, String>> result = get(packet, QUERY_PAY_RESULT_MAP);
+    if (Objects.isNull(result)) return ApiResult.notAcceptable(ResponseCode.DATA_FORMAT_INVALID.name());
+    Map<String, String> map = result.stream()
+        .max((map1, map2) -> map1.get(OUT_TRADE_NO).compareTo(map2.get(OUT_TRADE_NO))).get();
+    if (Objects.equals(BusiRequestState.FINISHED.getValue(), map.get(REQUEST_STATE))) {
+      String resultState = map.get(RESULT_STATE);
+      if (Objects.equals(BusiResultState.SUCCESS.getValue(), resultState))
+        return new ApiResult<>(new Tuple2<>(BusiResultState.SUCCESS, null));
+      return new ApiResult<>(new Tuple2<>(
+          Objects.equals(BusiResultState.BACK.getValue(), resultState) ? BusiResultState.BACK : BusiResultState.FAILED,
+          map.get(PAY_QUERY_ERROR_MESSAGE)));
+    } else return new ApiResult<>(BusiRequestState.BANK_PROCESSING);
+  }
+
+  private Vector<Map<String, String>> get(XmlPacket packet, String key) {
+    return isFailed(packet) || CollectionUtils.isEmpty(packet.getProperty(key)) ? null : packet.getProperty(key);
+  }
+
+  private boolean isFailed(XmlPacket packet) {
+    return Objects.isNull(packet) || !Objects.equals(packet.getRETCOD(), ResponseCode.SUCCESS.getValue());
   }
 
   public ApiResult<?> directPay(TransferBatch batch) {
+    return getDirectPayResult(restTemplate.postForObject(CMB, getDirectPayRequest(batch), String.class));
+  }
+
+  private String getDirectPayRequest(TransferBatch batch) {
     XmlPacket packet = new XmlPacket(DIRECT_PAY_FUNCTION_NAME, batch.getLoginName());
-    String result = restTemplate.postForObject(URL, getDirectPayRequest(batch, packet).toXmlString(), String.class);
-    return getDirectPayResult(result);
+    getDirectPayBatchMap(batch, packet);
+    getDirectPayDetailMap(batch, packet);
+    return packet.toXmlString();
   }
 
-  private ApiResult<?> getDirectPayResult(String data) {
-    XmlPacket packet = XmlPacket.valueOf(data);
-    if (Objects.isNull(packet) || !Objects.equals(ResponseCode.SUCCESS.getValue(), packet.getRETCOD())
-        || CollectionUtils.isEmpty(packet.getProperty(PAY_RESULT_MAP)))
-      return ApiResult.notAcceptable(ResponseCode.DATA_FORMAT_INVALID.name());
-    Map<String, String> map = packet.getProperty(PAY_RESULT_MAP).stream()
-        .max((map1, map2) -> map1.get(OUT_TRADE_NO).compareTo(map2.get(OUT_TRADE_NO))).get();
-    if (Objects.equals(BusiRequestState.FINISHED.getValue(), map.get(REQUEST_STATE))
-        && Objects.equals(BusiResultState.FAILED.getValue(), map.get(RESULT_STATE)))
-      return new ApiResult<>(map.get(PAY_ERROR_MESSAGE));
-    else return ApiResult.ok();
-  }
-
-  private XmlPacket getDirectPayRequest(TransferBatch batch, XmlPacket xmlPacket) {
-    getDirectPayBatchMap(batch, xmlPacket);
-    getDirectPayDetailMap(batch, xmlPacket);
-    return xmlPacket;
-  }
-
-  private XmlPacket getDirectPayBatchMap(TransferBatch batch, XmlPacket xmlPacket) {
+  private void getDirectPayBatchMap(TransferBatch batch, XmlPacket packet) {
     Map<String, String> map = new HashMap<>();
 
     map.put(BUSICODE, batch.getBusiCode().getValue());
     map.put(BUSIMODE, batch.getBusiMode().getValue());
 
-    xmlPacket.putProperty(PAY_BATCH_MAP_NAME, map);
-    return xmlPacket;
+    packet.putProperty(PAY_BATCH_MAP_NAME, map);
   }
 
-  private XmlPacket getDirectPayDetailMap(TransferBatch batch, XmlPacket xmlPacket) {
+  private void getDirectPayDetailMap(TransferBatch batch, XmlPacket packet) {
     Map<String, String> map = new HashMap<>();
 
     map.put(BATCHNO, StringUtils.join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
@@ -150,27 +144,40 @@ public class CmbManager implements InitializingBean {
       map.put("CRTADR", detail.getBankCity());
     } else map.put(BANK_FLAG, "Y");
 
-    xmlPacket.putProperty(PAY_DETAIL_MAP_NAME, map);
-    return xmlPacket;
+    packet.putProperty(PAY_DETAIL_MAP_NAME, map);
   }
 
-  /**
-   * @return List AgencyDetailResultDto
-   */
+  private ApiResult<?> getDirectPayResult(String data) {
+    XmlPacket packet = XmlPacket.valueOf(data);
+    Vector<Map<String, String>> result = get(packet, PAY_RESULT_MAP);
+    if (Objects.isNull(result)) return ApiResult.notAcceptable(ResponseCode.DATA_FORMAT_INVALID.name());
+    Map<String, String> map = result.stream()
+        .max((map1, map2) -> map1.get(OUT_TRADE_NO).compareTo(map2.get(OUT_TRADE_NO))).get();
+    if (Objects.equals(BusiRequestState.FINISHED.getValue(), map.get(REQUEST_STATE))
+        && Objects.equals(BusiResultState.FAILED.getValue(), map.get(RESULT_STATE)))
+      return new ApiResult<>(map.get(PAY_ERROR_MESSAGE));
+    else return ApiResult.ok();
+  }
+
   public ApiResult<?> queryAgencyPayDetail(TransferBatch batch) {
+    return getQueryAgencyDetailResult(
+        restTemplate.postForObject(CMB, getQueryAgencyPayDetailRequest(batch), String.class));
+  }
+
+  private String getQueryAgencyPayDetailRequest(TransferBatch batch) {
     XmlPacket packet = new XmlPacket(QUERY_AGENCY_PAY_DETAIL_FUNCTION_NAME, batch.getLoginName());
-    String result = restTemplate.postForObject(URL, getQueryAgencyPayDetailRequest(batch, packet).toXmlString(),
-        String.class);
-    return getQueryAgencyDetailResult(result);
+    Map<String, String> map = new HashMap<>();
+    map.put(OUT_TRADE_NO, batch.getOutTradeNo());
+    packet.putProperty(AGENCY_QUERY_DETAIL_MAP_NAME, map);
+    return packet.toXmlString();
   }
 
   private ApiResult<?> getQueryAgencyDetailResult(String data) {
     XmlPacket packet = XmlPacket.valueOf(data);
-    if (Objects.isNull(packet) || !Objects.equals(ResponseCode.SUCCESS.getValue(), packet.getRETCOD())
-        || CollectionUtils.isEmpty(packet.getProperty(QUERY_AGENCY_DETAIL_RESULT_MAP)))
-      return ApiResult.notAcceptable(ResponseCode.DATA_FORMAT_INVALID.name());
+    Vector<Map<String, String>> result = get(packet, QUERY_AGENCY_DETAIL_RESULT_MAP);
+    if (Objects.isNull(result)) return ApiResult.notAcceptable(ResponseCode.DATA_FORMAT_INVALID.name());
     List<AgencyDetailResultDto> detailResults = new ArrayList<>();
-    for (Map<String, String> map : packet.getProperty(QUERY_AGENCY_DETAIL_RESULT_MAP)) {
+    for (Map<String, String> map : result) {
       AgencyDetailResultDto dto = new AgencyDetailResultDto();
 
       dto.setAmount(new BigDecimal(map.get(DETAIL_AMOUNT)));
@@ -184,26 +191,28 @@ public class CmbManager implements InitializingBean {
     return new ApiResult<>(detailResults);
   }
 
-  private XmlPacket getQueryAgencyPayDetailRequest(TransferBatch batch, XmlPacket xmlPacket) {
-    Map<String, String> map = new HashMap<>();
-    map.put(OUT_TRADE_NO, batch.getOutTradeNo());
-    xmlPacket.putProperty(AGENCY_QUERY_DETAIL_MAP_NAME, map);
-    return xmlPacket;
+  public ApiResult<?> queryAgencyPayResult(TransferBatch batch) {
+    return getQueryAgencyResult(restTemplate.postForObject(CMB, getQueryAgencyPayResultRequest(batch), String.class),
+        batch);
   }
 
-  public ApiResult<?> queryAgencyPayResult(TransferBatch batch) {
+  private String getQueryAgencyPayResultRequest(TransferBatch batch) {
     XmlPacket packet = new XmlPacket(QUERY_AGENCY_PAY_RESULT_FUNCTION_NAME, batch.getLoginName());
-    String result = restTemplate.postForObject(URL, getQueryAgencyPayResultRequest(batch, packet).toXmlString(),
-        String.class);
-    return getQueryAgencyResult(result, batch);
+    Map<String, String> map = new HashMap<>();
+
+    map.put(BUSICODE, batch.getBusiCode().getValue());
+    map.put(BATCHNO, StringUtils.join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
+    map.put(BEGIN_DATE, getBeginDate(batch));
+    map.put(END_DATE, getEndDate(batch));
+
+    packet.putProperty(AGENCY_QUERY_BATCH_MAP_NAME, map);
+    return packet.toXmlString();
   }
 
   private ApiResult<?> getQueryAgencyResult(String data, TransferBatch batch) {
     XmlPacket packet = XmlPacket.valueOf(data);
-    if (Objects.isNull(packet) || !Objects.equals(ResponseCode.SUCCESS.getValue(), packet.getRETCOD())
-        || Objects.isNull(packet.getProperty(QUERY_AGENCY_BATCH_RESULT_MAP, 0)))
-      return ApiResult.notAcceptable(ResponseCode.DATA_FORMAT_INVALID.name());
-    Map<String, String> map = packet.getProperty(QUERY_AGENCY_BATCH_RESULT_MAP, 0);
+    Map<String, String> map = get(QUERY_AGENCY_BATCH_RESULT_MAP, packet);
+    if (Objects.isNull(map)) return ApiResult.notAcceptable(ResponseCode.DATA_FORMAT_INVALID.name());
     AgencyBatchResultDto dto = new AgencyBatchResultDto();
     if (Objects.equals(BusiRequestState.FINISHED.getValue(), map.get(BATCH_REQUEST_STATE))) {
       if (Objects.equals(BusiResultState.FAILED.getValue(), map.get(RESULT_STATE)))
@@ -222,59 +231,47 @@ public class CmbManager implements InitializingBean {
     } else return new ApiResult<>(BusiRequestState.BANK_PROCESSING);
   }
 
-  private XmlPacket getQueryAgencyPayResultRequest(TransferBatch batch, XmlPacket xmlPacket) {
-    Map<String, String> map = new HashMap<>();
-
-    map.put(BUSICODE, batch.getBusiCode().getValue());
-    map.put(BATCHNO, StringUtils.join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
-    map.put(BEGIN_DATE, getBeginDate(batch));
-    map.put(END_DATE, getEndDate(batch));
-
-    xmlPacket.putProperty(AGENCY_QUERY_BATCH_MAP_NAME, map);
-    return xmlPacket;
+  private Map<String, String> get(String key, XmlPacket packet) {
+    Vector<Map<String, String>> maps = get(packet, key);
+    return Objects.isNull(maps) || MapUtils.isEmpty(maps.get(0)) ? null : maps.get(0);
   }
 
   public ApiResult<?> agencyPay(TransferBatch batch) {
-    XmlPacket packet = new XmlPacket(AGENCY_PAY_FUNCTION_NAME, batch.getLoginName());
-    String result = restTemplate.postForObject(URL, getAgencyPayRequest(batch, packet).toXmlString(), String.class);
-    return getAgencyPayResult(result);
+    return getAgencyPayResult(restTemplate.postForObject(CMB, getAgencyPayRequest(batch), String.class));
   }
 
   private ApiResult<?> getAgencyPayResult(String data) {
-    XmlPacket packet = XmlPacket.valueOf(data);
-    if (Objects.isNull(packet) || !Objects.equals(ResponseCode.SUCCESS.getValue(), packet.getRETCOD()))
-      return ApiResult.notAcceptable(ResponseCode.DATA_FORMAT_INVALID.name());
-    return ApiResult.ok();
+    return isFailed(XmlPacket.valueOf(data)) ? ApiResult.notAcceptable(ResponseCode.DATA_FORMAT_INVALID.name())
+        : ApiResult.ok();
   }
 
-  private XmlPacket getAgencyPayRequest(TransferBatch batch, XmlPacket xmlPacket) {
-    getAgencyPayBatchMap(batch, xmlPacket);
-    getAgencyPayDetailMap(batch, xmlPacket);
-    return xmlPacket;
+  private String getAgencyPayRequest(TransferBatch batch) {
+    XmlPacket packet = new XmlPacket(AGENCY_PAY_FUNCTION_NAME, batch.getLoginName());
+    getAgencyPayBatchMap(batch, packet);
+    getAgencyPayDetailMap(batch, packet);
+    return packet.toXmlString();
   }
 
-  private XmlPacket getAgencyPayDetailMap(TransferBatch batch, XmlPacket xmlPacket) {
-    if (Objects.nonNull(batch) && CollectionUtils.isNotEmpty(batch.getDetails())) {
-      for (TransferDetail detail : batch.getDetails()) {
-        Map<String, String> map = new HashMap<>();
+  private void getAgencyPayDetailMap(TransferBatch batch, XmlPacket xmlPacket) {
+    if (Objects.isNull(batch) || CollectionUtils.isEmpty(batch.getDetails())) return;
+    for (TransferDetail detail : batch.getDetails()) {
+      Map<String, String> map = new HashMap<>();
 
-        map.put(IN_ACCOUNT_ID, detail.getInAccountId());
-        map.put(IN_ACCOUNT_NAME, detail.getInAccountName());
-        map.put(DETAIL_AMOUNT, detail.getAmount().toString());
-        if (StringUtils.isNoneBlank(detail.getBankCity(), detail.getBankName())) {
-          map.put(BANK_FLAG, "N");
-          map.put(BANK_NAME, detail.getBankName());
-          map.put(BANK_CITY, detail.getBankCity());
-        }
-        map.put(TRANSFER_ID, detail.getTransferId());
-
-        xmlPacket.putProperty(AGENCY_PAY_DETAIL_MAP_NAME, map);
+      map.put(IN_ACCOUNT_ID, detail.getInAccountId());
+      map.put(IN_ACCOUNT_NAME, detail.getInAccountName());
+      map.put(DETAIL_AMOUNT, detail.getAmount().toString());
+      if (StringUtils.isNoneBlank(detail.getBankCity(), detail.getBankName())) {
+        map.put(BANK_FLAG, "N");
+        map.put(BANK_NAME, detail.getBankName());
+        map.put(BANK_CITY, detail.getBankCity());
       }
+      map.put(TRANSFER_ID, detail.getTransferId());
+
+      xmlPacket.putProperty(AGENCY_PAY_DETAIL_MAP_NAME, map);
     }
-    return xmlPacket;
   }
 
-  private XmlPacket getAgencyPayBatchMap(TransferBatch batch, XmlPacket xmlPacket) {
+  private void getAgencyPayBatchMap(TransferBatch batch, XmlPacket xmlPacket) {
     Map<String, String> map = new HashMap<>();
 
     map.put(BUSICODE, batch.getBusiCode().getValue());
@@ -288,7 +285,6 @@ public class CmbManager implements InitializingBean {
     map.put(MEMO, batch.getMemo());
 
     xmlPacket.putProperty(AGENCY_PAY_BATCH_MAP_NAME, map);
-    return xmlPacket;
   }
 
   private static final String AGENCY_PAY_BATCH_MAP_NAME = "SDKATSRQX", AGENCY_PAY_DETAIL_MAP_NAME = "SDKATDRQX",
@@ -312,70 +308,109 @@ public class CmbManager implements InitializingBean {
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    URL = env.getRequiredProperty("cmb.url");
+    CMB = env.getRequiredProperty("cmb.url");
   }
 
   public enum ResponseCode {
-    SUCCESS("0"), //成功
-    COMMIT_MASTER_FAIL("-1"), //提交主机失败
-    EXECUTE_FAIL("-2"), //执行失败
-    DATA_FORMAT_INVALID("-3"), //数据格式错误
-    NEED_LOG_IN("-4"), //尚未登录系统
-    TOO_FREQUENT("-5"), //请求太频繁
-    NOT_CERT_USER("-6"), //不是证书用户
-    USER_CANCEL("-7"), //用户取消操作
-    OTHER("-9"); //其他错误
+    SUCCESS("0", "成功"),
 
-    private String value;
+    COMMIT_MASTER_FAIL("-1", "提交主机失败"),
 
-    private ResponseCode(String value) {
+    EXECUTE_FAIL("-2", "执行失败"),
+
+    DATA_FORMAT_INVALID("-3", "数据格式错误"),
+
+    NEED_LOG_IN("-4", "尚未登录系统"),
+
+    TOO_FREQUENT("-5", "请求太频繁"),
+
+    NOT_CERT_USER("-6", "不是证书用户"),
+
+    USER_CANCEL("-7", "用户取消操作"),
+
+    OTHER("-9", "其他错误");
+
+    private String value, description;
+
+    private ResponseCode(String value, String description) {
       this.value = value;
+      this.description = description;
     }
 
     public String getValue() {
       return value;
+    }
+
+    public String getDescription() {
+      return description;
     }
   }
 
   public enum BusiRequestState {
-    WAITING_FOR_AUDIT("AUT"), //等待审批
-    AUDIT_COMPLETED("NTE"), //终审完毕
-    ORDER_WAITING_FOR_CONFIRMATION("WCF"), //订单待确认(商务支付用)
-    BANK_PROCESSING("BNK"), //银行处理中
-    FINISHED("FIN"), //完成
-    WAITNG_FOR_ACKNOWLEDGEMENT("ACK"), //等待确认(委托贷款用)
-    WAITING_FOR_BANK_ACKNOWLEDGEMENT("APD"), //待银行确认(国际业务用)
-    DATA_RECEIVING("OPR"); //数据接收中(代发)
+    WAITING_FOR_AUDIT("AUT", "等待审批"),
 
-    private String value;
+    AUDIT_COMPLETED("NTE", "终审完毕"),
 
-    private BusiRequestState(String value) {
+    ORDER_WAITING_FOR_CONFIRMATION("WCF", "订单待确认(商务支付用)"),
+
+    BANK_PROCESSING("BNK", "银行处理中"),
+
+    FINISHED("FIN", "完成"),
+
+    WAITNG_FOR_ACKNOWLEDGEMENT("ACK", "等待确认(委托贷款用)"),
+
+    WAITING_FOR_BANK_ACKNOWLEDGEMENT("APD", "待银行确认(国际业务用)"),
+
+    DATA_RECEIVING("OPR", "数据接收中(代发)");
+
+    private String value, description;
+
+    private BusiRequestState(String value, String description) {
       this.value = value;
+      this.description = description;
     }
 
     public String getValue() {
       return value;
+    }
+
+    public String getDescription() {
+      return description;
     }
   }
 
   public enum BusiResultState {
-    SUCCESS("S"), //成功 银行支付成功
-    FAILED("F"), //失败 银行支付失败
-    BACK("B"), //退票 银行支付被退票
-    REJECTED("R"), //否决 企业审批否决
-    EXPIRED("D"), //过期 企业过期不审批
-    CANCELED("C"), //撤消 企业撤销
-    MERCHANT_CANCELED("M"), //商户撤销订单 商务支付
-    REFUSED("V"), PART("S"); //拒绝 委托贷款被借款方拒绝
+    SUCCESS("S", "成功 银行支付成功"),
 
-    private String value;
+    FAILED("F", "失败 银行支付失败"),
 
-    private BusiResultState(String value) {
+    BACK("B", "退票 银行支付被退票"),
+
+    REJECTED("R", "否决 企业审批否决"),
+
+    EXPIRED("D", "过期 企业过期不审批"),
+
+    CANCELED("C", "撤消 企业撤销"),
+
+    MERCHANT_CANCELED("M", "商户撤销订单 商务支付"),
+
+    REFUSED("V", "拒绝 委托贷款被借款方拒绝"),
+
+    PART("S", "部分成功");
+
+    private String value, description;
+
+    private BusiResultState(String value, String description) {
       this.value = value;
+      this.description = description;
     }
 
     public String getValue() {
       return value;
+    }
+
+    public String getDescription() {
+      return description;
     }
   }
 }
