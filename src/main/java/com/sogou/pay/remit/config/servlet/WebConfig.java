@@ -63,10 +63,10 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     r.setInterceptors(new Object[] { new MappedInterceptor(new String[] { "/api/transferBatch" }, signInterceptor),
         new MappedInterceptor(
             new String[] { "/api/transferDetail", "/api/transferBatch/**", "/api/user", "/api/message/**" },
-            new String[] { "/api/transferBatch" }, logInterceptor),
+            new String[] { "/api/transferBatch", "/api/transferBatch/daily" }, logInterceptor),
         new MappedInterceptor(new String[] { "/api/user" }, finalInterceptor),
         new MappedInterceptor(new String[] { "/api/transferDetail", "/api/transferBatch/**", "/api/user" },
-            new String[] { "/api/transferBatch" }, smsInterceptor) });
+            new String[] { "/api/transferBatch", "/api/transferBatch/daily" }, smsInterceptor) });
     r.setOrder(0);
     return r;
   }
