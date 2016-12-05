@@ -166,7 +166,7 @@ public class TransferBatchController {
 
   @RequestMapping(value = "/transferBatch/daily", method = RequestMethod.GET)
   public ApiResult<?> getDailyReport(
-      @ApiQueryParam(name = "date", description = "日报日期") @RequestParam Optional<LocalDate> date) {
+      @ApiQueryParam(name = "date", description = "日报日期") @DateTimeFormat(pattern = "yyyy-MM-dd") @RequestParam Optional<LocalDate> date) {
     LocalDate day = date.orElse(LocalDate.now().minusDays(1));
     ApiResult<List<TransferBatch>> result = transferBatchManager.list(null,
         (Status.SUCCESS.getValue() | Status.PART.getValue()), null, day.atStartOfDay(), day.plusDays(1).atStartOfDay(),
