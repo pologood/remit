@@ -170,8 +170,7 @@ public class TransferBatchController {
       @ApiQueryParam(name = "endDate", description = "结束日期") @DateTimeFormat(pattern = "yyyy-MM-dd") @RequestParam LocalDate endDate) {
     ApiResult<List<TransferBatch>> result = transferBatchManager.list(null,
         (Status.SUCCESS.getValue() | Status.PART.getValue()), null, beginDate.atStartOfDay(),
-        endDate.plusDays(1).atStartOfDay(),
-        null, false);
+        endDate.plusDays(1).atStartOfDay(), null, false);
     if (ApiResult.isNotOK(result)) return result;
     List<TransferBatch> batchs = result.getData();
     int successCount = 0;
