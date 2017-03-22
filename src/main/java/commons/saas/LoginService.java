@@ -2,8 +2,7 @@ package commons.saas;
 
 import java.util.Map;
 
-import com.sogou.pay.remit.common.JsonHelper;
-
+import commons.utils.JsonHelper;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 

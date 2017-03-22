@@ -1,4 +1,4 @@
-package com.sogou.pay.remit.common;
+package commons.utils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,10 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-
-import commons.utils.DecimalJsonSerializer;
-import commons.utils.LocalDateJsonSerializer;
-import commons.utils.LocalDateTimeJsonSerializer;
+import com.sogou.pay.remit.common.EnumJsonSerializer;
 
 public class JsonHelper {
 

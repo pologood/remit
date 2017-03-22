@@ -4,8 +4,9 @@ import com.sogou.pay.remit.api.FinalInterceptor;
 import com.sogou.pay.remit.api.LogInterceptor;
 import com.sogou.pay.remit.api.SignInterceptor;
 import com.sogou.pay.remit.api.SmsInterceptor;
-import com.sogou.pay.remit.common.JsonHelper;
 import com.sogou.pay.remit.config.ProjectInfo;
+
+import commons.utils.JsonHelper;
 
 import java.io.IOException;
 import java.util.List;

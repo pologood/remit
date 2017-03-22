@@ -15,7 +15,8 @@ import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.sogou.pay.remit.common.JsonHelper;
+
+import commons.utils.JsonHelper;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月14日;
