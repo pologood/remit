@@ -5,8 +5,11 @@
  */
 package com.sogou.pay.remit.manager;
 
+import static org.apache.commons.lang3.StringUtils.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,24 +17,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Vector;
+import java.util.function.BiConsumer;
 
 import javax.annotation.Resource;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.google.common.collect.ImmutableMap;
+import com.sogou.pay.remit.entity.AccountDetail;
 import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.Currency;
 import com.sogou.pay.remit.job.TransferJob.AgencyBatchResultDto;
 import com.sogou.pay.remit.job.TransferJob.AgencyDetailResultDto;
 import com.sogou.pay.remit.job.TransferJob.AgencyDetailResultDto.Status;
 import com.sogou.pay.remit.entity.TransferDetail;
+import com.sogou.pay.remit.entity.AccountDetail.CreditOrDebit;
+import com.sogou.pay.remit.entity.AccountDetail.TradeType;
 import com.sogou.pay.remit.model.ApiResult;
 
 import commons.utils.Tuple2;
@@ -46,13 +53,98 @@ public class CmbManager implements InitializingBean {
   @Autowired
   private Environment env;
 
-  private String CMB;
+  private Map<String, String> URL_MAP;
 
   @Resource(name = "restTemplateGBK")
   private RestTemplate restTemplate;
 
+  public ApiResult<?> queryAccountDetail(String loginName, String branchCode, String accountId, LocalDate beginDate,
+      LocalDate endDate) {
+    return getQueryAccountDetailResult(restTemplate.postForObject(getUrl(loginName),
+        getQueryAccountDetailRequest(loginName, branchCode, accountId, beginDate, endDate), String.class));
+  }
+
+  private ApiResult<?> getQueryAccountDetailResult(String data) {
+    XmlPacket packet = XmlPacket.valueOf(data);
+    Vector<Map<String, String>> result = get(packet, QUERY_ACCOUNT_DETAIL_RESULT_MAP);
+    if (Objects.isNull(result)) return ApiResult.notAcceptable(ResponseCode.DATA_FORMAT_INVALID.name());
+    List<AccountDetail> detailResults = new ArrayList<>();
+    for (Map<String, String> map : result) {
+      AccountDetail detail = new AccountDetail();
+
+      detail.setTradeDate(getDate(map.get(TRADE_DATE)));
+      detail.setTradeTime(getTime(map.get(TRADE_TIME)));
+      detail.setFlag(CreditOrDebit.get(map.get(CREDIT_OR_DEBIT)));
+      detail.setSerialNumber(map.get(SERIAL_NUMBER));
+
+      fieldMap.entrySet().stream().filter(e -> isNotBlank(map.get(e.getKey())))
+          .forEach(e -> e.getValue().accept(detail, map));
+
+      detailResults.add(detail);
+    }
+    return new ApiResult<>(detailResults);
+  }
+
+  Map<String, BiConsumer<AccountDetail, Map<String, String>>> fieldMap = new HashMap<String, BiConsumer<AccountDetail, Map<String, String>>>() {
+    {
+      put(INTEREST_DATE, (detail, map) -> detail.setInterestDate(getDate(map.get(INTEREST_DATE))));
+      put(TRADE_TYPE, (detail, map) -> detail.setTradeType(TradeType.get(map.get(TRADE_TYPE))));
+      put(ABSTRACT, (detail, map) -> detail.setAbstracts(map.get(ABSTRACT)));
+      put(DEBIT_AMOUNT, (detail, map) -> detail.setDebitAmount(new BigDecimal(map.get(DEBIT_AMOUNT))));
+      put(CREDIT_AMOUNT, (detail, map) -> detail.setCreditAmount(new BigDecimal(map.get(CREDIT_AMOUNT))));
+      put(BALANCE, (detail, map) -> detail.setBalance(new BigDecimal(map.get(BALANCE))));
+      put(OUT_TRADE_NO, (detail, map) -> detail.setInstanceNo(Integer.parseInt(map.get(OUT_TRADE_NO))));
+      put(BUSINESS_NAME, (detail, map) -> detail.setBusinessName(map.get(BUSINESS_NAME)));
+      put(USAGE, (detail, map) -> detail.setUsage(map.get(USAGE)));
+      put(BATCHNO, (detail, map) -> detail.setBusinessNo(map.get(BATCHNO)));
+      put(BUSINESS_ABSTRACT, (detail, map) -> detail.setBusinessAbstract(map.get(BUSINESS_ABSTRACT)));
+      put(OTHER_ABSTRACT, (detail, map) -> detail.setOtherAbstract(map.get(OTHER_ABSTRACT)));
+      put(ACCOUNT_REGION, (detail, map) -> detail.setAccountRegion(map.get(ACCOUNT_REGION)));
+      put(ACCOUNT_NAME, (detail, map) -> detail.setAccountName(map.get(ACCOUNT_NAME)));
+      put(ACCOUNT_ID, (detail, map) -> detail.setAccountId(map.get(ACCOUNT_ID)));
+      put(BANK_CODE, (detail, map) -> detail.setBankCode(map.get(BANK_CODE)));
+      put(BANK_NAME_DETAIL, (detail, map) -> detail.setBankName(map.get(BANK_NAME_DETAIL)));
+      put(BANK_LOCATION, (detail, map) -> detail.setBankLocation(map.get(BANK_LOCATION)));
+      put(COMPANY_REGION, (detail, map) -> detail.setCompanyRegion(map.get(COMPANY_REGION)));
+      put(COMPANY_ACCOUNT, (detail, map) -> detail.setCompanyAccount(map.get(COMPANY_ACCOUNT)));
+      put(COMPANY_NAME, (detail, map) -> detail.setCompanyName(map.get(COMPANY_NAME)));
+      put(INFORMATION_FLAG, (detail, map) -> detail.setInformationFlag(map.get(INFORMATION_FLAG)));
+      put(HAS_ATTACHMENT_FLAG, (detail, map) -> detail.setHasAttachmentFlag(map.get(HAS_ATTACHMENT_FLAG)));
+      put(INVOICE, (detail, map) -> detail.setInvoice(map.get(INVOICE)));
+      put(FIX_FLAG, (detail, map) -> detail.setFixFlag(map.get(FIX_FLAG)));
+      put(EXT_ABSTRACT, (detail, map) -> detail.setExtAbstract(map.get(EXT_ABSTRACT)));
+      put(TRADE_CODE, (detail, map) -> detail.setTradeCode(map.get(TRADE_CODE)));
+      put(MERCHANT_ORDER_ID, (detail, map) -> detail.setMerchantOrderId(map.get(MERCHANT_ORDER_ID)));
+      put(COMPANY_CODE, (detail, map) -> detail.setCompanyCode(map.get(COMPANY_CODE)));
+    }
+  };
+
+  private LocalDate getDate(String date) {
+    return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
+  }
+
+  private LocalTime getTime(String date) {
+    return LocalTime.parse(date, DateTimeFormatter.ofPattern("HHmmss"));
+  }
+
+  private Object getQueryAccountDetailRequest(String loginName, String branchCode, String accountId,
+      LocalDate beginDate, LocalDate endDate) {
+    XmlPacket packet = new XmlPacket(QUERY_ACCOUNT_DETAIL_FUNCTION_NAME, loginName);
+
+    Map<String, String> map = new HashMap<>();
+
+    map.put(BRANCH_CODE, branchCode);
+    map.put(IN_ACCOUNT_ID, accountId);
+    map.put(BEGIN_DATE, format(beginDate));
+    map.put(END_DATE, format(endDate));
+
+    packet.putProperty(ACCOUNT_DETAIL_QUERY_MAP_NAME, map);
+    return packet.toXmlString();
+  }
+
   public ApiResult<?> queryDirectPay(TransferBatch batch) {
-    return getQueryDirectPayResult(restTemplate.postForObject(CMB, getQueryDirectPayRequest(batch), String.class));
+    return getQueryDirectPayResult(
+        restTemplate.postForObject(getUrl(batch.getLoginName()), getQueryDirectPayRequest(batch), String.class));
   }
 
   private String getQueryDirectPayRequest(TransferBatch batch) {
@@ -60,7 +152,7 @@ public class CmbManager implements InitializingBean {
     Map<String, String> map = new HashMap<>();
 
     map.put(BUSICODE, batch.getBusiCode().getValue());
-    map.put(BATCHNO, StringUtils.join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
+    map.put(BATCHNO, join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
     map.put(BEGIN_DATE, getBeginDate(batch));
     map.put(END_DATE, getEndDate(batch));
 
@@ -105,7 +197,8 @@ public class CmbManager implements InitializingBean {
   }
 
   public ApiResult<?> directPay(TransferBatch batch) {
-    return getDirectPayResult(restTemplate.postForObject(CMB, getDirectPayRequest(batch), String.class));
+    return getDirectPayResult(
+        restTemplate.postForObject(getUrl(batch.getLoginName()), getDirectPayRequest(batch), String.class));
   }
 
   private String getDirectPayRequest(TransferBatch batch) {
@@ -127,18 +220,18 @@ public class CmbManager implements InitializingBean {
   private void getDirectPayDetailMap(TransferBatch batch, XmlPacket packet) {
     Map<String, String> map = new HashMap<>();
 
-    map.put(BATCHNO, StringUtils.join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
+    map.put(BATCHNO, join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
     map.put(OUT_ACCOUNT_ID, batch.getOutAccountId());
     map.put("DBTBBK", batch.getBranchCode().getValue());
     map.put(DETAIL_AMOUNT, batch.getTransferAmount().toString());
     map.put(CURRENCY, Currency.RMB.getValue());
     map.put("STLCHN", batch.getSettleChannel().getValue());
-    map.put("NUSAGE", batch.getMemo());
+    map.put(USAGE, batch.getMemo());
 
     TransferDetail detail = batch.getDetails().get(0);
     map.put("CRTACC", detail.getInAccountId());
     map.put("CRTNAM", detail.getInAccountName());
-    if (StringUtils.isNoneBlank(detail.getBankCity(), detail.getBankName())) {
+    if (isNoneBlank(detail.getBankCity(), detail.getBankName())) {
       map.put(BANK_FLAG, "N");
       map.put("CRTBNK", detail.getBankName());
       map.put("CRTADR", detail.getBankCity());
@@ -161,7 +254,7 @@ public class CmbManager implements InitializingBean {
 
   public ApiResult<?> queryAgencyPayDetail(TransferBatch batch) {
     return getQueryAgencyDetailResult(
-        restTemplate.postForObject(CMB, getQueryAgencyPayDetailRequest(batch), String.class));
+        restTemplate.postForObject(getUrl(batch.getLoginName()), getQueryAgencyPayDetailRequest(batch), String.class));
   }
 
   private String getQueryAgencyPayDetailRequest(TransferBatch batch) {
@@ -192,7 +285,8 @@ public class CmbManager implements InitializingBean {
   }
 
   public ApiResult<?> queryAgencyPayResult(TransferBatch batch) {
-    return getQueryAgencyResult(restTemplate.postForObject(CMB, getQueryAgencyPayResultRequest(batch), String.class),
+    return getQueryAgencyResult(
+        restTemplate.postForObject(getUrl(batch.getLoginName()), getQueryAgencyPayResultRequest(batch), String.class),
         batch);
   }
 
@@ -201,7 +295,7 @@ public class CmbManager implements InitializingBean {
     Map<String, String> map = new HashMap<>();
 
     map.put(BUSICODE, batch.getBusiCode().getValue());
-    map.put(BATCHNO, StringUtils.join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
+    map.put(BATCHNO, join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
     map.put(BEGIN_DATE, getBeginDate(batch));
     map.put(END_DATE, getEndDate(batch));
 
@@ -225,8 +319,8 @@ public class CmbManager implements InitializingBean {
       dto.setErrMsg(map.get(AGENCY_ERROR_MESSAGE));
       dto.setOutTradeNo(map.get(OUT_TRADE_NO));
       String successAmount = map.get(SUCCESS_AMOUNT), successCount = map.get(SUCCESS_COUNT);
-      if (StringUtils.isNotBlank(successCount)) dto.setSuccessCount(Integer.parseInt(successCount));
-      if (StringUtils.isNotBlank(successAmount)) dto.setSuccessAmount(new BigDecimal(successAmount));
+      if (isNotBlank(successCount)) dto.setSuccessCount(Integer.parseInt(successCount));
+      if (isNotBlank(successAmount)) dto.setSuccessAmount(new BigDecimal(successAmount));
       return new ApiResult<>(dto);
     } else return new ApiResult<>(BusiRequestState.BANK_PROCESSING);
   }
@@ -237,7 +331,8 @@ public class CmbManager implements InitializingBean {
   }
 
   public ApiResult<?> agencyPay(TransferBatch batch) {
-    return getAgencyPayResult(restTemplate.postForObject(CMB, getAgencyPayRequest(batch), String.class));
+    return getAgencyPayResult(
+        restTemplate.postForObject(getUrl(batch.getLoginName()), getAgencyPayRequest(batch), String.class));
   }
 
   private ApiResult<?> getAgencyPayResult(String data) {
@@ -260,7 +355,7 @@ public class CmbManager implements InitializingBean {
       map.put(IN_ACCOUNT_ID, detail.getInAccountId());
       map.put(IN_ACCOUNT_NAME, detail.getInAccountName());
       map.put(DETAIL_AMOUNT, detail.getAmount().toString());
-      if (StringUtils.isNoneBlank(detail.getBankCity(), detail.getBankName())) {
+      if (isNoneBlank(detail.getBankCity(), detail.getBankName())) {
         map.put(BANK_FLAG, "N");
         map.put(BANK_NAME, detail.getBankName());
         map.put(BANK_CITY, detail.getBankCity());
@@ -281,34 +376,50 @@ public class CmbManager implements InitializingBean {
     map.put(BRANCH_CODE, batch.getBranchCode().getValue());
     map.put(TRANSFER_AMOUNT, batch.getTransferAmount().toString());
     map.put(TRANSFER_COUNT, Integer.toString(batch.getTransferCount()));
-    map.put(BATCHNO, StringUtils.join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
+    map.put(BATCHNO, join(Integer.toString(batch.getAppId()), batch.getBatchNo()));
     map.put(MEMO, batch.getMemo());
 
     xmlPacket.putProperty(AGENCY_PAY_BATCH_MAP_NAME, map);
+  }
+
+  private String getUrl(String loginName) {
+    return URL_MAP.getOrDefault(loginName, "");
   }
 
   private static final String AGENCY_PAY_BATCH_MAP_NAME = "SDKATSRQX", AGENCY_PAY_DETAIL_MAP_NAME = "SDKATDRQX",
       AGENCY_QUERY_BATCH_MAP_NAME = "SDKATSQYX", AGENCY_QUERY_DETAIL_MAP_NAME = "SDKATDQYX",
       PAY_BATCH_MAP_NAME = "SDKPAYRQX", PAY_QUERY_MAP_NAME = "SDKPAYQYX", PAY_DETAIL_MAP_NAME = "DCOPDPAYX",
       PAY_RESULT_MAP = "NTQPAYRQZ", QUERY_PAY_RESULT_MAP = "NTQPAYQYZ", QUERY_AGENCY_BATCH_RESULT_MAP = "NTQATSQYZ",
-      QUERY_AGENCY_DETAIL_RESULT_MAP = "NTQATDQYZ";
+      QUERY_AGENCY_DETAIL_RESULT_MAP = "NTQATDQYZ", ACCOUNT_DETAIL_QUERY_MAP_NAME = "SDKTSINFX",
+      QUERY_ACCOUNT_DETAIL_RESULT_MAP = "NTQTSINFZ";
 
   private static final String AGENCY_PAY_FUNCTION_NAME = "AgentRequest",
       QUERY_AGENCY_PAY_RESULT_FUNCTION_NAME = "GetAgentInfo", DIRECT_PAY_FUNCTION_NAME = "DCPAYMNT",
       QUERY_AGENCY_PAY_DETAIL_FUNCTION_NAME = "GetAgentDetail", QUERY_DIRECT_PAY_FUNCTION_NAME = "GetPaymentInfo",
-      BATCH_REQUEST_STATE = "REQSTA", REQUEST_STATE = "REQSTS", RESULT_STATE = "RTNFLG",
-      PAY_QUERY_ERROR_MESSAGE = "RTNNAR", AGENCY_ERROR_MESSAGE = "ERRDSP", TRANSFER_ID = "TRSDSP",
-      DETAIL_STATE = "STSCOD", PAY_ERROR_MESSAGE = "ERRTXT";
+      QUERY_ACCOUNT_DETAIL_FUNCTION_NAME = "GetTransInfo", BATCH_REQUEST_STATE = "REQSTA", REQUEST_STATE = "REQSTS",
+      RESULT_STATE = "RTNFLG", PAY_QUERY_ERROR_MESSAGE = "RTNNAR", AGENCY_ERROR_MESSAGE = "ERRDSP",
+      TRANSFER_ID = "TRSDSP", DETAIL_STATE = "STSCOD", PAY_ERROR_MESSAGE = "ERRTXT";
 
   private static final String BUSICODE = "BUSCOD", BUSIMODE = "BUSMOD", TRANSTYPE = "TRSTYP", OUT_ACCOUNT_ID = "DBTACC",
       BRANCH_CODE = "BBKNBR", TRANSFER_COUNT = "TOTAL", TRANSFER_AMOUNT = "SUM", BATCHNO = "YURREF", MEMO = "MEMO",
       IN_ACCOUNT_ID = "ACCNBR", IN_ACCOUNT_NAME = "CLTNAM", DETAIL_AMOUNT = "TRSAMT", BANK_FLAG = "BNKFLG",
       BANK_NAME = "EACBNK", BANK_CITY = "EACCTY", BEGIN_DATE = "BGNDAT", END_DATE = "ENDDAT", SUCCESS_AMOUNT = "SUCAMT",
-      SUCCESS_COUNT = "SUCNUM", OUT_TRADE_NO = "REQNBR", CURRENCY = "CCYNBR";
+      SUCCESS_COUNT = "SUCNUM", OUT_TRADE_NO = "REQNBR", CURRENCY = "CCYNBR", TRADE_DATE = "ETYDAT",
+      TRADE_TIME = "ETYTIM", INTEREST_DATE = "VLTDAT", TRADE_TYPE = "TRSCOD", ABSTRACT = "NARYUR",
+      DEBIT_AMOUNT = "TRSAMTD", CREDIT_AMOUNT = "TRSAMTC", CREDIT_OR_DEBIT = "AMTCDR", BALANCE = "TRSBLV",
+      SERIAL_NUMBER = "REFNBR", BUSINESS_NAME = "BUSNAM", USAGE = "NUSAGE", BUSINESS_ABSTRACT = "BUSNAR",
+      OTHER_ABSTRACT = "OTRNAR", ACCOUNT_REGION = "C_RPYBBK", ACCOUNT_NAME = "RPYNAM", ACCOUNT_ID = "RPYACC",
+      BANK_CODE = "RPYBBN", BANK_NAME_DETAIL = "RPYBNK", BANK_LOCATION = "RPYADR", COMPANY_REGION = "C_GSBBBK",
+      COMPANY_ACCOUNT = "GSBACC", COMPANY_NAME = "GSBNAM", INFORMATION_FLAG = "INFFLG", HAS_ATTACHMENT_FLAG = "ATHFLG",
+      INVOICE = "CHKNBR", FIX_FLAG = "RSVFLG", EXT_ABSTRACT = "NAREXT", TRADE_CODE = "TRSANL",
+      MERCHANT_ORDER_ID = "REFSUB", COMPANY_CODE = "FRMCOD";
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    CMB = env.getRequiredProperty("cmb.url");
+    String JIYIFU = env.getRequiredProperty("cmb.url");
+    String SOGOUWANGLUO = env.getRequiredProperty("cmb.url1");
+
+    URL_MAP = ImmutableMap.of("吉易付牛荣荣", JIYIFU, "搜狗网络鲁芳702", SOGOUWANGLUO);
   }
 
   public enum ResponseCode {
