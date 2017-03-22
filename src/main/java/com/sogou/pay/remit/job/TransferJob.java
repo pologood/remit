@@ -35,16 +35,19 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import com.sogou.pay.remit.api.SignInterceptor;
+import com.sogou.pay.remit.entity.BankInfo;
 import com.sogou.pay.remit.entity.TransferBatch;
 import com.sogou.pay.remit.entity.TransferBatch.Channel;
 import com.sogou.pay.remit.entity.TransferBatch.Status;
 import com.sogou.pay.remit.entity.TransferDetail;
 import com.sogou.pay.remit.manager.CmbManager;
 import com.sogou.pay.remit.manager.CmbManager.BusiResultState;
+import com.sogou.pay.remit.mapper.BankInfoMapper;
 import com.sogou.pay.remit.manager.TransferBatchManager;
 import com.sogou.pay.remit.manager.TransferDetailManager;
 import com.sogou.pay.remit.model.ApiResult;
 
+import commons.utils.JsonHelper;
 import commons.utils.Tuple2;
 
 //--------------------- Change Logs----------------------
@@ -58,6 +61,9 @@ public class TransferJob implements InitializingBean {
 
   @Resource(name = "restTemplateGBK")
   private RestTemplate restTemplateGBK;
+
+  @Autowired
+  BankInfoMapper bankInfoMapper;
 
   public void email() {
     MultiValueMap<String, String> data = getEmail();
@@ -94,7 +100,8 @@ public class TransferJob implements InitializingBean {
             .stream(new Object[] { batch.getChannel(), batch.getBatchNo(), batch.getTransferCount(),
                 batch.getTransferAmount(), batch.getMemo(), batch.getOutAccountId(), batch.getStatus(),
                 batch.getSuccessAmount(), batch.getSuccessCount(), batch.getOutErrMsg() })
-        .map(o -> Objects.toString(o, null)).collect(Collectors.toList()))).append("\n"));
+            .map(o -> Objects.toString(o, null)).collect(Collectors.toList())))
+        .append("\n"));
     return sb.toString();
   }
 
@@ -112,6 +119,13 @@ public class TransferJob implements InitializingBean {
     StringBuilder sb = new StringBuilder("付款金额:").append(transferAmountSum).append("\n付款笔数:").append(transferCountSum)
         .append("\n成功金额:").append(successAmountSum).append("\n成功笔数:").append(successCountSum);
     return sb.toString();
+  }
+
+  public void detail(LocalDate date) {
+    List<BankInfo> banks = bankInfoMapper.list();
+    banks.forEach(bank -> LOGGER.info("date is{}, bankinfo is {}, details are {}", date, JsonHelper.toJson(bank),
+        JsonHelper.toJson(cmbManager.queryAccountDetail(bank.getLoginName(), bank.getBranchCode().getValue(),
+            bank.getAccountId(), date, date))));
   }
 
   public void pay() {
