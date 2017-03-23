@@ -6,6 +6,7 @@
 package com.sogou.pay.remit.api;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -161,5 +162,27 @@ public class TransferBatchController {
   public ApiResult<?> email() {
     job.email();
     return ApiResult.ok();
+  }
+
+  @RequestMapping(value = "/transferBatch/daily", method = RequestMethod.GET)
+  public ApiResult<?> getDailyReport(
+      @ApiQueryParam(name = "beginDate", description = "开始日期") @DateTimeFormat(pattern = "yyyy-MM-dd") @RequestParam LocalDate beginDate,
+      @ApiQueryParam(name = "endDate", description = "结束日期") @DateTimeFormat(pattern = "yyyy-MM-dd") @RequestParam LocalDate endDate) {
+    ApiResult<List<TransferBatch>> result = transferBatchManager.list(null,
+        (Status.SUCCESS.getValue() | Status.PART.getValue()), null, beginDate.atStartOfDay(),
+        endDate.plusDays(1).atStartOfDay(), null, false);
+    if (ApiResult.isNotOK(result)) return result;
+    List<TransferBatch> batchs = result.getData();
+    int successCount = 0;
+    BigDecimal successAmount = BigDecimal.ZERO;
+    for (TransferBatch batch : batchs)
+      if (Objects.equals(Channel.PAY, batch.getChannel())) {
+        successCount++;
+        successAmount = successAmount.add(batch.getTransferAmount());
+      } else {
+        successCount += batch.getSuccessCount();
+        successAmount = successAmount.add(batch.getSuccessAmount());
+      }
+    return new ApiResult<>(new Tuple2<>(successCount, successAmount));
   }
 }

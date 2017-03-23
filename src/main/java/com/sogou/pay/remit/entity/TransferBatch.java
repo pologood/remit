@@ -850,7 +850,7 @@ public class TransferBatch {
 
   @ApiObject(name = "Currency", description = "币种", group = "TransferBatch")
   public enum Currency {
-    RMB("10", "人民币");
+    RMB("10", "CNY");
 
     private String value, description;
 
