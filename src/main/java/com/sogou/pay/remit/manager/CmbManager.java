@@ -78,44 +78,44 @@ public class CmbManager implements InitializingBean {
       detail.setSerialNumber(map.get(SERIAL_NUMBER));
 
       fieldMap.entrySet().stream().filter(e -> isNotBlank(map.get(e.getKey())))
-          .forEach(e -> e.getValue().accept(detail, map));
+          .forEach(e -> e.getValue().accept(detail, map.get(e.getKey())));
 
       detailResults.add(detail);
     }
     return new ApiResult<>(detailResults);
   }
 
-  Map<String, BiConsumer<AccountDetail, Map<String, String>>> fieldMap = new HashMap<String, BiConsumer<AccountDetail, Map<String, String>>>() {
+  Map<String, BiConsumer<AccountDetail, String>> fieldMap = new HashMap<String, BiConsumer<AccountDetail, String>>() {
     {
-      put(INTEREST_DATE, (detail, map) -> detail.setInterestDate(getDate(map.get(INTEREST_DATE))));
-      put(TRADE_TYPE, (detail, map) -> detail.setTradeType(TradeType.get(map.get(TRADE_TYPE))));
-      put(ABSTRACT, (detail, map) -> detail.setAbstracts(map.get(ABSTRACT)));
-      put(DEBIT_AMOUNT, (detail, map) -> detail.setDebitAmount(new BigDecimal(map.get(DEBIT_AMOUNT))));
-      put(CREDIT_AMOUNT, (detail, map) -> detail.setCreditAmount(new BigDecimal(map.get(CREDIT_AMOUNT))));
-      put(BALANCE, (detail, map) -> detail.setBalance(new BigDecimal(map.get(BALANCE))));
-      put(OUT_TRADE_NO, (detail, map) -> detail.setInstanceNo(Integer.parseInt(map.get(OUT_TRADE_NO))));
-      put(BUSINESS_NAME, (detail, map) -> detail.setBusinessName(map.get(BUSINESS_NAME)));
-      put(USAGE, (detail, map) -> detail.setUsage(map.get(USAGE)));
-      put(BATCHNO, (detail, map) -> detail.setBusinessNo(map.get(BATCHNO)));
-      put(BUSINESS_ABSTRACT, (detail, map) -> detail.setBusinessAbstract(map.get(BUSINESS_ABSTRACT)));
-      put(OTHER_ABSTRACT, (detail, map) -> detail.setOtherAbstract(map.get(OTHER_ABSTRACT)));
-      put(ACCOUNT_REGION, (detail, map) -> detail.setAccountRegion(map.get(ACCOUNT_REGION)));
-      put(ACCOUNT_NAME, (detail, map) -> detail.setAccountName(map.get(ACCOUNT_NAME)));
-      put(ACCOUNT_ID, (detail, map) -> detail.setAccountId(map.get(ACCOUNT_ID)));
-      put(BANK_CODE, (detail, map) -> detail.setBankCode(map.get(BANK_CODE)));
-      put(BANK_NAME_DETAIL, (detail, map) -> detail.setBankName(map.get(BANK_NAME_DETAIL)));
-      put(BANK_LOCATION, (detail, map) -> detail.setBankLocation(map.get(BANK_LOCATION)));
-      put(COMPANY_REGION, (detail, map) -> detail.setCompanyRegion(map.get(COMPANY_REGION)));
-      put(COMPANY_ACCOUNT, (detail, map) -> detail.setCompanyAccount(map.get(COMPANY_ACCOUNT)));
-      put(COMPANY_NAME, (detail, map) -> detail.setCompanyName(map.get(COMPANY_NAME)));
-      put(INFORMATION_FLAG, (detail, map) -> detail.setInformationFlag(map.get(INFORMATION_FLAG)));
-      put(HAS_ATTACHMENT_FLAG, (detail, map) -> detail.setHasAttachmentFlag(map.get(HAS_ATTACHMENT_FLAG)));
-      put(INVOICE, (detail, map) -> detail.setInvoice(map.get(INVOICE)));
-      put(FIX_FLAG, (detail, map) -> detail.setFixFlag(map.get(FIX_FLAG)));
-      put(EXT_ABSTRACT, (detail, map) -> detail.setExtAbstract(map.get(EXT_ABSTRACT)));
-      put(TRADE_CODE, (detail, map) -> detail.setTradeCode(map.get(TRADE_CODE)));
-      put(MERCHANT_ORDER_ID, (detail, map) -> detail.setMerchantOrderId(map.get(MERCHANT_ORDER_ID)));
-      put(COMPANY_CODE, (detail, map) -> detail.setCompanyCode(map.get(COMPANY_CODE)));
+      put(INTEREST_DATE, (detail, data) -> detail.setInterestDate(getDate(data)));
+      put(TRADE_TYPE, (detail, data) -> detail.setTradeType(TradeType.get(data)));
+      put(ABSTRACT, (detail, data) -> detail.setAbstracts(data));
+      put(DEBIT_AMOUNT, (detail, data) -> detail.setDebitAmount(new BigDecimal(data)));
+      put(CREDIT_AMOUNT, (detail, data) -> detail.setCreditAmount(new BigDecimal(data)));
+      put(BALANCE, (detail, data) -> detail.setBalance(new BigDecimal(data)));
+      put(OUT_TRADE_NO, (detail, data) -> detail.setInstanceNo(Integer.parseInt(data)));
+      put(BUSINESS_NAME, (detail, data) -> detail.setBusinessName(data));
+      put(USAGE, (detail, data) -> detail.setUsage(data));
+      put(BATCHNO, (detail, data) -> detail.setBusinessNo(data));
+      put(BUSINESS_ABSTRACT, (detail, data) -> detail.setBusinessAbstract(data));
+      put(OTHER_ABSTRACT, (detail, data) -> detail.setOtherAbstract(data));
+      put(ACCOUNT_REGION, (detail, data) -> detail.setAccountRegion(data));
+      put(ACCOUNT_NAME, (detail, data) -> detail.setAccountName(data));
+      put(ACCOUNT_ID, (detail, data) -> detail.setAccountId(data));
+      put(BANK_CODE, (detail, data) -> detail.setBankCode(data));
+      put(BANK_NAME_DETAIL, (detail, data) -> detail.setBankName(data));
+      put(BANK_LOCATION, (detail, data) -> detail.setBankLocation(data));
+      put(COMPANY_REGION, (detail, data) -> detail.setCompanyRegion(data));
+      put(COMPANY_ACCOUNT, (detail, data) -> detail.setCompanyAccount(data));
+      put(COMPANY_NAME, (detail, data) -> detail.setCompanyName(data));
+      put(INFORMATION_FLAG, (detail, data) -> detail.setInformationFlag(data));
+      put(HAS_ATTACHMENT_FLAG, (detail, data) -> detail.setHasAttachmentFlag(data));
+      put(INVOICE, (detail, data) -> detail.setInvoice(data));
+      put(FIX_FLAG, (detail, data) -> detail.setFixFlag(data));
+      put(EXT_ABSTRACT, (detail, data) -> detail.setExtAbstract(data));
+      put(TRADE_CODE, (detail, data) -> detail.setTradeCode(data));
+      put(MERCHANT_ORDER_ID, (detail, data) -> detail.setMerchantOrderId(data));
+      put(COMPANY_CODE, (detail, data) -> detail.setCompanyCode(data));
     }
   };
 
