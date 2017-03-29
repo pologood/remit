@@ -21,11 +21,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.google.common.collect.Sets;
 import com.sogou.pay.remit.common.Interceptor;
-import com.sogou.pay.remit.common.JsonHelper;
 import com.sogou.pay.remit.common.SignHelper;
 import com.sogou.pay.remit.enums.Exceptions;
 import com.sogou.pay.remit.manager.AppManager;
 import com.sogou.pay.remit.model.ApiResult;
+
+import commons.utils.JsonHelper;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月18日;

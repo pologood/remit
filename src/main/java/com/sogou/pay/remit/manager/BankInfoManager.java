@@ -37,6 +37,10 @@ public class BankInfoManager implements InitializingBean {
   @Autowired
   private BankInfoMapper bankInfoMapper;
 
+  public BankInfo getBankInfo(String accountId) throws BadRequestException {
+    return PAY_MAP.getOrDefault(accountId, AGENCY_MAP.get(accountId));
+  }
+
   public BankInfo getBankInfo(String accountId, Channel channel) throws BadRequestException {
     if (Objects.equals(channel, Channel.PAY)) return PAY_MAP.get(accountId);
     if (Objects.equals(channel, Channel.AGENCY)) return AGENCY_MAP.get(accountId);

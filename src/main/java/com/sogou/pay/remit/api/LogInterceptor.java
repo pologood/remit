@@ -18,11 +18,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import com.sogou.pay.remit.common.Interceptor;
-import com.sogou.pay.remit.common.JsonHelper;
 import com.sogou.pay.remit.entity.User;
 import com.sogou.pay.remit.manager.PandoraManager;
 import com.sogou.pay.remit.manager.UserManager;
 import com.sogou.pay.remit.model.ApiResult;
+
+import commons.utils.JsonHelper;
 
 //--------------------- Change Logs----------------------
 //@author wangwenlong Initial Created at 2016年7月20日;
