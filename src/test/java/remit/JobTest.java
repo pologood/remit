@@ -5,6 +5,8 @@
  */
 package remit;
 
+import java.time.LocalDate;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,11 @@ public class JobTest {
   @Test
   public void queryTest() {
     transferJob.query();
+  }
+
+  @Test
+  public void detailTest() {
+    transferJob.detail(LocalDate.now().minusDays(1));
   }
 
 }
